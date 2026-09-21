@@ -725,12 +725,10 @@
             });
         }
 
-        // Helper pour sauvegarde / partage iOS natif
         async function saveOrShareFile(content, fileName, mimeType) {
             const blob = new Blob([content], { type: mimeType });
             const file = new File([blob], fileName, { type: mimeType });
 
-            // Vérification de la compatibilité avec le partage natif iOS / Web Share API
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({
@@ -743,12 +741,11 @@
                     if (err.name !== 'AbortError') {
                         console.warn('Erreur lors du partage iOS, bascule sur le téléchargement standard:', err);
                     } else {
-                        return; // L'utilisateur a annulé le menu de partage
+                        return;
                     }
                 }
             }
 
-            // Fallback pour navigateurs classiques
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -1431,7 +1428,6 @@
         // 6. EXPORT / IMPORT / SAUVEGARDE / PARTAGE iOS
         // =========================================================
 
-        // --- SAUVEGARDE GENERALE JSON AVEC PARTAGE iOS ---
         async function exportJSON() {
             const dataStr = JSON.stringify(students, null, 2);
             const dateStr = new Date().toISOString().slice(0, 10);
@@ -1440,7 +1436,6 @@
             await saveOrShareFile(dataStr, fileName, 'application/json');
         }
 
-        // --- SAUVEGARDE CARTES DE CANTINE JSON AVEC PARTAGE iOS ---
         async function exportCanteenCardsJSON() {
             const canteenCards = students
                 .filter(s => s.regime === 'Demi-pensionnaire' || s.badgeCantine || s.badgeRepere)
@@ -1536,7 +1531,7 @@
         }
 
         function exportGlobalCSV() {
-            let csv = "\uFEFF"; // BOM pour Excel UTF-8
+            let csv = "\uFEFF";
             csv += "Nom;Prénom;Classe;Régime;Autorisation Sortie;Prof Principal;Badge Repère;Badge Cantine;Retards;Absences;Retenues(h);Observations;Sanctions;Oublis Carnet\n";
 
             students.forEach(s => {
@@ -1675,14 +1670,12 @@
                         const workbook = XLSX.read(data, { type: 'array' });
                         let fullText = '';
                         workbook.SheetNames.forEach(sheetName => {
-                            const roa = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
-                            roa.forEach(row => {
-                                fullText += row.join(' ') + '\n';
-                            });
+                            const sheet = workbook.Sheets[sheetName];
+                            fullText += XLSX.utils.sheet_to_txt(sheet) + '\n';
                         });
                         parseAndAddVieScolaireEvents(fullText);
                     } catch(err) {
-                        alert("Erreur lors de la lecture du fichier PRONOTE.");
+                        alert("Erreur lors de la lecture du fichier Excel/CSV.");
                     }
                 };
                 reader.readAsArrayBuffer(file);
@@ -1690,38 +1683,32 @@
             event.target.value = '';
         }
 
-        function parseAndAddVieScolaireEvents(text) {
+        function parseAndAddVieScolaireEvents(rawText) {
+            if (!rawText) return;
             let addedEvents = 0;
-            const lines = text.split('\n');
+            const lines = rawText.split('\n');
 
-            lines.forEach(line => {
-                if (!line.trim()) return;
+            students.forEach(student => {
+                const nom = student.nom ? student.nom.toUpperCase() : '';
+                const prenom = student.prenom ? student.prenom.toUpperCase() : '';
+                if (!nom || !prenom) return;
 
-                students.forEach(student => {
-                    const fullName = `${student.nom} ${student.prenom}`.toLowerCase();
-                    if (line.toLowerCase().includes(fullName)) {
+                lines.forEach(line => {
+                    const upperLine = line.toUpperCase();
+                    if (upperLine.includes(nom) && upperLine.includes(prenom)) {
                         let type = 'observation';
-                        let pronoteType = null;
-                        
-                        const lowerLine = line.toLowerCase();
-                        if (lowerLine.includes('retard')) type = 'retard';
-                        else if (lowerLine.includes('absence')) type = 'absence';
-                        else if (lowerLine.includes('retenue') || lowerLine.includes('colle')) type = 'retenue';
-                        else if (lowerLine.includes('sanction') || lowerLine.includes('avertissement') || lowerLine.includes('blâme')) {
-                            type = 'sanction';
-                            if (lowerLine.includes('avertissement')) pronoteType = 'Avertissement';
-                            else if (lowerLine.includes('blâme')) pronoteType = 'Blâme';
-                            else pronoteType = 'Sanction Pronote';
-                        }
+                        if (upperLine.includes('RETARD')) type = 'retard';
+                        else if (upperLine.includes('ABSENCE')) type = 'absence';
+                        else if (upperLine.includes('RETENUE') || upperLine.includes('COLLE')) type = 'retenue';
+                        else if (upperLine.includes('SANCTION') || upperLine.includes('AVERTISSEMENT')) type = 'sanction';
 
                         const now = new Date().toISOString().slice(0, 16);
-                        
                         if (!student.events) student.events = [];
+                        
                         student.events.push({
                             id: generateUUID(),
                             type,
                             date: now,
-                            pronoteType,
                             motif: line.trim()
                         });
                         addedEvents++;
@@ -1731,7 +1718,7 @@
 
             saveStorage();
             filterStudents();
-            alert(`Importation Vie Scolaire terminée : ${addedEvents} événement(s) affecté(s) aux élèves.`);
+            alert(`Importation Vie Scolaire effectuée : ${addedEvents} événement(s) réassocié(s) !`);
         }
 
         function openClearVieScolaireModal() {
@@ -1739,13 +1726,11 @@
         }
 
         function executeClearVieScolaireData() {
-            students.forEach(s => {
-                s.events = [];
-            });
+            students.forEach(s => s.events = []);
             saveStorage();
             filterStudents();
             closeModal('clearVieScolaireModal');
-            alert("Tous les événements ont été réinitialisés pour l'ensemble des élèves.");
+            alert("Tous les événements Vie Scolaire ont été effacés.");
         }
 
         function openResetModal() {
@@ -1758,7 +1743,7 @@
             populateClassFilter();
             filterStudents();
             closeModal('resetDbModal');
-            alert("Base de données totalement réinitialisée.");
+            alert("Base de données réinitialisée.");
         }
 
         function openExportClassModal() {
@@ -1767,114 +1752,65 @@
 
         function handleExportClassExcel(e) {
             e.preventDefault();
-            const selectedClass = document.getElementById('exportClassSelect').value;
-            const exportType = document.getElementById('exportTypeSelect').value;
+            const classSelect = document.getElementById('exportClassSelect').value;
+            const typeSelect = document.getElementById('exportTypeSelect').value;
 
             const wb = XLSX.utils.book_new();
-
-            const targetClasses = selectedClass === 'ALL' 
+            const classesToExport = classSelect === 'ALL' 
                 ? [...new Set(students.map(s => s.classe))].filter(Boolean).sort()
-                : [selectedClass];
+                : [classSelect];
 
-            targetClasses.forEach(className => {
-                const classStudents = students.filter(s => s.classe === className);
-                if (classStudents.length === 0) return;
-
+            classesToExport.forEach(cls => {
+                const classStudents = students.filter(s => s.classe === cls);
                 const data = [];
 
-                if (exportType === 'summary' || exportType === 'both') {
-                    data.push(["SYNTHÈSE DE CLASSE : " + className]);
-                    data.push(["Nom", "Prénom", "Régime", "Sortie Autorisée", "N° Badge Repère", "N° Badge Cantine", "Retards", "Absences", "Retenues (h)", "Observations", "Sanctions", "Oublis Carnet"]);
-                    
+                if (typeSelect === 'summary' || typeSelect === 'both') {
+                    data.push(["Nom", "Prénom", "Classe", "Régime", "Autorisation Sortie", "Prof Principal", "Badge Repère", "Badge Cantine", "Retards", "Absences", "Retenues (h)", "Observations", "Sanctions"]);
                     classStudents.forEach(s => {
                         const events = s.events || [];
-                        const retards = events.filter(ev => ev.type === 'retard').length;
-                        const absences = events.filter(ev => ev.type === 'absence').length;
-                        const retenues = events.filter(ev => ev.type === 'retenue').reduce((sum, ev) => sum + (parseInt(ev.duration) || 1), 0);
-                        const obs = events.filter(ev => ev.type === 'observation').length;
-                        const sanctions = events.filter(ev => ev.type === 'sanction').length;
-                        const carnet = events.filter(ev => ev.type === 'carnet').length;
-
                         data.push([
-                            s.nom || '',
-                            s.prenom || '',
-                            s.regime || '',
-                            s.autorisationSortie || '',
-                            s.badgeRepere || '',
-                            s.badgeCantine || '',
-                            retards,
-                            absences,
-                            retenues,
-                            obs,
-                            sanctions,
-                            carnet
+                            s.nom, s.prenom, s.classe, s.regime, s.autorisationSortie, s.profPrincipal, s.badgeRepere, s.badgeCantine,
+                            events.filter(e => e.type === 'retard').length,
+                            events.filter(e => e.type === 'absence').length,
+                            events.filter(e => e.type === 'retenue').reduce((sum, e) => sum + (parseInt(e.duration) || 1), 0),
+                            events.filter(e => e.type === 'observation').length,
+                            events.filter(e => e.type === 'sanction').length
                         ]);
                     });
-
-                    if (exportType === 'both') data.push([]); // Ligne vide
                 }
 
-                if (exportType === 'details' || exportType === 'both') {
-                    data.push(["HISTORIQUE DÉTAILLÉ DES ÉVÉNEMENTS : " + className]);
-                    data.push(["Nom", "Prénom", "Date & Heure", "Type Événement", "Détail / Statut", "Motif"]);
-
+                if (typeSelect === 'details' || typeSelect === 'both') {
+                    if (typeSelect === 'both') data.push([], ["--- HISTORIQUE DÉTAILLÉ ---"], []);
+                    data.push(["Nom", "Prénom", "Classe", "Date Event", "Type", "Détail / Statut", "Motif"]);
                     classStudents.forEach(s => {
                         (s.events || []).forEach(ev => {
-                            let detail = "";
-                            if (ev.type === 'absence' || ev.type === 'retard') detail = ev.justified === 'Oui' ? 'Justifié(e)' : 'Non justifié(e)';
-                            else if (ev.type === 'retenue') detail = `Durée: ${ev.duration || 1}h`;
-                            else if (ev.type === 'sanction' && ev.pronoteType) detail = ev.pronoteType;
-
-                            data.push([
-                                s.nom || '',
-                                s.prenom || '',
-                                ev.date || '',
-                                (ev.type || '').toUpperCase(),
-                                detail,
-                                ev.motif || ''
-                            ]);
+                            data.push([s.nom, s.prenom, s.classe, ev.date, ev.type, ev.pronoteType || ev.justified || ev.duration || '', ev.motif || '']);
                         });
                     });
                 }
 
                 const ws = XLSX.utils.aoa_to_sheet(data);
-                const safeSheetName = className.replace(/[\\/*?:[\]]/g, '').slice(0, 31);
-                XLSX.utils.book_append_sheet(wb, ws, safeSheetName || "Classe");
+                XLSX.utils.book_append_sheet(wb, ws, cls.substring(0, 31));
             });
 
-            const dateStr = new Date().toISOString().slice(0, 10);
-            XLSX.writeFile(wb, `export_classe_${selectedClass}_${dateStr}.xlsx`);
+            XLSX.writeFile(wb, `export_classes_${new Date().toISOString().slice(0, 10)}.xlsx`);
             closeModal('exportClassModal');
         }
 
         async function exportStudentPDF() {
             if (!selectedStudentId) return;
-            const student = students.find(s => s.id === selectedStudentId);
-            if (!student) return;
+            const card = document.getElementById('studentDetailCard');
+            
+            const canvas = await html2canvas(card, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-            const element = document.getElementById('studentDetailCard');
-            const opt = {
-                margin:       0.5,
-                filename:     `fiche_${student.nom}_${student.prenom}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-
-            try {
-                const canvas = await html2canvas(element, { scale: 2 });
-                const imgData = canvas.toDataURL('image/png');
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgProps = pdf.getImageProperties(imgData);
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                pdf.save(`fiche_eleve_${student.nom}_${student.prenom}.pdf`);
-            } catch(err) {
-                alert("Erreur lors de la génération du PDF.");
-            }
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`fiche_eleve_${selectedStudentId}.pdf`);
         }
     </script>
 </body>
