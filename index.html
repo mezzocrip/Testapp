@@ -101,11 +101,6 @@
                     <i data-lucide="download" class="w-4 h-4"></i>
                     <span class="hidden xl:inline ml-1">Sauvegarder</span>
                 </button>
-                <!-- Bouton Sauvegarde Partage iOS Natif -->
-                <button onclick="shareJSONiOS()" class="inline-flex items-center p-2 sm:px-2.5 sm:py-2 bg-indigo-800 hover:bg-indigo-900 text-white text-xs font-medium rounded-lg transition border border-indigo-400 shadow-sm" title="Partager la sauvegarde via le menu iOS natif">
-                    <i data-lucide="share-2" class="w-4 h-4"></i>
-                    <span class="hidden xl:inline ml-1">Partager iOS</span>
-                </button>
                 <input type="file" id="jsonInput" accept=".json" class="hidden" onchange="importJSON(event)">
 
                 <button onclick="openResetModal()" class="inline-flex items-center p-2 sm:px-2.5 sm:py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition shadow-sm border border-rose-500" title="Effacer la base de données (Nouvelle Année)">
@@ -761,40 +756,6 @@
         }
 
         // =========================================================
-        // FONCTION AJOUTÉE : Partage iOS Natif (Web Share API)
-        // =========================================================
-        async function shareJSONiOS() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(students, null, 2));
-            const filename = `viescolaire_sauvegarde_${new Date().toISOString().slice(0, 10)}.json`;
-            
-            try {
-                const response = await fetch(dataStr);
-                const blob = await response.blob();
-                const file = new File([blob], filename, { type: "application/json" });
-
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        title: 'Sauvegarde Vie Scolaire Pro',
-                        text: 'Fichier de sauvegarde de la base de données élèves.',
-                        files: [file],
-                    });
-                } else if (navigator.share) {
-                    await navigator.share({
-                        title: 'Sauvegarde Vie Scolaire Pro',
-                        text: JSON.stringify(students, null, 2),
-                    });
-                } else {
-                    alert("Le mode de partage natif n'est pas supporté par ce navigateur. Utilisez le bouton 'Sauvegarder' classique.");
-                }
-            } catch (error) {
-                if (error.name !== 'AbortError') {
-                    console.error("Erreur lors du partage :", error);
-                    alert("Impossible d'effectuer le partage natif.");
-                }
-            }
-        }
-
-        // =========================================================
         // 4. DOM RENDERERS & RENDERING ENGINE
         // =========================================================
         function populateClassFilter() {
@@ -1366,6 +1327,493 @@
             }
 
             renderRecapCategoryCards(cat);
+        }
+
+        // =========================================================
+        // 7. IMPORTATION VIE SCOLAIRE & PARSER PRONOTE / PUNITIONS
+        // =========================================================
+        function triggerAbsenceImport() {
+            document.getElementById('absenceFileInput').click();
+        }
+
+        function importAbsenceDataFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const extension = file.name.split('.').pop().toLowerCase();
+
+            if (extension === 'pdf') {
+                parseAbsencePDF(file);
+            } else if (['xlsx', 'xls', 'csv', 'txt'].includes(extension)) {
+                parseAbsenceExcelCSV(file);
+            } else {
+                alert("Format de fichier non pris en charge pour le relevé PRONOTE / Vie Scolaire.");
+            }
+
+            event.target.value = '';
+        }
+
+        function parseAbsencePDF(file) {
+            const fileReader = new FileReader();
+            fileReader.onload = function() {
+                const typedarray = new Uint8Array(this.result);
+                pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+                    let totalPages = pdf.numPages;
+                    let countPromises = [];
+
+                    for (let i = 1; i <= totalPages; i++) {
+                        countPromises.push(pdf.getPage(i).then(page => {
+                            return page.getTextContent().then(textContent => {
+                                return textContent.items.map(s => s.str).join(' ');
+                            });
+                        }));
+                    }
+
+                    Promise.all(countPromises).then(pagesText => {
+                        const fullText = pagesText.join('\n');
+                        processExtractedTextForEvents(fullText);
+                    });
+                });
+            };
+            fileReader.readAsArrayBuffer(file);
+        }
+
+        function parseAbsenceExcelCSV(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const csvText = XLSX.utils.sheet_to_csv(worksheet);
+                
+                processExtractedTextForEvents(csvText);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        /**
+         * Détecteur élargi PRONOTE : Retards, Absences, Retenues, Sanctions, Observations, Consignes, Blâmes, Commission, etc.
+         */
+        function processExtractedTextForEvents(text) {
+            let addedCount = 0;
+            const lines = text.split(/\r?\n/);
+
+            lines.forEach(line => {
+                if (!line.trim()) return;
+
+                // Match pour trouver les élèves correspondants
+                students.forEach(student => {
+                    const nom = (student.nom || '').trim().toLowerCase();
+                    const prenom = (student.prenom || '').trim().toLowerCase();
+
+                    if (!nom || !prenom) return;
+
+                    const lineLower = line.toLowerCase();
+
+                    // Recherche du nom et prénom dans la ligne de relevé
+                    if (lineLower.includes(nom) && lineLower.includes(prenom)) {
+                        
+                        let eventType = null;
+                        let pronoteType = null;
+                        let duration = 1;
+                        let justified = 'Non';
+
+                        // Détection de la présence du mot "oui" pour valider la justification
+                        const hasOui = /\boui\b/i.test(lineLower);
+
+                        // 1. PUNITIONS & SANCTIONS PRONOTE
+                        if (lineLower.includes('retenue') || lineLower.includes('colle') || lineLower.includes('consigne')) {
+                            eventType = 'retenue';
+                            pronoteType = 'Retenue';
+                            const durMatch = lineLower.match(/(\d+)\s*h/);
+                            if (durMatch) duration = parseInt(durMatch[1]) || 1;
+                        } else if (lineLower.includes('exclusion')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Exclusion de cours';
+                        } else if (lineLower.includes('avertissement')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Avertissement';
+                        } else if (lineLower.includes('blâme') || lineLower.includes('blame')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Blâme';
+                        } else if (lineLower.includes('commission')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Commission éducative';
+                        } else if (lineLower.includes('conseil de discipline')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Conseil de discipline';
+                        } else if (lineLower.includes('devoir supplémentaire') || lineLower.includes('devoir sup')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Devoir supplémentaire';
+                        } else if (lineLower.includes('travail d\'intérêt général') || lineLower.includes('tig')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Travail d\'intérêt général';
+                        } else if (lineLower.includes('mise en garde')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Mise en garde';
+                        }
+                        
+                        // 2. RETARDS
+                        else if (lineLower.includes('retard')) {
+                            eventType = 'retard';
+                            if (hasOui || lineLower.includes('justifié') || lineLower.includes('justifiee')) {
+                                justified = 'Oui';
+                            }
+                        }
+
+                        // 3. ABSENCES
+                        else if (lineLower.includes('absent') || lineLower.includes('absence')) {
+                            eventType = 'absence';
+                            if (hasOui || lineLower.includes('justifié') || lineLower.includes('justifiee')) {
+                                justified = 'Oui';
+                            }
+                        }
+
+                        // 4. OUBLI CARNET / MATÉRIEL OU OBSERVATIONS
+                        else if (lineLower.includes('carnet')) {
+                            eventType = 'carnet';
+                        } else if (lineLower.includes('observation') || lineLower.includes('bavardage') || lineLower.includes('matériel') || lineLower.includes('materiel')) {
+                            eventType = 'observation';
+                        }
+
+                        // Ajout de l'événement s'il est reconnu
+                        if (eventType) {
+                            if (!student.events) student.events = [];
+                            
+                            student.events.push({
+                                id: generateUUID(),
+                                type: eventType,
+                                pronoteType: pronoteType,
+                                date: new Date().toISOString().slice(0, 16),
+                                justified: justified,
+                                duration: duration,
+                                motif: line.trim()
+                            });
+                            addedCount++;
+                        }
+                    }
+                });
+            });
+
+            saveStorage();
+            populateClassFilter();
+            filterStudents();
+
+            alert(`Importation Vie Scolaire terminée ! ${addedCount} événement(s) / punition(s) PRONOTE ajouté(s) aux élèves.`);
+        }
+
+        function openClearVieScolaireModal() {
+            document.getElementById('clearVieScolaireModal').classList.remove('hidden');
+        }
+
+        function executeClearVieScolaireData() {
+            students.forEach(s => {
+                s.events = [];
+            });
+            saveStorage();
+            closeModal('clearVieScolaireModal');
+            filterStudents();
+            alert("Tous les événements et punitions ont été supprimés.");
+        }
+
+        // =========================================================
+        // 8. FONCTIONNALITÉ SPECIFIQUE : SAUVEGARDE ET RESTAURATION DES CARTES DE CANTINE
+        // =========================================================
+        async function exportCanteenCardsJSON() {
+            const canteenCards = students.filter(s => s.regime === 'Demi-pensionnaire' || s.badgeCantine || s.badgeRepere).map(s => ({
+                nom: s.nom,
+                prenom: s.prenom,
+                classe: s.classe,
+                badgeCantine: s.badgeCantine || '',
+                badgeRepere: s.badgeRepere || ''
+            }));
+
+            if (canteenCards.length === 0) {
+                alert("Aucune carte de cantine ou numéro de badge à sauvegarder.");
+                return;
+            }
+
+            const fileName = `Sauvegarder_Cartes_Cantine_${new Date().toISOString().slice(0,10)}.json`;
+            const jsonString = JSON.stringify(canteenCards, null, 2);
+
+            // Gestion iOS Share Sheet si disponible
+            if (navigator.share) {
+                try {
+                    const file = new File([jsonString], fileName, { type: 'application/json' });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Sauvegarde Cartes Cantine',
+                            text: 'Sauvegarde des cartes de cantine VieScolaire'
+                        });
+                        return;
+                    }
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error('Erreur de partage iOS:', err);
+                    } else {
+                        return;
+                    }
+                }
+            }
+
+            // Fallback classique si Web Share non supporté ou annulé
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", fileName);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function triggerCanteenCardsImport() {
+            document.getElementById('canteenCardsInput').click();
+        }
+
+        function importCanteenCardsJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedCards = JSON.parse(e.target.result);
+                    if (Array.isArray(importedCards)) {
+                        let matchedCount = 0;
+
+                        importedCards.forEach(card => {
+                            const cardNom = (card.nom || '').trim().toLowerCase();
+                            const cardPrenom = (card.prenom || '').trim().toLowerCase();
+
+                            const student = students.find(s => 
+                                (s.nom || '').trim().toLowerCase() === cardNom && 
+                                (s.prenom || '').trim().toLowerCase() === cardPrenom
+                            );
+
+                            if (student) {
+                                if (card.badgeCantine) student.badgeCantine = card.badgeCantine;
+                                if (card.badgeRepere) student.badgeRepere = card.badgeRepere;
+                                matchedCount++;
+                            }
+                        });
+
+                        saveStorage();
+                        filterStudents();
+                        alert(`${matchedCount} carte(s) de cantine restaurée(s) avec succès !`);
+                    }
+                } catch(err) {
+                    alert("Erreur lors de la lecture du fichier JSON de cartes de cantine.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function triggerJsonImport() {
+            document.getElementById('jsonInput').click();
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (Array.isArray(data)) {
+                        students = data;
+                        saveStorage();
+                        populateClassFilter();
+                        filterStudents();
+                        alert("Base de données restaurée avec succès !");
+                    }
+                } catch(err) {
+                    alert("Fichier JSON invalide.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        async function exportJSON() {
+            const fileName = `Sauvegarde_VieScolaire_${new Date().toISOString().slice(0,10)}.json`;
+            const jsonString = JSON.stringify(students, null, 2);
+
+            // Mode de partage iOS natif (Web Share API)
+            if (navigator.share) {
+                try {
+                    const file = new File([jsonString], fileName, { type: 'application/json' });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Sauvegarde VieScolaire',
+                            text: 'Fichier de sauvegarde complet de VieScolaire Pro'
+                        });
+                        return;
+                    }
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error('Erreur lors du partage iOS:', err);
+                    } else {
+                        return;
+                    }
+                }
+            }
+
+            // Fallback classique si Web Share non disponible
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", fileName);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function openResetModal() {
+            document.getElementById('resetDbModal').classList.remove('hidden');
+        }
+
+        function executeResetDb() {
+            students = [];
+            saveStorage();
+            populateClassFilter();
+            filterStudents();
+            closeModal('resetDbModal');
+            alert("La base de données a été réinitialisée.");
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function openAddStudentModal() {
+            document.getElementById('addStudentModal').classList.remove('hidden');
+        }
+
+        function handleAddStudent(e) {
+            e.preventDefault();
+            const nom = document.getElementById('newNom').value.trim();
+            const prenom = document.getElementById('newPrenom').value.trim();
+            const classe = document.getElementById('newClasse').value.trim();
+            const regime = document.getElementById('newRegime').value;
+            const autorisationSortie = document.getElementById('newAutorisation').value;
+            const profPrincipal = document.getElementById('newProf').value.trim();
+
+            const newStudent = {
+                id: generateUUID(),
+                nom,
+                prenom,
+                classe,
+                regime,
+                autorisationSortie,
+                profPrincipal,
+                badgeRepere: '',
+                badgeCantine: '',
+                events: []
+            };
+
+            students.push(newStudent);
+            saveStorage();
+            populateClassFilter();
+            filterStudents();
+            closeModal('addStudentModal');
+
+            document.getElementById('addStudentForm').reset();
+        }
+
+        function confirmDeleteStudent() {
+            if (!selectedStudentId) return;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function executeDeleteStudent() {
+            if (!selectedStudentId) return;
+            students = students.filter(s => s.id !== selectedStudentId);
+            saveStorage();
+            populateClassFilter();
+            closeModal('deleteModal');
+            showListPage();
+        }
+
+        function openExportClassModal() {
+            populateClassFilter();
+            document.getElementById('exportClassModal').classList.remove('hidden');
+        }
+
+        function handleExportClassExcel(e) {
+            e.preventDefault();
+            const selectedClass = document.getElementById('exportClassSelect').value;
+            const exportType = document.getElementById('exportTypeSelect').value;
+
+            const wb = XLSX.utils.book_new();
+
+            const classesToExport = selectedClass === 'ALL' 
+                ? [...new Set(students.map(s => s.classe))].filter(Boolean).sort()
+                : [selectedClass];
+
+            classesToExport.forEach(cls => {
+                const classStudents = students.filter(s => s.classe === cls);
+                
+                if (exportType === 'summary' || exportType === 'both') {
+                    const summaryData = classStudents.map(s => {
+                        const retards = (s.events || []).filter(ev => ev.type === 'retard').length;
+                        const absences = (s.events || []).filter(ev => ev.type === 'absence').length;
+                        const retenues = (s.events || []).filter(ev => ev.type === 'retenue').reduce((sum, ev) => sum + (parseInt(ev.duration) || 1), 0);
+                        const obs = (s.events || []).filter(ev => ev.type === 'observation').length;
+                        const sanctions = (s.events || []).filter(ev => ev.type === 'sanction').length;
+
+                        return {
+                            'Nom': s.nom ? s.nom.toUpperCase() : '',
+                            'Prénom': s.prenom || '',
+                            'Classe': s.classe || '',
+                            'Régime': s.regime || '',
+                            'Sortie Autorisée': s.autorisationSortie || 'Non',
+                            'Prof Principal': s.profPrincipal || '',
+                            'N° Badge Cantine': s.badgeCantine || '',
+                            'N° Carte Repère': s.badgeRepere || '',
+                            'Retards': retards,
+                            'Absences': absences,
+                            'Retenues (h)': retenues,
+                            'Observations': obs,
+                            'Sanctions': sanctions
+                        };
+                    });
+
+                    const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+                    XLSX.utils.book_append_sheet(wb, wsSummary, `${cls.substring(0, 20)} - Synthèse`);
+                }
+
+                if (exportType === 'details' || exportType === 'both') {
+                    const detailsData = [];
+                    classStudents.forEach(s => {
+                        (s.events || []).forEach(ev => {
+                            detailsData.push({
+                                'Nom': s.nom ? s.nom.toUpperCase() : '',
+                                'Prénom': s.prenom || '',
+                                'Classe': s.classe || '',
+                                'Date / Heure': ev.date,
+                                'Type Événement': ev.type.toUpperCase(),
+                                'Type Sanction PRONOTE': ev.pronoteType || '-',
+                                'Justifié': ev.justified || '-',
+                                'Durée (h)': ev.duration || '-',
+                                'Motif / Commentaire': ev.motif || ''
+                            });
+                        });
+                    });
+
+                    if (detailsData.length > 0) {
+                        const wsDetails = XLSX.utils.json_to_sheet(detailsData);
+                        XLSX.utils.book_append_sheet(wb, wsDetails, `${cls.substring(0, 20)} - Historique`);
+                    }
+                }
+            });
+
+            XLSX.writeFile(wb, `Export_VieScolaire_${selectedClass}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+            closeModal('exportClassModal');
         }
     </script>
 </body>
