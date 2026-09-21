@@ -81,7 +81,7 @@
                 <div class="h-5 w-px bg-indigo-500/50 hidden sm:block"></div>
 
                 <!-- BOUTONS CARTES DE CANTINE -->
-                <button onclick="openSaveModal('canteen')" class="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium px-2.5 py-2 rounded-lg transition shadow-sm" title="Sauvegarder les cartes de cantine (QR Code et N° Repère)">
+                <button onclick="exportCanteenCardsJSON()" class="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium px-2.5 py-2 rounded-lg transition shadow-sm" title="Sauvegarder les cartes de cantine (QR Code et N° Repère)">
                     <i data-lucide="qr-code" class="w-4 h-4"></i>
                     <span class="hidden lg:inline">Sauvegarder Cartes</span>
                 </button>
@@ -97,7 +97,7 @@
                     <i data-lucide="upload" class="w-4 h-4"></i>
                     <span class="hidden xl:inline ml-1">Restaurer</span>
                 </button>
-                <button onclick="openSaveModal('full')" class="inline-flex items-center p-2 sm:px-2.5 sm:py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition border border-indigo-500" title="Sauvegarder en fichier JSON">
+                <button onclick="exportJSON()" class="inline-flex items-center p-2 sm:px-2.5 sm:py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition border border-indigo-500" title="Sauvegarder en fichier JSON">
                     <i data-lucide="download" class="w-4 h-4"></i>
                     <span class="hidden xl:inline ml-1">Sauvegarder</span>
                 </button>
@@ -402,32 +402,6 @@
 
     </main>
 
-    <!-- MODALE : Options de Sauvegarde / Partage iOS -->
-    <div id="saveModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4 border border-slate-200 text-center">
-            <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto">
-                <i data-lucide="share" class="w-6 h-6"></i>
-            </div>
-            <div>
-                <h3 class="font-bold text-lg text-slate-800" id="saveModalTitle">Sauvegarder les données</h3>
-                <p class="text-xs text-slate-600 mt-2" id="saveModalDescription">Choisissez votre mode de sauvegarde ou de partage (optimisé iOS / iPadOS).</p>
-            </div>
-            <div class="flex flex-col gap-2.5 pt-2">
-                <button id="btnShareNative" onclick="executeNativeShare()" class="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center justify-center gap-2">
-                    <i data-lucide="share-2" class="w-4 h-4"></i>
-                    <span>Partager / Enregistrer via iOS</span>
-                </button>
-                <button onclick="executeDirectDownload()" class="w-full px-4 py-2.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-2 border border-slate-200">
-                    <i data-lucide="download" class="w-4 h-4 text-slate-500"></i>
-                    <span>Téléchargement direct (Fichier JSON)</span>
-                </button>
-                <button onclick="closeModal('saveModal')" class="w-full px-4 py-2 bg-white hover:bg-slate-50 text-slate-500 text-xs font-medium rounded-lg transition border border-transparent">
-                    Annuler
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- MODALE : Confirmation Toggle Cantine ou Sortie -->
     <div id="confirmToggleModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4 border border-slate-200 text-center">
@@ -678,7 +652,6 @@
         let currentRecapCategory = 'retard';
         let pendingToggleAction = null;
         let qrCodeObj = null;
-        let currentSaveMode = 'full'; // 'full' ou 'canteen'
 
         const demoData = [
             {
@@ -752,11 +725,6 @@
             });
         }
 
-        function closeModal(modalId) {
-            const el = document.getElementById(modalId);
-            if (el) el.classList.add('hidden');
-        }
-
         // =========================================================
         // 3. STORAGE & LIFECYCLE
         // =========================================================
@@ -785,167 +753,6 @@
 
         function saveStorage() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
-        }
-
-        // =========================================================
-        // 3b. SAUVEGARDE & PARTAGE iOS NAF
-        // =========================================================
-        function openSaveModal(mode) {
-            currentSaveMode = mode;
-            const titleEl = document.getElementById('saveModalTitle');
-            const descEl = document.getElementById('saveModalDescription');
-
-            if (mode === 'canteen') {
-                titleEl.textContent = "Sauvegarder les Cartes de Cantine";
-                descEl.textContent = "Exporter uniquement les badges de cantine et numéros repères pour la transition d'année.";
-            } else {
-                titleEl.textContent = "Sauvegarder la Base Complète";
-                descEl.textContent = "Exporter l'ensemble des élèves, badges et historiques au format JSON.";
-            }
-
-            document.getElementById('saveModal').classList.remove('hidden');
-        }
-
-        function getExportPayload() {
-            const dateStr = new Date().toISOString().split('T')[0];
-            if (currentSaveMode === 'canteen') {
-                const canteenCards = students.map(s => ({
-                    nom: s.nom,
-                    prenom: s.prenom,
-                    classe: s.classe,
-                    badgeCantine: s.badgeCantine || '',
-                    badgeRepere: s.badgeRepere || ''
-                }));
-                return {
-                    filename: `cartes_cantine_${dateStr}.json`,
-                    content: JSON.stringify(canteenCards, null, 2),
-                    mime: 'application/json'
-                };
-            } else {
-                return {
-                    filename: `viescolaire_backup_${dateStr}.json`,
-                    content: JSON.stringify(students, null, 2),
-                    mime: 'application/json'
-                };
-            }
-        }
-
-        async function executeNativeShare() {
-            const payload = getExportPayload();
-            const blob = new Blob([payload.content], { type: payload.mime });
-            const file = new File([blob], payload.filename, { type: payload.mime });
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: 'Sauvegarde VieScolaire Pro',
-                        text: 'Sauvegarde des données VieScolaire Pro'
-                    });
-                    closeModal('saveModal');
-                } catch (err) {
-                    if (err.name !== 'AbortError') {
-                        console.warn('Erreur lors du partage iOS, bascule en téléchargement direct:', err);
-                        executeDirectDownload();
-                    }
-                }
-            } else if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Sauvegarde VieScolaire Pro',
-                        text: payload.content
-                    });
-                    closeModal('saveModal');
-                } catch (err) {
-                    if (err.name !== 'AbortError') {
-                        executeDirectDownload();
-                    }
-                }
-            } else {
-                executeDirectDownload();
-            }
-        }
-
-        function executeDirectDownload() {
-            const payload = getExportPayload();
-            const blob = new Blob([payload.content], { type: payload.mime });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = payload.filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            closeModal('saveModal');
-        }
-
-        function triggerJsonImport() {
-            document.getElementById('jsonInput').click();
-        }
-
-        function importJSON(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (Array.isArray(imported)) {
-                        students = imported;
-                        saveStorage();
-                        populateClassFilter();
-                        filterStudents();
-                        alert('Sauvegarde restaurée avec succès !');
-                    } else {
-                        alert('Le fichier JSON importé est invalide.');
-                    }
-                } catch (err) {
-                    alert('Erreur lors de la lecture du fichier JSON.');
-                }
-                event.target.value = '';
-            };
-            reader.readAsText(file);
-        }
-
-        function triggerCanteenCardsImport() {
-            document.getElementById('canteenCardsInput').click();
-        }
-
-        function importCanteenCardsJSON(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const cards = JSON.parse(e.target.result);
-                    if (Array.isArray(cards)) {
-                        let count = 0;
-                        cards.forEach(c => {
-                            const student = students.find(s => 
-                                s.nom.toUpperCase() === (c.nom || '').toUpperCase() && 
-                                s.prenom.toLowerCase() === (c.prenom || '').toLowerCase()
-                            );
-                            if (student) {
-                                if (c.badgeCantine) student.badgeCantine = c.badgeCantine;
-                                if (c.badgeRepere) student.badgeRepere = c.badgeRepere;
-                                count++;
-                            }
-                        });
-                        saveStorage();
-                        filterStudents();
-                        alert(`${count} cartes de cantine restaurées !`);
-                    } else {
-                        alert('Fichier de cartes invalide.');
-                    }
-                } catch (err) {
-                    alert('Erreur lors de l\'importation des cartes.');
-                }
-                event.target.value = '';
-            };
-            reader.readAsText(file);
         }
 
         // =========================================================
@@ -1405,6 +1212,682 @@
                 saveStorage();
                 generateCanteenQRCode(student.badgeCantine || student.id);
             }
+        }
+
+        function updateCounters(student) {
+            const retards = (student.events || []).filter(e => e.type === 'retard').length;
+            const absences = (student.events || []).filter(e => e.type === 'absence').length;
+            const retenues = (student.events || []).filter(e => e.type === 'retenue').reduce((sum, e) => sum + (parseInt(e.duration) || 1), 0);
+            const obs = (student.events || []).filter(e => e.type === 'observation').length;
+            const sanctions = (student.events || []).filter(e => e.type === 'sanction').length;
+            const carnet = (student.events || []).filter(e => e.type === 'carnet').length;
+
+            document.getElementById('countRetards').textContent = retards;
+            document.getElementById('countAbsences').textContent = absences;
+            document.getElementById('countRetenues').textContent = `${retenues} h`;
+            document.getElementById('countObservations').textContent = obs;
+            document.getElementById('countSanctions').textContent = sanctions;
+            document.getElementById('countCarnet').textContent = carnet;
+        }
+
+        function openAddEventModal(type) {
+            if (!selectedStudentId) return;
+            
+            document.getElementById('eventTypeInput').value = type;
+            document.getElementById('eventModalTitle').textContent = `Ajouter : ${type.toUpperCase()}`;
+            
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('eventDateInput').value = now.toISOString().slice(0, 16);
+
+            document.getElementById('justifiedField').classList.toggle('hidden', type !== 'absence' && type !== 'retard');
+            document.getElementById('durationField').classList.toggle('hidden', type !== 'retenue');
+            document.getElementById('pronotePunitionTypeField').classList.toggle('hidden', type !== 'sanction');
+            document.getElementById('eventMotifInput').value = '';
+
+            document.getElementById('eventModal').classList.remove('hidden');
+        }
+
+        function handleSaveEvent(e) {
+            e.preventDefault();
+            if (!selectedStudentId) return;
+
+            const student = students.find(s => s.id === selectedStudentId);
+            if (!student) return;
+
+            const type = document.getElementById('eventTypeInput').value;
+            const date = document.getElementById('eventDateInput').value;
+            const motif = document.getElementById('eventMotifInput').value.trim();
+
+            const newEv = {
+                id: generateUUID(),
+                type,
+                date,
+                motif
+            };
+
+            if (type === 'absence' || type === 'retard') newEv.justified = document.getElementById('eventJustifiedInput').value;
+            if (type === 'retenue') newEv.duration = parseInt(document.getElementById('eventDurationInput').value) || 1;
+            if (type === 'sanction') newEv.pronoteType = document.getElementById('eventPronoteTypeInput').value;
+
+            if (!student.events) student.events = [];
+            student.events.push(newEv);
+
+            saveStorage();
+            closeModal('eventModal');
+
+            updateCounters(student);
+            renderHistoryTable(student);
+        }
+
+        function deleteEvent(eventId) {
+            if (!selectedStudentId) return;
+            const student = students.find(s => s.id === selectedStudentId);
+            if (!student) return;
+
+            student.events = (student.events || []).filter(e => e.id !== eventId);
+            saveStorage();
+
+            updateCounters(student);
+            renderHistoryTable(student);
+        }
+
+        // =========================================================
+        // 6. RECAPITULATIF PAGE
+        // =========================================================
+        function showRecapPage() {
+            document.getElementById('pageList').classList.add('hidden');
+            document.getElementById('pageDetail').classList.add('hidden');
+            document.getElementById('pageRecap').classList.remove('hidden');
+
+            updateRecapBadges();
+            switchRecapTab(currentRecapCategory);
+        }
+
+        function updateRecapBadges() {
+            const categories = ['retard', 'absence', 'retenue', 'observation', 'sanction', 'carnet'];
+            categories.forEach(cat => {
+                const count = students.filter(s => (s.events || []).some(e => e.type === cat)).length;
+                const badge = document.getElementById(`badge-${cat}`);
+                if (badge) badge.textContent = count;
+            });
+        }
+
+        function switchRecapTab(cat) {
+            currentRecapCategory = cat;
+            
+            const tabs = document.querySelectorAll('.recap-tab');
+            tabs.forEach(t => {
+                t.className = "recap-tab px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition text-slate-600 hover:bg-slate-100";
+            });
+
+            const activeTab = document.getElementById(`tab-${cat}`);
+            if (activeTab) {
+                activeTab.className = "recap-tab px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition bg-indigo-600 text-white shadow-xs";
+            }
+
+            renderRecapCategoryCards(cat);
+        }
+
+        // =========================================================
+        // 7. IMPORTATION VIE SCOLAIRE & PARSER PRONOTE / PUNITIONS
+        // =========================================================
+        function triggerAbsenceImport() {
+            document.getElementById('absenceFileInput').click();
+        }
+
+        function importAbsenceDataFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const extension = file.name.split('.').pop().toLowerCase();
+
+            if (extension === 'pdf') {
+                parseAbsencePDF(file);
+            } else if (['xlsx', 'xls', 'csv', 'txt'].includes(extension)) {
+                parseAbsenceExcelCSV(file);
+            } else {
+                alert("Format de fichier non pris en charge pour le relevé PRONOTE / Vie Scolaire.");
+            }
+
+            event.target.value = '';
+        }
+
+        function parseAbsencePDF(file) {
+            const fileReader = new FileReader();
+            fileReader.onload = function() {
+                const typedarray = new Uint8Array(this.result);
+                pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+                    let totalPages = pdf.numPages;
+                    let countPromises = [];
+
+                    for (let i = 1; i <= totalPages; i++) {
+                        countPromises.push(pdf.getPage(i).then(page => {
+                            return page.getTextContent().then(textContent => {
+                                return textContent.items.map(s => s.str).join(' ');
+                            });
+                        }));
+                    }
+
+                    Promise.all(countPromises).then(pagesText => {
+                        const fullText = pagesText.join('\n');
+                        processExtractedTextForEvents(fullText);
+                    });
+                });
+            };
+            fileReader.readAsArrayBuffer(file);
+        }
+
+        function parseAbsenceExcelCSV(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const csvText = XLSX.utils.sheet_to_csv(worksheet);
+                
+                processExtractedTextForEvents(csvText);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        /**
+         * Détecteur élargi PRONOTE : Retards, Absences, Retenues, Sanctions, Observations, Consignes, Blâmes, Commission, etc.
+         */
+        function processExtractedTextForEvents(text) {
+            let addedCount = 0;
+            const lines = text.split(/\r?\n/);
+
+            lines.forEach(line => {
+                if (!line.trim()) return;
+
+                // Match pour trouver les élèves correspondants
+                students.forEach(student => {
+                    const nom = (student.nom || '').trim().toLowerCase();
+                    const prenom = (student.prenom || '').trim().toLowerCase();
+
+                    if (!nom || !prenom) return;
+
+                    const lineLower = line.toLowerCase();
+
+                    // Recherche du nom et prénom dans la ligne de relevé
+                    if (lineLower.includes(nom) && lineLower.includes(prenom)) {
+                        
+                        let eventType = null;
+                        let pronoteType = null;
+                        let duration = 1;
+                        let justified = 'Non';
+
+                        // Détection de la présence du mot "oui" pour valider la justification
+                        const hasOui = /\boui\b/i.test(lineLower);
+
+                        // 1. PUNITIONS & SANCTIONS PRONOTE
+                        if (lineLower.includes('retenue') || lineLower.includes('colle') || lineLower.includes('consigne')) {
+                            eventType = 'retenue';
+                            pronoteType = 'Retenue';
+                            const durMatch = lineLower.match(/(\d+)\s*h/);
+                            if (durMatch) duration = parseInt(durMatch[1]) || 1;
+                        } else if (lineLower.includes('exclusion')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Exclusion de cours';
+                        } else if (lineLower.includes('avertissement')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Avertissement';
+                        } else if (lineLower.includes('blâme') || lineLower.includes('blame')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Blâme';
+                        } else if (lineLower.includes('commission')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Commission éducative';
+                        } else if (lineLower.includes('conseil de discipline')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Conseil de discipline';
+                        } else if (lineLower.includes('devoir supplémentaire') || lineLower.includes('devoir sup')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Devoir supplémentaire';
+                        } else if (lineLower.includes('travail d\'intérêt général') || lineLower.includes('tig')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Travail d\'intérêt général';
+                        } else if (lineLower.includes('mise en garde')) {
+                            eventType = 'sanction';
+                            pronoteType = 'Mise en garde';
+                        }
+                        
+                        // 2. RETARDS
+                        else if (lineLower.includes('retard')) {
+                            eventType = 'retard';
+                            if (hasOui || lineLower.includes('justifié') || lineLower.includes('justifiee')) {
+                                justified = 'Oui';
+                            }
+                        }
+
+                        // 3. ABSENCES
+                        else if (lineLower.includes('absent') || lineLower.includes('absence')) {
+                            eventType = 'absence';
+                            if (hasOui || lineLower.includes('justifié') || lineLower.includes('justifiee')) {
+                                justified = 'Oui';
+                            }
+                        }
+
+                        // 4. OUBLI CARNET / MATÉRIEL OU OBSERVATIONS
+                        else if (lineLower.includes('carnet')) {
+                            eventType = 'carnet';
+                        } else if (lineLower.includes('observation') || lineLower.includes('bavardage') || lineLower.includes('matériel') || lineLower.includes('materiel')) {
+                            eventType = 'observation';
+                        }
+
+                        // Ajout de l'événement s'il est reconnu
+                        if (eventType) {
+                            if (!student.events) student.events = [];
+                            
+                            student.events.push({
+                                id: generateUUID(),
+                                type: eventType,
+                                pronoteType: pronoteType,
+                                date: new Date().toISOString().slice(0, 16),
+                                justified: justified,
+                                duration: duration,
+                                motif: line.trim()
+                            });
+                            addedCount++;
+                        }
+                    }
+                });
+            });
+
+            saveStorage();
+            populateClassFilter();
+            filterStudents();
+
+            alert(`Importation Vie Scolaire terminée ! ${addedCount} événement(s) / punition(s) PRONOTE ajouté(s) aux élèves.`);
+        }
+
+        function openClearVieScolaireModal() {
+            document.getElementById('clearVieScolaireModal').classList.remove('hidden');
+        }
+
+        function executeClearVieScolaireData() {
+            students.forEach(s => {
+                s.events = [];
+            });
+            saveStorage();
+            closeModal('clearVieScolaireModal');
+            filterStudents();
+            alert("Tous les événements et punitions ont été supprimés.");
+        }
+
+        // =========================================================
+        // 8. FONCTIONNALITÉ SPECIFIQUE : SAUVEGARDE ET RESTAURATION DES CARTES DE CANTINE
+        // =========================================================
+        function exportCanteenCardsJSON() {
+            const canteenCards = students.filter(s => s.regime === 'Demi-pensionnaire' || s.badgeCantine || s.badgeRepere).map(s => ({
+                nom: s.nom,
+                prenom: s.prenom,
+                classe: s.classe,
+                badgeCantine: s.badgeCantine || '',
+                badgeRepere: s.badgeRepere || ''
+            }));
+
+            if (canteenCards.length === 0) {
+                alert("Aucune carte de cantine ou numéro de badge à sauvegarder.");
+                return;
+            }
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(canteenCards, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `Sauvegarder_Cartes_Cantine_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function triggerCanteenCardsImport() {
+            document.getElementById('canteenCardsInput').click();
+        }
+
+        function importCanteenCardsJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedCards = JSON.parse(e.target.result);
+                    if (Array.isArray(importedCards)) {
+                        let matchedCount = 0;
+
+                        importedCards.forEach(card => {
+                            const cardNom = (card.nom || '').trim().toLowerCase();
+                            const cardPrenom = (card.prenom || '').trim().toLowerCase();
+
+                            const student = students.find(s => 
+                                (s.nom || '').trim().toLowerCase() === cardNom && 
+                                (s.prenom || '').trim().toLowerCase() === cardPrenom
+                            );
+
+                            if (student) {
+                                if (card.badgeCantine) student.badgeCantine = card.badgeCantine;
+                                if (card.badgeRepere) student.badgeRepere = card.badgeRepere;
+                                matchedCount++;
+                            }
+                        });
+
+                        saveStorage();
+                        filterStudents();
+                        alert(`${matchedCount} carte(s) de cantine restaurée(s) avec succès !`);
+                    }
+                } catch(err) {
+                    alert("Erreur lors de la lecture du fichier JSON de cartes de cantine.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function triggerJsonImport() {
+            document.getElementById('jsonInput').click();
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (Array.isArray(data)) {
+                        students = data;
+                        saveStorage();
+                        populateClassFilter();
+                        filterStudents();
+                        alert("Base de données restaurée avec succès !");
+                    }
+                } catch(err) {
+                    alert("Fichier JSON invalide.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(students, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `Sauvegarde_VieScolaire_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function openResetModal() {
+            document.getElementById('resetDbModal').classList.remove('hidden');
+        }
+
+        function executeResetDb() {
+            students = [];
+            saveStorage();
+            populateClassFilter();
+            filterStudents();
+            closeModal('resetDbModal');
+            alert("La base de données a été réinitialisée.");
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function openAddStudentModal() {
+            document.getElementById('addStudentModal').classList.remove('hidden');
+        }
+
+        function handleAddStudent(e) {
+            e.preventDefault();
+            const nom = document.getElementById('newNom').value.trim();
+            const prenom = document.getElementById('newPrenom').value.trim();
+            const classe = document.getElementById('newClasse').value.trim();
+            const regime = document.getElementById('newRegime').value;
+            const autorisationSortie = document.getElementById('newAutorisation').value;
+            const profPrincipal = document.getElementById('newProf').value.trim();
+
+            const newStudent = {
+                id: generateUUID(),
+                nom,
+                prenom,
+                classe,
+                regime,
+                autorisationSortie,
+                profPrincipal,
+                badgeRepere: '',
+                badgeCantine: '',
+                events: []
+            };
+
+            students.push(newStudent);
+            saveStorage();
+            populateClassFilter();
+            filterStudents();
+            closeModal('addStudentModal');
+
+            document.getElementById('addStudentForm').reset();
+        }
+
+        function confirmDeleteStudent() {
+            if (!selectedStudentId) return;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function executeDeleteStudent() {
+            if (!selectedStudentId) return;
+            students = students.filter(s => s.id !== selectedStudentId);
+            saveStorage();
+            populateClassFilter();
+            closeModal('deleteModal');
+            showListPage();
+        }
+
+        function openExportClassModal() {
+            populateClassFilter();
+            document.getElementById('exportClassModal').classList.remove('hidden');
+        }
+
+        function handleExportClassExcel(e) {
+            e.preventDefault();
+            const selectedClass = document.getElementById('exportClassSelect').value;
+            const exportType = document.getElementById('exportTypeSelect').value;
+
+            const wb = XLSX.utils.book_new();
+
+            const classesToExport = selectedClass === 'ALL' 
+                ? [...new Set(students.map(s => s.classe))].filter(Boolean).sort()
+                : [selectedClass];
+
+            classesToExport.forEach(cls => {
+                const classStudents = students.filter(s => s.classe === cls);
+                
+                if (exportType === 'summary' || exportType === 'both') {
+                    const summaryData = classStudents.map(s => {
+                        const retards = (s.events || []).filter(ev => ev.type === 'retard').length;
+                        const absences = (s.events || []).filter(ev => ev.type === 'absence').length;
+                        const retenues = (s.events || []).filter(ev => ev.type === 'retenue').reduce((sum, ev) => sum + (parseInt(ev.duration) || 1), 0);
+                        const obs = (s.events || []).filter(ev => ev.type === 'observation').length;
+                        const sanctions = (s.events || []).filter(ev => ev.type === 'sanction').length;
+
+                        return {
+                            'Nom': s.nom ? s.nom.toUpperCase() : '',
+                            'Prénom': s.prenom || '',
+                            'Classe': s.classe || '',
+                            'Régime': s.regime || '',
+                            'Autorisation Sortie': s.autorisationSortie || '',
+                            'N° Badge Cantine': s.badgeCantine || '',
+                            'N° Carte Repère': s.badgeRepere || '',
+                            'Nb Retards': retards,
+                            'Nb Absences': absences,
+                            'Heures Retenue': retenues,
+                            'Nb Observations': obs,
+                            'Nb Sanctions': sanctions
+                        };
+                    });
+
+                    const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+                    const sheetName = selectedClass === 'ALL' ? `${cls.slice(0, 25)}_Synthèse` : 'Synthèse';
+                    XLSX.utils.book_append_sheet(wb, wsSummary, sheetName);
+                }
+
+                if (exportType === 'details' || exportType === 'both') {
+                    let detailsData = [];
+                    classStudents.forEach(s => {
+                        (s.events || []).forEach(ev => {
+                            detailsData.push({
+                                'Nom': s.nom ? s.nom.toUpperCase() : '',
+                                'Prénom': s.prenom || '',
+                                'Classe': s.classe || '',
+                                'Date & Heure': new Date(ev.date).toLocaleString('fr-FR'),
+                                'Type': ev.type ? ev.type.toUpperCase() : '',
+                                'Sous-type / Sanction': ev.pronoteType || '-',
+                                'Statut / Durée': ev.type === 'absence' || ev.type === 'retard' ? (ev.justified === 'Oui' ? 'Justifié(e)' : 'Non Justifié(e)') : (ev.type === 'retenue' ? `${ev.duration || 1}h` : '-'),
+                                'Motif': ev.motif || '-'
+                            });
+                        });
+                    });
+
+                    if (detailsData.length === 0) {
+                        detailsData = [{'Nom': '-', 'Prénom': '-', 'Classe': cls, 'Information': 'Aucun événement enregistré'}];
+                    }
+
+                    const wsDetails = XLSX.utils.json_to_sheet(detailsData);
+                    const sheetName = selectedClass === 'ALL' ? `${cls.slice(0, 25)}_Détails` : 'Détails Événements';
+                    XLSX.utils.book_append_sheet(wb, wsDetails, sheetName);
+                }
+            });
+
+            XLSX.writeFile(wb, `Export_VieScolaire_${selectedClass}_${new Date().toISOString().slice(0,10)}.xlsx`);
+            closeModal('exportClassModal');
+        }
+
+        function exportGlobalCSV() {
+            let csvRows = [];
+            csvRows.push(['Nom', 'Prénom', 'Classe', 'Régime', 'Autorisation Sortie', 'Badge Cantine', 'Carte Repère', 'Type Événement', 'Date', 'Motif', 'Justifié', 'Durée (h)'].join(';'));
+
+            students.forEach(s => {
+                if (!s.events || s.events.length === 0) {
+                    csvRows.push([
+                        `"${s.nom || ''}"`,
+                        `"${s.prenom || ''}"`,
+                        `"${s.classe || ''}"`,
+                        `"${s.regime || ''}"`,
+                        `"${s.autorisationSortie || ''}"`,
+                        `"${s.badgeCantine || ''}"`,
+                        `"${s.badgeRepere || ''}"`,
+                        '""', '""', '""', '""', '""'
+                    ].join(';'));
+                } else {
+                    s.events.forEach(ev => {
+                        csvRows.push([
+                            `"${s.nom || ''}"`,
+                            `"${s.prenom || ''}"`,
+                            `"${s.classe || ''}"`,
+                            `"${s.regime || ''}"`,
+                            `"${s.autorisationSortie || ''}"`,
+                            `"${s.badgeCantine || ''}"`,
+                            `"${s.badgeRepere || ''}"`,
+                            `"${ev.type || ''}"`,
+                            `"${ev.date || ''}"`,
+                            `"${(ev.motif || '').replace(/"/g, '""')}"`,
+                            `"${ev.justified || ''}"`,
+                            `"${ev.duration || ''}"`
+                        ].join(';'));
+                    });
+                }
+            });
+
+            const csvString = csvRows.join('\n');
+            const blob = new Blob(["\ufeff" + csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", url);
+            downloadAnchor.setAttribute("download", `Export_Global_VieScolaire_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function triggerFileImport() {
+            document.getElementById('fileInput').click();
+        }
+
+        function importDataFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                if (json.length > 1) {
+                    let importedStudents = [];
+                    for (let i = 1; i < json.length; i++) {
+                        const row = json[i];
+                        if (!row || row.length === 0) continue;
+
+                        const nom = row[0] ? String(row[0]).trim() : '';
+                        const prenom = row[1] ? String(row[1]).trim() : '';
+                        const classe = row[2] ? String(row[2]).trim() : '';
+                        const regime = row[3] ? String(row[3]).trim() : 'Demi-pensionnaire';
+                        const autorisationSortie = row[4] ? String(row[4]).trim() : 'Oui';
+                        const profPrincipal = row[5] ? String(row[5]).trim() : '';
+
+                        if (nom && prenom) {
+                            importedStudents.push({
+                                id: generateUUID(),
+                                nom,
+                                prenom,
+                                classe,
+                                regime,
+                                autorisationSortie,
+                                profPrincipal,
+                                badgeRepere: '',
+                                badgeCantine: '',
+                                events: []
+                            });
+                        }
+                    }
+
+                    if (importedStudents.length > 0) {
+                        students = importedStudents;
+                        saveStorage();
+                        populateClassFilter();
+                        filterStudents();
+                        alert(`${importedStudents.length} élève(s) importé(s) avec succès !`);
+                    } else {
+                        alert("Aucun élève valide trouvé dans le fichier.");
+                    }
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = '';
+        }
+
+        function exportStudentPDF() {
+            if (!selectedStudentId) return;
+            const element = document.getElementById('studentDetailCard');
+            
+            const opt = {
+                margin:       [0.5, 0.5, 0.5, 0.5],
+                filename:     `Fiche_Eleve_${new Date().toISOString().slice(0,10)}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
         }
     </script>
 </body>
