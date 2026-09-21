@@ -724,11 +724,9 @@
             });
         }
 
-        // Fonction universelle pour enregistrer un fichier avec la boîte de dialogue native (iOS / Navigateurs compatibles)
         async function saveFileNative(content, defaultFilename, mimeType, isBlob = false) {
             const blob = isBlob ? content : new Blob([content], { type: mimeType });
 
-            // Utilisation de l'API moderne File System Access si disponible (iOS Safari / iPadOS / Chrome)
             if (window.showSaveFilePicker) {
                 try {
                     const opts = {
@@ -744,12 +742,11 @@
                     await writable.close();
                     return;
                 } catch (err) {
-                    if (err.name === 'AbortError') return; // L'utilisateur a annulé la boîte de dialogue
+                    if (err.name === 'AbortError') return;
                     console.warn("showSaveFilePicker non disponible ou refusé, bascule vers le téléchargement classique.", err);
                 }
             }
 
-            // Fallback classique pour les navigateurs ne supportant pas showSaveFilePicker
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -760,7 +757,6 @@
             setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
-        // Fonction universelle pour ouvrir un fichier avec la boîte de dialogue native (iOS / Navigateurs compatibles)
         async function openFileNative(acceptExtensions, callback) {
             if (window.showOpenFilePicker) {
                 try {
@@ -780,7 +776,6 @@
                     console.warn("showOpenFilePicker non disponible ou refusé, bascule vers l'input file classique.", err);
                 }
             }
-            // Si non supporté, la logique appelante déclenchera l'élément <input type="file"> classique.
             return false;
         }
 
@@ -1450,9 +1445,76 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 const firstSheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[firstSheetName];
-                const csvText = XLSX.utils.sheet_to_csv(worksheet);
                 
-                processExtractedTextForEvents(csvText);
+                // Extraction sous forme JSON pour inspecter les colonnes (notamment si une colonne "Justifié" existe directement)
+                const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                
+                // Recherche d'index de colonnes explicites
+                let headerRowIdx = 0;
+                let colNom = -1, colPrenom = -1, colType = -1, colJustifie = -1, colMotif = -1;
+
+                if (jsonRows.length > 0) {
+                    jsonRows[0].forEach((colName, idx) => {
+                        const nameLower = String(colName).toLowerCase();
+                        if (nameLower.includes('nom') && !nameLower.includes('prénom') && !nameLower.includes('prenom')) colNom = idx;
+                        if (nameLower.includes('prénom') || nameLower.includes('prenom')) colPrenom = idx;
+                        if (nameLower.includes('type') || nameLower.includes('événement') || nameLower.includes('evenement')) colType = idx;
+                        if (nameLower.includes('justifi') || nameLower.includes('motif')) {
+                            if (nameLower.includes('justifi')) colJustifie = idx;
+                            if (nameLower.includes('motif')) colMotif = idx;
+                        }
+                    });
+                }
+
+                if (colNom !== -1 && colType !== -1) {
+                    // Analyse structurée par colonne Excel
+                    let addedCount = 0;
+                    for (let i = 1; i < jsonRows.length; i++) {
+                        const row = jsonRows[i];
+                        if (!row || row.length === 0) continue;
+
+                        const rowNom = String(row[colNom] || '').trim().toLowerCase();
+                        const rowPrenom = colPrenom !== -1 ? String(row[colPrenom] || '').trim().toLowerCase() : '';
+                        const rowTypeStr = String(row[colType] || '').trim().toLowerCase();
+                        const rowJustifStr = colJustifie !== -1 ? String(row[colJustifie] || '').trim().toLowerCase() : '';
+                        const rowMotifStr = colMotif !== -1 ? String(row[colMotif] || '').trim() : '';
+
+                        const student = students.find(s => {
+                            const sNom = (s.nom || '').trim().toLowerCase();
+                            const sPrenom = (s.prenom || '').trim().toLowerCase();
+                            return sNom === rowNom && (rowPrenom === '' || sPrenom === rowPrenom);
+                        });
+
+                        if (student) {
+                            let eventType = 'observation';
+                            let justified = 'Non';
+                            
+                            if (rowTypeStr.includes('retard')) eventType = 'retard';
+                            else if (rowTypeStr.includes('absence')) {
+                                eventType = 'absence';
+                                if (rowJustifStr.includes('oui') || rowJustifStr.includes('justifi')) justified = 'Oui';
+                            } else if (rowTypeStr.includes('retenue') || rowTypeStr.includes('colle')) eventType = 'retenue';
+                            else if (rowTypeStr.includes('sanction')) eventType = 'sanction';
+
+                            if (!student.events) student.events = [];
+                            student.events.push({
+                                id: generateUUID(),
+                                type: eventType,
+                                date: new Date().toISOString().slice(0, 16),
+                                justified,
+                                motif: rowMotifStr || rowTypeStr
+                            });
+                            addedCount++;
+                        }
+                    }
+                    saveStorage();
+                    filterStudents();
+                    alert(`Importation Excel structurée réussie : ${addedCount} événement(s) ajouté(s).`);
+                } else {
+                    // Fallback sur le parsing textuel brut CSV
+                    const csvText = XLSX.utils.sheet_to_csv(worksheet);
+                    processExtractedTextForEvents(csvText);
+                }
             };
             reader.readAsArrayBuffer(file);
         }
@@ -1729,7 +1791,7 @@
                                 'Classe': s.classe,
                                 'Date & Heure': ev.date,
                                 'Type': ev.type.toUpperCase(),
-                                'Sous-type / Détail': ev.pronoteType || (ev.type === 'absence' ? `Justifiée: ${ev.justified}` : ''),
+                                'Statut / Justifié': ev.type === 'absence' ? (ev.justified || 'Non') : (ev.pronoteType || ''),
                                 'Motif': ev.motif || ''
                             });
                         });
@@ -1802,6 +1864,7 @@
                     }
                     const dateFormatted = new Date(ev.date).toLocaleString('fr-FR');
                     let line = `- [${dateFormatted}] ${ev.type.toUpperCase()}`;
+                    if (ev.type === 'absence') line += ` (Justifiée: ${ev.justified || 'Non'})`;
                     if (ev.pronoteType) line += ` (${ev.pronoteType})`;
                     if (ev.motif) line += ` : ${ev.motif}`;
                     doc.text(line, 14, y, { maxWidth: 180 });
@@ -1935,7 +1998,7 @@
                 saveStorage();
                 populateClassFilter();
                 filterStudents();
-                alert(`Importation de la liste d'élèves terminée : ${added} nouvel(le) élève(s) ajouté(s).`);
+                alert(`Importation réussie : ${added} nouvel(le)(s) élève(s) ajouté(s).`);
             };
             reader.readAsArrayBuffer(file);
             event.target.value = '';
