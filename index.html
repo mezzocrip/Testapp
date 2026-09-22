@@ -5,24 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Emploi du Temps AED & Postes Vie Scolaire</title>
     <link rel="apple-touch-icon" href="./Logo.PNG">
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCfnE-RT9a03CpyZMo756umIZDkt0284Qs",
-    authDomain: "planning-c1d76.firebaseapp.com",
-    databaseURL: "https://planning-c1d76-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "planning-c1d76",
-    storageBucket: "planning-c1d76.firebasestorage.app",
-    messagingSenderId: "935188634725",
-    appId: "1:935188634725:web:85d8bf6af61d6e6eca3a8c"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
-  const planningRef = database.ref('jules-ferry/planning_v1');
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -32,6 +14,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
         * {
@@ -156,7 +142,12 @@
                     <i class="fa-solid fa-users-gear text-2xl text-indigo-200"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight">Vie Scolaire - Planning AED</h1>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl font-bold tracking-tight">Vie Scolaire - Planning AED</h1>
+                        <span id="sync-status" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 font-medium flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Firebase Synchro
+                        </span>
+                    </div>
                     <p class="text-xs text-indigo-200">Grille des Créneaux & Répartition des Postes</p>
                 </div>
             </div>
@@ -515,6 +506,21 @@
     </div>
 
     <script>
+        // Configuration Firebase Realtime Database
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfnE-RT9a03CpyZMo756umIZDkt0284Qs",
+            authDomain: "planning-c1d76.firebaseapp.com",
+            databaseURL: "https://planning-c1d76-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "planning-c1d76",
+            storageBucket: "planning-c1d76.firebasestorage.app",
+            messagingSenderId: "935188634725",
+            appId: "1:935188634725:web:85d8bf6af61d6e6eca3a8c"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const planningRef = database.ref('jules-ferry/planning_v1');
+
         const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
 
         const SLOTS = [
@@ -569,7 +575,40 @@
                 .replace(/'/g, "&#039;");
         }
 
-        function loadState() {
+        // Sauvegarde synchrone vers Firebase et backup localStorage
+        function saveState() {
+            try {
+                localStorage.setItem('aed_timetable_app_v5', JSON.stringify(appState));
+                if (planningRef) {
+                    planningRef.set(appState);
+                }
+            } catch (e) {
+                console.error("Erreur de sauvegarde de l'état :", e);
+            }
+        }
+
+        // Écoute en temps réel de Firebase Realtime Database
+        function initFirebaseSync() {
+            planningRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    appState = data;
+                    if (!appState.cpeConstraints) appState.cpeConstraints = { minMorning: 4, minEvening: 4 };
+                    if (!appState.aeds) appState.aeds = [];
+                    if (!appState.missions) appState.missions = [];
+                    localStorage.setItem('aed_timetable_app_v5', JSON.stringify(appState));
+                } else {
+                    seedDefaultData();
+                }
+                renderAll();
+            }, (error) => {
+                console.warn("Échec de synchronisation Firebase, lecture du cache local :", error);
+                loadLocalFallback();
+                renderAll();
+            });
+        }
+
+        function loadLocalFallback() {
             try {
                 const saved = localStorage.getItem('aed_timetable_app_v5');
                 if (saved) {
@@ -579,16 +618,8 @@
                     seedDefaultData();
                 }
             } catch (e) {
-                console.error("Failed to load local state", e);
+                console.error("Erreur de lecture du cache local", e);
                 seedDefaultData();
-            }
-        }
-
-        function saveState() {
-            try {
-                localStorage.setItem('aed_timetable_app_v5', JSON.stringify(appState));
-            } catch (e) {
-                console.error("Failed to save state", e);
             }
         }
 
@@ -628,16 +659,19 @@
             saveState();
         }
 
-        window.onload = function() {
-            loadState();
+        function renderAll() {
             renderCPEValues();
             renderDayTabs();
             renderMatrix();
             renderAEDCards();
             renderEquityDashboard();
+        }
+
+        window.onload = function() {
             populateSlotDropdowns();
             populateMissionTypeDropdown();
             renderPresenceFormFields();
+            initFirebaseSync();
         };
 
         function showToast(message) {
@@ -782,8 +816,7 @@
         }
 
         function generateDayScheduleHTML(targetDay, isPrint = false) {
-            // Filtrer uniquement les AED qui travaillent ce jour-là
-            const activeAedsForDay = appState.aeds.filter(aed => 
+            const activeAedsForDay = (appState.aeds || []).filter(aed => 
                 aed.presence && aed.presence[targetDay] && aed.presence[targetDay].active
             );
 
@@ -815,10 +848,9 @@
                 `;
             });
 
-            const dayMissions = appState.missions.filter(m => m.day === targetDay);
+            const dayMissions = (appState.missions || []).filter(m => m.day === targetDay);
             let tbodyHTML = '';
 
-            // Suivi des cellules fusionnées (rowspan) par AED actif
             const skipCell = {};
             activeAedsForDay.forEach(a => skipCell[a.id] = 0);
 
@@ -914,8 +946,7 @@
             const warningBox = document.getElementById('no-aed-warning');
             const alertsBar = document.getElementById('cpe-alerts-bar');
 
-            // On identifie s'il y a au moins un AED actif ce jour
-            const activeAeds = appState.aeds.filter(aed => 
+            const activeAeds = (appState.aeds || []).filter(aed => 
                 aed.presence && aed.presence[appState.currentDay] && aed.presence[appState.currentDay].active
             );
 
@@ -930,7 +961,7 @@
 
             let morningCount = 0;
             let eveningCount = 0;
-            appState.aeds.forEach(aed => {
+            (appState.aeds || []).forEach(aed => {
                 if (isAEDPresentAtTime(aed, appState.currentDay, '08:00')) morningCount++;
                 if (isAEDPresentAtTime(aed, appState.currentDay, '17:00')) eveningCount++;
             });
@@ -1022,7 +1053,7 @@
             const container = document.getElementById('aed-cards-container');
             if (!container) return;
 
-            if (appState.aeds.length === 0) {
+            if (!appState.aeds || appState.aeds.length === 0) {
                 container.innerHTML = `
                     <div class="col-span-full p-8 bg-white rounded-2xl border border-slate-200 text-center text-slate-500">
                         Aucun AED enregistré. Cliquez sur "+ Nouvel AED" pour démarrer.
@@ -1090,7 +1121,7 @@
 
                         <div class="border-t border-slate-100 pt-3 flex justify-between items-center text-xs text-slate-500">
                             <span>Missions enregistrées :</span>
-                            <span class="font-bold text-slate-800">${appState.missions.filter(m => m.aedId === aed.id).length}</span>
+                            <span class="font-bold text-slate-800">${(appState.missions || []).filter(m => m.aedId === aed.id).length}</span>
                         </div>
                     </div>
                 `;
@@ -1228,6 +1259,8 @@
                 };
             });
 
+            if (!appState.aeds) appState.aeds = [];
+
             if (id) {
                 const index = appState.aeds.findIndex(a => a.id === id);
                 if (index !== -1) {
@@ -1248,8 +1281,8 @@
 
         function deleteAED(id) {
             if (confirm("Voulez-vous vraiment supprimer cet AED et toutes ses affectations ?")) {
-                appState.aeds = appState.aeds.filter(a => a.id !== id);
-                appState.missions = appState.missions.filter(m => m.aedId !== id);
+                appState.aeds = (appState.aeds || []).filter(a => a.id !== id);
+                appState.missions = (appState.missions || []).filter(m => m.aedId !== id);
                 saveState();
                 renderMatrix();
                 renderAEDCards();
@@ -1260,7 +1293,7 @@
 
         function openMissionModal(aedId, missionId = null, defaultSlotIndex = 0) {
             const modal = document.getElementById('mission-modal');
-            const aed = appState.aeds.find(a => a.id === aedId);
+            const aed = (appState.aeds || []).find(a => a.id === aedId);
             if (!aed) return;
 
             document.getElementById('mission-day').value = appState.currentDay;
@@ -1270,7 +1303,7 @@
             const deleteBtn = document.getElementById('btn-delete-mission');
 
             if (missionId) {
-                const mission = appState.missions.find(m => m.id === missionId);
+                const mission = (appState.missions || []).find(m => m.id === missionId);
                 if (!mission) return;
 
                 document.getElementById('mission-id').value = mission.id;
@@ -1327,6 +1360,8 @@
             const endTime = document.getElementById('mission-end-time').value;
             const notes = document.getElementById('mission-notes').value.trim();
 
+            if (!appState.missions) appState.missions = [];
+
             if (id) {
                 const index = appState.missions.findIndex(m => m.id === id);
                 if (index !== -1) {
@@ -1347,7 +1382,7 @@
         function deleteMission() {
             const id = document.getElementById('mission-id').value;
             if (id) {
-                appState.missions = appState.missions.filter(m => m.id !== id);
+                appState.missions = (appState.missions || []).filter(m => m.id !== id);
                 saveState();
                 closeMissionModal();
                 renderMatrix();
@@ -1363,7 +1398,7 @@
 
             if (!headerRow || !tbody || !alertsContainer) return;
 
-            if (appState.aeds.length === 0) {
+            if (!appState.aeds || appState.aeds.length === 0) {
                 headerRow.innerHTML = '';
                 tbody.innerHTML = '<tr><td class="p-4 text-center text-slate-400">Aucune donnée disponible</td></tr>';
                 alertsContainer.innerHTML = '';
@@ -1382,7 +1417,7 @@
                 appState.aeds.forEach(aed => postSums[type][aed.id] = 0);
             });
 
-            appState.missions.forEach(m => {
+            (appState.missions || []).forEach(m => {
                 if (postSums[m.type] && postSums[m.type][m.aedId] !== undefined) {
                     const startM = timeToMinutes(m.startTime);
                     const endM = timeToMinutes(m.endTime);
@@ -1436,11 +1471,6 @@
                     if (data && data.aeds && data.missions) {
                         appState = data;
                         saveState();
-                        renderCPEValues();
-                        renderDayTabs();
-                        renderMatrix();
-                        renderAEDCards();
-                        renderEquityDashboard();
                         showToast("Données importées avec succès.");
                     } else {
                         alert("Le fichier JSON fourni n'a pas le bon format.");
@@ -1456,11 +1486,6 @@
             if (confirm("Voulez-vous vraiment réinitialiser toutes les données aux valeurs par défaut ?")) {
                 localStorage.removeItem('aed_timetable_app_v5');
                 seedDefaultData();
-                renderCPEValues();
-                renderDayTabs();
-                renderMatrix();
-                renderAEDCards();
-                renderEquityDashboard();
                 showToast("Données réinitialisées.");
             }
         }
