@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" class="min-h-full bg-slate-50">
+<html lang="fr" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -20,16 +20,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
-        html {
-            min-height: 100%;
-            overflow-y: auto;
-        }
-
-        body {
-            min-height: 100vh;
-            overflow-y: auto;
-        }
-
         * {
             font-family: 'Inter', sans-serif;
             touch-action: manipulation;
@@ -143,9 +133,9 @@
         }
     </style>
 </head>
-<body class="min-h-screen text-slate-800 flex flex-col overflow-y-auto bg-slate-50">
+<body class="min-h-screen text-slate-800 flex flex-col bg-slate-50">
 
-    <header class="bg-indigo-700 text-white shadow-md no-print sticky top-0 z-30">
+    <header class="bg-indigo-700 text-white shadow-md no-print relative z-30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center py-3 gap-3">
             <div class="flex items-center space-x-3">
                 <div class="p-2 bg-indigo-800 rounded-lg shadow-inner">
@@ -276,7 +266,7 @@
                 <div class="overflow-x-auto custom-scrollbar max-w-full">
                     <table class="w-full border-collapse text-left text-sm" id="schedule-matrix-table">
                         <thead>
-                            <tr class="bg-slate-100/80 text-slate-700 border-b border-slate-200" id="matrix-header-row"></tr>
+                            <tr class="bg-slate-100 text-slate-700 border-b border-slate-200" id="matrix-header-row"></tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100" id="matrix-body"></tbody>
                     </table>
@@ -857,7 +847,7 @@
             }
 
             let headerHTML = `
-                <th class="p-3 w-44 bg-slate-200/80 font-bold text-slate-700 uppercase tracking-wider text-xs border-r border-slate-300 sticky left-0 z-20 shadow-sm">
+                <th class="p-3 w-44 bg-slate-100 font-bold text-slate-700 uppercase tracking-wider text-xs border-r border-b border-slate-200 sticky top-0 left-0 z-30 shadow-sm">
                     Créneaux / AED
                 </th>
             `;
@@ -868,7 +858,7 @@
                 if (dayP.split && dayP.start2) presenceText += ` / ${dayP.start2}-${dayP.end2}`;
 
                 headerHTML += `
-                    <th class="p-2 min-w-[180px] font-bold border-r border-slate-200 text-center">
+                    <th class="p-2 min-w-[180px] font-bold border-r border-b border-slate-200 text-center sticky top-0 z-20 bg-slate-100 shadow-sm">
                         <div class="flex items-center justify-center gap-1.5 flex-wrap">
                             <span class="w-3 h-3 rounded-full inline-block shadow-sm" style="background-color: ${aed.color}"></span>
                             <span class="text-slate-900 font-bold text-sm tracking-wide">${escapeHtml(aed.name)}</span>
@@ -965,7 +955,7 @@
             return `
                 <table class="w-full border-collapse text-left text-sm">
                     <thead>
-                        <tr class="bg-slate-100/80 text-slate-700 border-b border-slate-200">${headerHTML}</tr>
+                        <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">${headerHTML}</tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">${tbodyHTML}</tbody>
                 </table>
