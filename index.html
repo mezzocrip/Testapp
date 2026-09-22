@@ -93,6 +93,7 @@
                 box-sizing: border-box !important;
             }
 
+            /* Fixation du positionnement des créneaux horaires à l'impression */
             .slot-row {
                 height: 38px !important;
             }
@@ -120,6 +121,7 @@
                 page-break-inside: avoid !important;
             }
 
+            /* Ajustement dynamique des colonnes */
             th.min-w-\[180px\], td.min-w-\[180px\] {
                 min-width: 0 !important;
             }
@@ -190,7 +192,7 @@
                             <i class="fa-solid fa-print text-emerald-600"></i> Imprimer Semaine Complète
                         </button>
                         <hr class="my-1 border-slate-100">
-                        <button onclick="confirmResetData()" class="w-full text-left px-4 py-2 hover:bg-red-50 flex items-center gap-2 text-red-600">
+                        <button onclick="resetData()" class="w-full text-left px-4 py-2 hover:bg-red-50 flex items-center gap-2 text-red-600">
                             <i class="fa-solid fa-trash-can"></i> Réinitialiser
                         </button>
                     </div>
@@ -227,7 +229,7 @@
                     </button>
                 </div>
 
-                <!-- Règles CPE Minimale AED -->
+                <!-- Regles CPE Minimale AED -->
                 <div class="flex flex-wrap items-center gap-4 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs">
                     <span class="font-bold text-slate-700 flex items-center gap-1">
                         <i class="fa-solid fa-shield-halved text-indigo-600"></i> Contraintes CPE (Présence min.) :
@@ -392,7 +394,7 @@
                     <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Couleur d'identification</label>
                     <div class="flex items-center gap-3">
                         <input type="color" id="aed-color" value="#4f46e5" class="h-10 w-16 p-1 rounded-lg border border-slate-300 cursor-pointer">
-                        <span class="text-xs text-slate-500">Identifie la colonne et les blocs d'interventions.</span>
+                        <span class="text-xs text-slate-500">Identifies la colonne et les blocs d'interventions.</span>
                     </div>
                 </div>
 
@@ -503,23 +505,6 @@
         </div>
     </div>
 
-    <!-- Modal: Custom Confirmation Dialog -->
-    <div id="confirm-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 flex flex-col gap-4 transform transition-all">
-            <div class="flex items-center gap-3 text-amber-600">
-                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-lg">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <h3 id="confirm-modal-title" class="font-bold text-slate-800 text-lg">Confirmation</h3>
-            </div>
-            <p id="confirm-modal-message" class="text-sm text-slate-600 leading-relaxed">Êtes-vous sûr de vouloir effectuer cette action ?</p>
-            <div class="flex justify-end gap-3 pt-2 border-t border-slate-100">
-                <button id="confirm-modal-cancel" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Annuler</button>
-                <button id="confirm-modal-ok" class="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 shadow-md">Confirmer</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         // Configuration Firebase Realtime Database
         const firebaseConfig = {
@@ -537,6 +522,19 @@
         const planningRef = database.ref('jules-ferry/planning_v1');
 
         const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+
+        // Fonction déterminant le nom du jour actuel de la semaine
+        function getCurrentDayName() {
+            const daysMap = {
+                1: 'Lundi',
+                2: 'Mardi',
+                3: 'Mercredi',
+                4: 'Jeudi',
+                5: 'Vendredi'
+            };
+            const currentDayIndex = new Date().getDay(); // 0 = Dimanche, 1 = Lundi, ..., 6 = Samedi
+            return daysMap[currentDayIndex] || 'Lundi'; // Par défaut Lundi durant le week-end
+        }
 
         const SLOTS = [
             { id: 'M1', label: 'M1', start: '08:00', end: '09:00', type: 'cours' },
@@ -573,33 +571,14 @@
 
         const CONTRACT_HOURS = { '100': 40, '75': 30, '50': 20 };
 
-        let initialDaySet = false;
+        let isInitialLoad = true;
 
         let appState = {
-            currentDay: 'Lundi',
+            currentDay: getCurrentDayName(),
             cpeConstraints: { minMorning: 4, minEvening: 4 },
             aeds: [],
             missions: []
         };
-
-        function getCurrentDayName() {
-            const dayIndex = new Date().getDay(); // 0 = Dimanche, 1 = Lundi, 2 = Mardi, 3 = Mercredi, 4 = Jeudi, 5 = Vendredi, 6 = Samedi
-            const dayMap = {
-                1: 'Lundi',
-                2: 'Mardi',
-                3: 'Mercredi',
-                4: 'Jeudi',
-                5: 'Vendredi'
-            };
-            return dayMap[dayIndex] || 'Lundi'; // Repli sur Lundi le week-end (0 ou 6)
-        }
-
-        function applyInitialDay() {
-            if (!initialDaySet) {
-                appState.currentDay = getCurrentDayName();
-                initialDaySet = true;
-            }
-        }
 
         function escapeHtml(str) {
             if (!str) return '';
@@ -611,6 +590,7 @@
                 .replace(/'/g, "&#039;");
         }
 
+        // Sauvegarde synchrone vers Firebase et backup localStorage
         function saveState() {
             try {
                 localStorage.setItem('aed_timetable_app_v5', JSON.stringify(appState));
@@ -622,11 +602,14 @@
             }
         }
 
+        // Écoute en temps réel de Firebase Realtime Database
         function initFirebaseSync() {
             planningRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
+                    const activeDay = isInitialLoad ? getCurrentDayName() : (appState.currentDay || getCurrentDayName());
                     appState = data;
+                    appState.currentDay = activeDay;
                     if (!appState.cpeConstraints) appState.cpeConstraints = { minMorning: 4, minEvening: 4 };
                     if (!appState.aeds) appState.aeds = [];
                     if (!appState.missions) appState.missions = [];
@@ -634,12 +617,11 @@
                 } else {
                     seedDefaultData();
                 }
-                applyInitialDay();
+                isInitialLoad = false;
                 renderAll();
             }, (error) => {
                 console.warn("Échec de synchronisation Firebase, lecture du cache local :", error);
                 loadLocalFallback();
-                applyInitialDay();
                 renderAll();
             });
         }
@@ -648,7 +630,9 @@
             try {
                 const saved = localStorage.getItem('aed_timetable_app_v5');
                 if (saved) {
+                    const activeDay = isInitialLoad ? getCurrentDayName() : (appState.currentDay || getCurrentDayName());
                     appState = JSON.parse(saved);
+                    appState.currentDay = activeDay;
                     if(!appState.cpeConstraints) appState.cpeConstraints = { minMorning: 4, minEvening: 4 };
                 } else {
                     seedDefaultData();
@@ -657,6 +641,7 @@
                 console.error("Erreur de lecture du cache local", e);
                 seedDefaultData();
             }
+            isInitialLoad = false;
         }
 
         function seedDefaultData() {
@@ -677,6 +662,7 @@
             };
 
             appState.cpeConstraints = { minMorning: 4, minEvening: 4 };
+            appState.currentDay = getCurrentDayName();
 
             appState.aeds = [
                 { id: 'aed-1', name: 'Sophie MARTIN', contract: 100, isStudent: false, customHours: 40, color: '#4f46e5', presence: JSON.parse(JSON.stringify(defaultPresence)) },
@@ -704,7 +690,6 @@
         }
 
         window.onload = function() {
-            applyInitialDay();
             populateSlotDropdowns();
             populateMissionTypeDropdown();
             renderPresenceFormFields();
@@ -721,35 +706,6 @@
                     toast.classList.add('hidden');
                 }, 3000);
             }
-        }
-
-        function showConfirm(title, message, onConfirm) {
-            const modal = document.getElementById('confirm-modal');
-            const titleEl = document.getElementById('confirm-modal-title');
-            const msgEl = document.getElementById('confirm-modal-message');
-            const cancelBtn = document.getElementById('confirm-modal-cancel');
-            const okBtn = document.getElementById('confirm-modal-ok');
-
-            if (!modal || !titleEl || !msgEl || !cancelBtn || !okBtn) return;
-
-            titleEl.textContent = title;
-            msgEl.textContent = message;
-
-            const cleanup = () => {
-                modal.classList.add('hidden');
-                okBtn.onclick = null;
-                cancelBtn.onclick = null;
-            };
-
-            cancelBtn.onclick = cleanup;
-            okBtn.onclick = () => {
-                cleanup();
-                if (typeof onConfirm === 'function') {
-                    onConfirm();
-                }
-            };
-
-            modal.classList.remove('hidden');
         }
 
         function renderCPEValues() {
@@ -801,16 +757,13 @@
 
         function renderDayTabs() {
             const container = document.getElementById('day-tabs');
-            const todayName = getCurrentDayName();
             container.innerHTML = DAYS.map(day => {
                 const isActive = appState.currentDay === day;
-                const isToday = day === todayName;
                 return `
-                    <button onclick="selectDay('${day}')" class="px-3 py-1.5 rounded-xl font-medium text-xs sm:text-sm transition-all duration-150 flex items-center gap-1.5 ${
+                    <button onclick="selectDay('${day}')" class="px-3 py-1.5 rounded-xl font-medium text-xs sm:text-sm transition-all duration-150 ${
                         isActive ? 'bg-indigo-600 text-white shadow-md font-semibold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }">
-                        <span>${day}</span>
-                        ${isToday ? `<span class="text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-indigo-800 text-indigo-100 font-bold' : 'bg-indigo-100 text-indigo-700 font-bold'}">Auj.</span>` : ''}
+                        ${day}
                     </button>
                 `;
             }).join('');
@@ -1349,19 +1302,15 @@
         }
 
         function deleteAED(id) {
-            showConfirm(
-                "Suppression AED",
-                "Voulez-vous vraiment supprimer cet AED et toutes ses affectations ?",
-                () => {
-                    appState.aeds = (appState.aeds || []).filter(a => a.id !== id);
-                    appState.missions = (appState.missions || []).filter(m => m.aedId !== id);
-                    saveState();
-                    renderMatrix();
-                    renderAEDCards();
-                    renderEquityDashboard();
-                    showToast("AED supprimé.");
-                }
-            );
+            if (confirm("Voulez-vous vraiment supprimer cet AED et toutes ses affectations ?")) {
+                appState.aeds = (appState.aeds || []).filter(a => a.id !== id);
+                appState.missions = (appState.missions || []).filter(m => m.aedId !== id);
+                saveState();
+                renderMatrix();
+                renderAEDCards();
+                renderEquityDashboard();
+                showToast("AED supprimé.");
+            }
         }
 
         function openMissionModal(aedId, missionId = null, defaultSlotIndex = 0) {
@@ -1544,30 +1493,23 @@
                     if (data && data.aeds && data.missions) {
                         appState = data;
                         saveState();
-                        renderAll();
                         showToast("Données importées avec succès.");
                     } else {
-                        showToast("Format JSON invalide.");
+                        alert("Le fichier JSON fourni n'a pas le bon format.");
                     }
                 } catch (err) {
-                    showToast("Erreur lors de la lecture du fichier JSON.");
+                    alert("Erreur lors de la lecture du fichier JSON.");
                 }
             };
             reader.readAsText(file);
         }
 
-        function confirmResetData() {
-            showConfirm(
-                "Réinitialisation",
-                "Voulez-vous vraiment réinitialiser toutes les données aux valeurs par défaut ?",
-                () => {
-                    localStorage.removeItem('aed_timetable_app_v5');
-                    seedDefaultData();
-                    applyInitialDay();
-                    renderAll();
-                    showToast("Données réinitialisées.");
-                }
-            );
+        function resetData() {
+            if (confirm("Voulez-vous vraiment réinitialiser toutes les données aux valeurs par défaut ?")) {
+                localStorage.removeItem('aed_timetable_app_v5');
+                seedDefaultData();
+                showToast("Données réinitialisées.");
+            }
         }
     </script>
 </body>
