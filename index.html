@@ -65,6 +65,7 @@
                 display: none !important;
             }
             
+            /* Ajustements de conteneur d'impression */
             #screen-schedule-container, 
             .print-full-width {
                 width: 100% !important;
@@ -76,9 +77,8 @@
                 overflow: visible !important;
             }
 
-            .overflow-x-auto, .overflow-y-auto {
+            .overflow-x-auto {
                 overflow: visible !important;
-                max-height: none !important;
             }
 
             table {
@@ -91,9 +91,9 @@
             th, td {
                 padding: 1px 2px !important;
                 box-sizing: border-box !important;
-                position: static !important;
             }
 
+            /* Fixation du positionnement des créneaux horaires à l'impression */
             .slot-row {
                 height: 38px !important;
             }
@@ -121,6 +121,7 @@
                 page-break-inside: avoid !important;
             }
 
+            /* Ajustement dynamique des colonnes */
             th.min-w-\[180px\], td.min-w-\[180px\] {
                 min-width: 0 !important;
             }
@@ -134,7 +135,7 @@
 </head>
 <body class="h-full text-slate-800 flex flex-col min-h-screen">
 
-    <header class="bg-indigo-700 text-white shadow-md no-print sticky top-0 z-40">
+    <header class="bg-indigo-700 text-white shadow-md no-print sticky top-0 z-30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center py-3 gap-3">
             <div class="flex items-center space-x-3">
                 <div class="p-2 bg-indigo-800 rounded-lg shadow-inner">
@@ -228,10 +229,10 @@
                     </button>
                 </div>
 
-                <!-- Regles CPE Minimale AED par Jour -->
+                <!-- Regles CPE Minimale AED -->
                 <div class="flex flex-wrap items-center gap-4 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs">
                     <span class="font-bold text-slate-700 flex items-center gap-1">
-                        <i class="fa-solid fa-shield-halved text-indigo-600"></i> Contraintes CPE (<span id="cpe-day-label" class="text-indigo-700 font-extrabold">Jour</span>) :
+                        <i class="fa-solid fa-shield-halved text-indigo-600"></i> Contraintes CPE (Présence min.) :
                     </span>
                     <div class="flex items-center gap-2">
                         <span>Matin (M1) :</span>
@@ -262,10 +263,10 @@
                     <p id="print-day-title" class="text-base font-semibold text-indigo-700">Jour : Lundi</p>
                 </div>
 
-                <div class="overflow-x-auto overflow-y-auto custom-scrollbar max-w-full max-h-[75vh]">
+                <div class="overflow-x-auto custom-scrollbar max-w-full">
                     <table class="w-full border-collapse text-left text-sm" id="schedule-matrix-table">
-                        <thead class="sticky top-0 z-30 bg-slate-100 shadow-sm">
-                            <tr class="bg-slate-100/95 text-slate-700 border-b border-slate-200" id="matrix-header-row"></tr>
+                        <thead>
+                            <tr class="bg-slate-100/80 text-slate-700 border-b border-slate-200" id="matrix-header-row"></tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100" id="matrix-body"></tbody>
                     </table>
@@ -522,16 +523,7 @@
 
         const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
 
-        function getDefaultCPEConstraints() {
-            return {
-                'Lundi': { minMorning: 4, minEvening: 4 },
-                'Mardi': { minMorning: 4, minEvening: 4 },
-                'Mercredi': { minMorning: 4, minEvening: 0 },
-                'Jeudi': { minMorning: 4, minEvening: 4 },
-                'Vendredi': { minMorning: 4, minEvening: 4 }
-            };
-        }
-
+        // Fonction déterminant le nom du jour actuel de la semaine
         function getCurrentDayName() {
             const daysMap = {
                 1: 'Lundi',
@@ -540,8 +532,8 @@
                 4: 'Jeudi',
                 5: 'Vendredi'
             };
-            const currentDayIndex = new Date().getDay();
-            return daysMap[currentDayIndex] || 'Lundi';
+            const currentDayIndex = new Date().getDay(); // 0 = Dimanche, 1 = Lundi, ..., 6 = Samedi
+            return daysMap[currentDayIndex] || 'Lundi'; // Par défaut Lundi durant le week-end
         }
 
         const SLOTS = [
@@ -583,10 +575,33 @@
 
         let appState = {
             currentDay: getCurrentDayName(),
-            cpeConstraints: getDefaultCPEConstraints(),
+            cpeConstraints: {},
             aeds: [],
             missions: []
         };
+
+        function initCpeConstraints() {
+            if (!appState.cpeConstraints || typeof appState.cpeConstraints.minMorning !== 'undefined') {
+                const oldMorning = (appState.cpeConstraints && appState.cpeConstraints.minMorning) || 4;
+                const oldEvening = (appState.cpeConstraints && appState.cpeConstraints.minEvening) || 4;
+                appState.cpeConstraints = {};
+                DAYS.forEach(day => {
+                    appState.cpeConstraints[day] = {
+                        minMorning: oldMorning,
+                        minEvening: day === 'Mercredi' ? 0 : oldEvening
+                    };
+                });
+            } else {
+                DAYS.forEach(day => {
+                    if (!appState.cpeConstraints[day]) {
+                        appState.cpeConstraints[day] = {
+                            minMorning: 4,
+                            minEvening: day === 'Mercredi' ? 0 : 4
+                        };
+                    }
+                });
+            }
+        }
 
         function escapeHtml(str) {
             if (!str) return '';
@@ -598,18 +613,7 @@
                 .replace(/'/g, "&#039;");
         }
 
-        function validateCPEConstraintsStructure() {
-            if (!appState.cpeConstraints || typeof appState.cpeConstraints.minMorning === 'number') {
-                appState.cpeConstraints = getDefaultCPEConstraints();
-            } else {
-                DAYS.forEach(d => {
-                    if (!appState.cpeConstraints[d]) {
-                        appState.cpeConstraints[d] = { minMorning: 4, minEvening: d === 'Mercredi' ? 0 : 4 };
-                    }
-                });
-            }
-        }
-
+        // Sauvegarde synchrone vers Firebase et backup localStorage
         function saveState() {
             try {
                 localStorage.setItem('aed_timetable_app_v5', JSON.stringify(appState));
@@ -621,6 +625,7 @@
             }
         }
 
+        // Écoute en temps réel de Firebase Realtime Database
         function initFirebaseSync() {
             planningRef.on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -628,7 +633,7 @@
                     const activeDay = isInitialLoad ? getCurrentDayName() : (appState.currentDay || getCurrentDayName());
                     appState = data;
                     appState.currentDay = activeDay;
-                    validateCPEConstraintsStructure();
+                    initCpeConstraints();
                     if (!appState.aeds) appState.aeds = [];
                     if (!appState.missions) appState.missions = [];
                     localStorage.setItem('aed_timetable_app_v5', JSON.stringify(appState));
@@ -651,7 +656,7 @@
                     const activeDay = isInitialLoad ? getCurrentDayName() : (appState.currentDay || getCurrentDayName());
                     appState = JSON.parse(saved);
                     appState.currentDay = activeDay;
-                    validateCPEConstraintsStructure();
+                    initCpeConstraints();
                 } else {
                     seedDefaultData();
                 }
@@ -679,8 +684,14 @@
                 'Vendredi': { active: false, start1: '', end1: '', split: false, start2: '', end2: '' }
             };
 
-            appState.cpeConstraints = getDefaultCPEConstraints();
             appState.currentDay = getCurrentDayName();
+            appState.cpeConstraints = {
+                'Lundi': { minMorning: 4, minEvening: 4 },
+                'Mardi': { minMorning: 4, minEvening: 4 },
+                'Mercredi': { minMorning: 4, minEvening: 0 },
+                'Jeudi': { minMorning: 4, minEvening: 4 },
+                'Vendredi': { minMorning: 4, minEvening: 4 }
+            };
 
             appState.aeds = [
                 { id: 'aed-1', name: 'Sophie MARTIN', contract: 100, isStudent: false, customHours: 40, color: '#4f46e5', presence: JSON.parse(JSON.stringify(defaultPresence)) },
@@ -727,33 +738,28 @@
         }
 
         function renderCPEValues() {
-            validateCPEConstraintsStructure();
-            const currentDay = appState.currentDay || 'Lundi';
-            const dayConstraints = appState.cpeConstraints[currentDay] || { minMorning: 4, minEvening: 4 };
-
-            document.getElementById('cpe-day-label').textContent = currentDay;
+            initCpeConstraints();
+            const dayConstraints = appState.cpeConstraints[appState.currentDay] || { minMorning: 4, minEvening: 4 };
             document.getElementById('cpe-min-morning').textContent = dayConstraints.minMorning;
 
             const eveningContainer = document.getElementById('cpe-evening-container');
-            if (currentDay === 'Mercredi') {
-                eveningContainer.classList.add('hidden');
+            const eveningVal = document.getElementById('cpe-min-evening');
+
+            if (appState.currentDay === 'Mercredi') {
+                if (eveningContainer) eveningContainer.classList.add('hidden');
             } else {
-                eveningContainer.classList.remove('hidden');
-                document.getElementById('cpe-min-evening').textContent = dayConstraints.minEvening;
+                if (eveningContainer) eveningContainer.classList.remove('hidden');
+                if (eveningVal) eveningVal.textContent = dayConstraints.minEvening;
             }
         }
 
         function changeCPEThreshold(type, val) {
-            validateCPEConstraintsStructure();
-            const currentDay = appState.currentDay || 'Lundi';
-            
-            if (!appState.cpeConstraints[currentDay]) {
-                appState.cpeConstraints[currentDay] = { minMorning: 4, minEvening: currentDay === 'Mercredi' ? 0 : 4 };
+            initCpeConstraints();
+            const day = appState.currentDay;
+            if (!appState.cpeConstraints[day]) {
+                appState.cpeConstraints[day] = { minMorning: 4, minEvening: 4 };
             }
-
-            const currentVal = appState.cpeConstraints[currentDay][type] || 0;
-            appState.cpeConstraints[currentDay][type] = Math.max(1, currentVal + val);
-            
+            appState.cpeConstraints[day][type] = Math.max(0, (appState.cpeConstraints[day][type] || 0) + val);
             saveState();
             renderCPEValues();
             renderMatrix();
@@ -813,7 +819,6 @@
         function selectDay(day) {
             appState.currentDay = day;
             renderDayTabs();
-            renderCPEValues();
             renderMatrix();
         }
 
@@ -887,7 +892,7 @@
             }
 
             let headerHTML = `
-                <th class="p-3 w-44 bg-slate-200 font-bold text-slate-700 uppercase tracking-wider text-xs border-r border-b border-slate-300 sticky top-0 left-0 z-30 shadow-sm">
+                <th class="p-3 w-44 bg-slate-200/80 font-bold text-slate-700 uppercase tracking-wider text-xs border-r border-slate-300 sticky left-0 z-20 shadow-sm">
                     Créneaux / AED
                 </th>
             `;
@@ -898,7 +903,7 @@
                 if (dayP.split && dayP.start2) presenceText += ` / ${dayP.start2}-${dayP.end2}`;
 
                 headerHTML += `
-                    <th class="p-2 min-w-[180px] font-bold border-r border-b border-slate-200 text-center sticky top-0 z-20 bg-slate-100 shadow-sm">
+                    <th class="p-2 min-w-[180px] font-bold border-r border-slate-200 text-center">
                         <div class="flex items-center justify-center gap-1.5 flex-wrap">
                             <span class="w-3 h-3 rounded-full inline-block shadow-sm" style="background-color: ${aed.color}"></span>
                             <span class="text-slate-900 font-bold text-sm tracking-wide">${escapeHtml(aed.name)}</span>
@@ -953,7 +958,7 @@
                         const styleInfo = MISSION_TYPES[mission.type] || MISSION_TYPES['Permanence'];
 
                         tbodyHTML += `
-                            <td rowspan="${rowSpan}" class="p-1 border-r border-b border-slate-200 align-top">
+                            <td rowspan="${rowSpan}" class="p-1 border-r border-b border-slate-200 align-top p-1">
                                 <div ${!isPrint ? `onclick="event.stopPropagation(); openMissionModal('${aed.id}', '${mission.id}')"` : ''} 
                                     class="mission-block w-full h-full p-2 rounded-xl ${styleInfo.bg} ${styleInfo.text} ${styleInfo.border} shadow-md border cursor-pointer transition-all hover:brightness-105 flex flex-col justify-between overflow-hidden box-border">
                                     
@@ -994,8 +999,8 @@
 
             return `
                 <table class="w-full border-collapse text-left text-sm">
-                    <thead class="sticky top-0 z-30 bg-slate-100 shadow-sm">
-                        <tr class="bg-slate-100/95 text-slate-700 border-b border-slate-200">${headerHTML}</tr>
+                    <thead>
+                        <tr class="bg-slate-100/80 text-slate-700 border-b border-slate-200">${headerHTML}</tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">${tbodyHTML}</tbody>
                 </table>
@@ -1003,6 +1008,7 @@
         }
 
         function renderMatrix() {
+            renderCPEValues();
             const headerRow = document.getElementById('matrix-header-row');
             const tbody = document.getElementById('matrix-body');
             const warningBox = document.getElementById('no-aed-warning');
@@ -1021,28 +1027,27 @@
             }
             warningBox.classList.add('hidden');
 
-            validateCPEConstraintsStructure();
-            const currentDay = appState.currentDay || 'Lundi';
-            const dayConstraints = appState.cpeConstraints[currentDay] || { minMorning: 4, minEvening: 4 };
-
             let morningCount = 0;
             let eveningCount = 0;
             (appState.aeds || []).forEach(aed => {
-                if (isAEDPresentAtTime(aed, currentDay, '08:00')) morningCount++;
-                if (isAEDPresentAtTime(aed, currentDay, '17:00')) eveningCount++;
+                if (isAEDPresentAtTime(aed, appState.currentDay, '08:00')) morningCount++;
+                if (isAEDPresentAtTime(aed, appState.currentDay, '17:00')) eveningCount++;
             });
 
+            initCpeConstraints();
+            const dayConstraints = appState.cpeConstraints[appState.currentDay] || { minMorning: 4, minEvening: 4 };
+
             let alertsHTML = '';
-            if (morningCount < dayConstraints.minMorning) {
+            if (dayConstraints.minMorning > 0 && morningCount < dayConstraints.minMorning) {
                 alertsHTML += `<div class="bg-rose-50 border-l-4 border-rose-500 p-3 rounded-r-xl text-xs text-rose-800 flex items-center justify-between">
-                    <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i><strong>Alerte CPE Matin (08h) [${currentDay}] :</strong> Seule(s) ${morningCount} personne(s) présente(s) au lieu de ${dayConstraints.minMorning} requises.</span>
+                    <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i><strong>Alerte CPE Matin (08h) [${appState.currentDay}] :</strong> Seule(s) ${morningCount} personne(s) présente(s) au lieu de ${dayConstraints.minMorning} requises.</span>
                 </div>`;
             }
-
-            // Pas de contrainte pour le mercredi soir
-            if (currentDay !== 'Mercredi' && eveningCount < dayConstraints.minEvening) {
+            
+            // Pas de contrainte le mercredi soir
+            if (appState.currentDay !== 'Mercredi' && dayConstraints.minEvening > 0 && eveningCount < dayConstraints.minEvening) {
                 alertsHTML += `<div class="bg-rose-50 border-l-4 border-rose-500 p-3 rounded-r-xl text-xs text-rose-800 flex items-center justify-between">
-                    <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i><strong>Alerte CPE Soir (17h) [${currentDay}] :</strong> Seule(s) ${eveningCount} personne(s) présente(s) au lieu de ${dayConstraints.minEvening} requises.</span>
+                    <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i><strong>Alerte CPE Soir (17h) [${appState.currentDay}] :</strong> Seule(s) ${eveningCount} personne(s) présente(s) au lieu de ${dayConstraints.minEvening} requises.</span>
                 </div>`;
             }
 
@@ -1053,7 +1058,7 @@
                 alertsBar.classList.add('hidden');
             }
 
-            const html = generateDayScheduleHTML(currentDay, false);
+            const html = generateDayScheduleHTML(appState.currentDay, false);
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             
@@ -1538,7 +1543,7 @@
                     const data = JSON.parse(e.target.result);
                     if (data && data.aeds && data.missions) {
                         appState = data;
-                        validateCPEConstraintsStructure();
+                        initCpeConstraints();
                         saveState();
                         showToast("Données importées avec succès.");
                     } else {
