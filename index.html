@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" class="bg-slate-50">
+<html lang="fr" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -76,8 +76,9 @@
                 overflow: visible !important;
             }
 
-            .overflow-x-auto {
+            .overflow-x-auto, .overflow-y-auto {
                 overflow: visible !important;
+                max-height: none !important;
             }
 
             table {
@@ -90,6 +91,7 @@
             th, td {
                 padding: 1px 2px !important;
                 box-sizing: border-box !important;
+                position: static !important;
             }
 
             .slot-row {
@@ -130,9 +132,9 @@
         }
     </style>
 </head>
-<body class="text-slate-800 flex flex-col min-h-screen bg-slate-50">
+<body class="h-full text-slate-800 flex flex-col min-h-screen">
 
-    <header class="bg-indigo-700 text-white shadow-md no-print relative z-30">
+    <header class="bg-indigo-700 text-white shadow-md no-print sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center py-3 gap-3">
             <div class="flex items-center space-x-3">
                 <div class="p-2 bg-indigo-800 rounded-lg shadow-inner">
@@ -229,7 +231,7 @@
                 <!-- Regles CPE Minimale AED par Jour -->
                 <div class="flex flex-wrap items-center gap-4 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs">
                     <span class="font-bold text-slate-700 flex items-center gap-1">
-                        <i class="fa-solid fa-shield-halved text-indigo-600"></i> CPE (<span id="cpe-day-label" class="text-indigo-600">Lundi</span>) :
+                        <i class="fa-solid fa-shield-halved text-indigo-600"></i> Contraintes CPE (<span id="cpe-day-label" class="text-indigo-700 font-extrabold">Jour</span>) :
                     </span>
                     <div class="flex items-center gap-2">
                         <span>Matin (M1) :</span>
@@ -239,7 +241,7 @@
                             <button onclick="changeCPEThreshold('minMorning', 1)" class="px-2 py-0.5 hover:bg-slate-100 font-bold text-slate-600">+</button>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div id="cpe-evening-container" class="flex items-center gap-2">
                         <span>Soir (S4) :</span>
                         <div class="flex items-center bg-white border border-slate-300 rounded-lg">
                             <button onclick="changeCPEThreshold('minEvening', -1)" class="px-2 py-0.5 hover:bg-slate-100 font-bold text-slate-600">-</button>
@@ -254,16 +256,16 @@
             <div id="cpe-alerts-bar" class="hidden flex flex-col gap-2"></div>
 
             <!-- Conteneur d'affichage dynamique pour l'écran -->
-            <div id="screen-schedule-container" class="bg-white rounded-2xl shadow-sm border border-slate-200/80 print-full-width">
+            <div id="screen-schedule-container" class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col print-full-width">
                 <div class="hidden print:block p-3 border-b-2 border-indigo-600 mb-2">
                     <h2 class="text-xl font-bold text-slate-900">Collège - Planning des Postes Vie Scolaire</h2>
                     <p id="print-day-title" class="text-base font-semibold text-indigo-700">Jour : Lundi</p>
                 </div>
 
-                <div class="overflow-x-auto custom-scrollbar max-w-full">
+                <div class="overflow-x-auto overflow-y-auto custom-scrollbar max-w-full max-h-[75vh]">
                     <table class="w-full border-collapse text-left text-sm" id="schedule-matrix-table">
-                        <thead class="sticky top-0 z-20 bg-slate-100 shadow-sm">
-                            <tr id="matrix-header-row"></tr>
+                        <thead class="sticky top-0 z-30 bg-slate-100 shadow-sm">
+                            <tr class="bg-slate-100/95 text-slate-700 border-b border-slate-200" id="matrix-header-row"></tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100" id="matrix-body"></tbody>
                     </table>
@@ -391,7 +393,7 @@
                     <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Couleur d'identification</label>
                     <div class="flex items-center gap-3">
                         <input type="color" id="aed-color" value="#4f46e5" class="h-10 w-16 p-1 rounded-lg border border-slate-300 cursor-pointer">
-                        <span class="text-xs text-slate-500">Identifie la colonne et les blocs d'interventions.</span>
+                        <span class="text-xs text-slate-500">Identifies la colonne et les blocs d'interventions.</span>
                     </div>
                 </div>
 
@@ -520,8 +522,24 @@
 
         const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
 
+        function getDefaultCPEConstraints() {
+            return {
+                'Lundi': { minMorning: 4, minEvening: 4 },
+                'Mardi': { minMorning: 4, minEvening: 4 },
+                'Mercredi': { minMorning: 4, minEvening: 0 },
+                'Jeudi': { minMorning: 4, minEvening: 4 },
+                'Vendredi': { minMorning: 4, minEvening: 4 }
+            };
+        }
+
         function getCurrentDayName() {
-            const daysMap = { 1: 'Lundi', 2: 'Mardi', 3: 'Mercredi', 4: 'Jeudi', 5: 'Vendredi' };
+            const daysMap = {
+                1: 'Lundi',
+                2: 'Mardi',
+                3: 'Mercredi',
+                4: 'Jeudi',
+                5: 'Vendredi'
+            };
             const currentDayIndex = new Date().getDay();
             return daysMap[currentDayIndex] || 'Lundi';
         }
@@ -565,29 +583,10 @@
 
         let appState = {
             currentDay: getCurrentDayName(),
-            cpeConstraints: {},
+            cpeConstraints: getDefaultCPEConstraints(),
             aeds: [],
             missions: []
         };
-
-        function getCPEConstraints(day) {
-            if (!appState.cpeConstraints) {
-                appState.cpeConstraints = {};
-            }
-            if (typeof appState.cpeConstraints.minMorning === 'number') {
-                const oldM = appState.cpeConstraints.minMorning;
-                const oldE = appState.cpeConstraints.minEvening;
-                appState.cpeConstraints = {};
-                DAYS.forEach(d => {
-                    appState.cpeConstraints[d] = { minMorning: oldM, minEvening: oldE };
-                });
-            }
-            const targetDay = day || appState.currentDay || 'Lundi';
-            if (!appState.cpeConstraints[targetDay]) {
-                appState.cpeConstraints[targetDay] = { minMorning: 4, minEvening: 4 };
-            }
-            return appState.cpeConstraints[targetDay];
-        }
 
         function escapeHtml(str) {
             if (!str) return '';
@@ -597,6 +596,18 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
+        }
+
+        function validateCPEConstraintsStructure() {
+            if (!appState.cpeConstraints || typeof appState.cpeConstraints.minMorning === 'number') {
+                appState.cpeConstraints = getDefaultCPEConstraints();
+            } else {
+                DAYS.forEach(d => {
+                    if (!appState.cpeConstraints[d]) {
+                        appState.cpeConstraints[d] = { minMorning: 4, minEvening: d === 'Mercredi' ? 0 : 4 };
+                    }
+                });
+            }
         }
 
         function saveState() {
@@ -617,6 +628,7 @@
                     const activeDay = isInitialLoad ? getCurrentDayName() : (appState.currentDay || getCurrentDayName());
                     appState = data;
                     appState.currentDay = activeDay;
+                    validateCPEConstraintsStructure();
                     if (!appState.aeds) appState.aeds = [];
                     if (!appState.missions) appState.missions = [];
                     localStorage.setItem('aed_timetable_app_v5', JSON.stringify(appState));
@@ -639,6 +651,7 @@
                     const activeDay = isInitialLoad ? getCurrentDayName() : (appState.currentDay || getCurrentDayName());
                     appState = JSON.parse(saved);
                     appState.currentDay = activeDay;
+                    validateCPEConstraintsStructure();
                 } else {
                     seedDefaultData();
                 }
@@ -666,11 +679,7 @@
                 'Vendredi': { active: false, start1: '', end1: '', split: false, start2: '', end2: '' }
             };
 
-            appState.cpeConstraints = {};
-            DAYS.forEach(d => {
-                appState.cpeConstraints[d] = { minMorning: 4, minEvening: 4 };
-            });
-
+            appState.cpeConstraints = getDefaultCPEConstraints();
             appState.currentDay = getCurrentDayName();
 
             appState.aeds = [
@@ -718,15 +727,33 @@
         }
 
         function renderCPEValues() {
-            const constraints = getCPEConstraints(appState.currentDay);
-            document.getElementById('cpe-day-label').textContent = appState.currentDay;
-            document.getElementById('cpe-min-morning').textContent = constraints.minMorning;
-            document.getElementById('cpe-min-evening').textContent = constraints.minEvening;
+            validateCPEConstraintsStructure();
+            const currentDay = appState.currentDay || 'Lundi';
+            const dayConstraints = appState.cpeConstraints[currentDay] || { minMorning: 4, minEvening: 4 };
+
+            document.getElementById('cpe-day-label').textContent = currentDay;
+            document.getElementById('cpe-min-morning').textContent = dayConstraints.minMorning;
+
+            const eveningContainer = document.getElementById('cpe-evening-container');
+            if (currentDay === 'Mercredi') {
+                eveningContainer.classList.add('hidden');
+            } else {
+                eveningContainer.classList.remove('hidden');
+                document.getElementById('cpe-min-evening').textContent = dayConstraints.minEvening;
+            }
         }
 
         function changeCPEThreshold(type, val) {
-            const constraints = getCPEConstraints(appState.currentDay);
-            constraints[type] = Math.max(1, constraints[type] + val);
+            validateCPEConstraintsStructure();
+            const currentDay = appState.currentDay || 'Lundi';
+            
+            if (!appState.cpeConstraints[currentDay]) {
+                appState.cpeConstraints[currentDay] = { minMorning: 4, minEvening: currentDay === 'Mercredi' ? 0 : 4 };
+            }
+
+            const currentVal = appState.cpeConstraints[currentDay][type] || 0;
+            appState.cpeConstraints[currentDay][type] = Math.max(1, currentVal + val);
+            
             saveState();
             renderCPEValues();
             renderMatrix();
@@ -840,7 +867,7 @@
             const p = aed.presence[day];
             const t = timeToMinutes(timeStr);
             if (p.start1 && p.end1 && t >= timeToMinutes(p.start1) && t <= timeToMinutes(p.end1)) return true;
-            if (p.split && p.start2 && p.end2 && t >= timeToMinutes(p.start2) && t <= timeToMinutes(p.start2)) return true;
+            if (p.split && p.start2 && p.end2 && t >= timeToMinutes(p.start2) && t <= timeToMinutes(p.end2)) return true;
             return false;
         }
 
@@ -860,7 +887,7 @@
             }
 
             let headerHTML = `
-                <th class="p-3 w-44 bg-slate-200/95 backdrop-blur-sm font-bold text-slate-700 uppercase tracking-wider text-xs border-r border-b border-slate-300 sticky top-0 left-0 z-30 shadow-sm">
+                <th class="p-3 w-44 bg-slate-200 font-bold text-slate-700 uppercase tracking-wider text-xs border-r border-b border-slate-300 sticky top-0 left-0 z-30 shadow-sm">
                     Créneaux / AED
                 </th>
             `;
@@ -871,7 +898,7 @@
                 if (dayP.split && dayP.start2) presenceText += ` / ${dayP.start2}-${dayP.end2}`;
 
                 headerHTML += `
-                    <th class="p-2 min-w-[180px] font-bold border-r border-b border-slate-200 text-center sticky top-0 z-20 bg-slate-100/95 backdrop-blur-sm shadow-sm">
+                    <th class="p-2 min-w-[180px] font-bold border-r border-b border-slate-200 text-center sticky top-0 z-20 bg-slate-100 shadow-sm">
                         <div class="flex items-center justify-center gap-1.5 flex-wrap">
                             <span class="w-3 h-3 rounded-full inline-block shadow-sm" style="background-color: ${aed.color}"></span>
                             <span class="text-slate-900 font-bold text-sm tracking-wide">${escapeHtml(aed.name)}</span>
@@ -897,7 +924,7 @@
                 tbodyHTML += `<tr class="${rowBgClass} slot-row transition-colors">`;
 
                 tbodyHTML += `
-                    <td class="p-2 font-semibold border-r border-b border-slate-200 sticky left-0 bg-white/95 backdrop-blur-sm z-10 shadow-sm align-middle">
+                    <td class="p-2 font-semibold border-r border-b border-slate-200 sticky left-0 bg-white z-10 shadow-sm align-middle">
                         <div class="flex items-center gap-2">
                             <span class="px-2 py-0.5 rounded text-xs font-bold ${
                                 slot.type === 'recre' ? 'bg-amber-200 text-amber-900 border border-amber-300' : (slot.type === 'pause' ? 'bg-slate-200 text-slate-700' : 'bg-indigo-100 text-indigo-800')
@@ -926,7 +953,7 @@
                         const styleInfo = MISSION_TYPES[mission.type] || MISSION_TYPES['Permanence'];
 
                         tbodyHTML += `
-                            <td rowspan="${rowSpan}" class="p-1 border-r border-b border-slate-200 align-top p-1">
+                            <td rowspan="${rowSpan}" class="p-1 border-r border-b border-slate-200 align-top">
                                 <div ${!isPrint ? `onclick="event.stopPropagation(); openMissionModal('${aed.id}', '${mission.id}')"` : ''} 
                                     class="mission-block w-full h-full p-2 rounded-xl ${styleInfo.bg} ${styleInfo.text} ${styleInfo.border} shadow-md border cursor-pointer transition-all hover:brightness-105 flex flex-col justify-between overflow-hidden box-border">
                                     
@@ -967,8 +994,8 @@
 
             return `
                 <table class="w-full border-collapse text-left text-sm">
-                    <thead class="sticky top-0 z-20 bg-slate-100 shadow-sm">
-                        <tr class="bg-slate-100/80 text-slate-700 border-b border-slate-200">${headerHTML}</tr>
+                    <thead class="sticky top-0 z-30 bg-slate-100 shadow-sm">
+                        <tr class="bg-slate-100/95 text-slate-700 border-b border-slate-200">${headerHTML}</tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">${tbodyHTML}</tbody>
                 </table>
@@ -994,24 +1021,28 @@
             }
             warningBox.classList.add('hidden');
 
+            validateCPEConstraintsStructure();
+            const currentDay = appState.currentDay || 'Lundi';
+            const dayConstraints = appState.cpeConstraints[currentDay] || { minMorning: 4, minEvening: 4 };
+
             let morningCount = 0;
             let eveningCount = 0;
             (appState.aeds || []).forEach(aed => {
-                if (isAEDPresentAtTime(aed, appState.currentDay, '08:00')) morningCount++;
-                if (isAEDPresentAtTime(aed, appState.currentDay, '17:00')) eveningCount++;
+                if (isAEDPresentAtTime(aed, currentDay, '08:00')) morningCount++;
+                if (isAEDPresentAtTime(aed, currentDay, '17:00')) eveningCount++;
             });
 
-            const currentCPE = getCPEConstraints(appState.currentDay);
-
             let alertsHTML = '';
-            if (morningCount < currentCPE.minMorning) {
+            if (morningCount < dayConstraints.minMorning) {
                 alertsHTML += `<div class="bg-rose-50 border-l-4 border-rose-500 p-3 rounded-r-xl text-xs text-rose-800 flex items-center justify-between">
-                    <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i><strong>Alerte CPE Matin (${appState.currentDay} - 08h) :</strong> Seule(s) ${morningCount} personne(s) présente(s) au lieu de ${currentCPE.minMorning} requises.</span>
+                    <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i><strong>Alerte CPE Matin (08h) [${currentDay}] :</strong> Seule(s) ${morningCount} personne(s) présente(s) au lieu de ${dayConstraints.minMorning} requises.</span>
                 </div>`;
             }
-            if (eveningCount < currentCPE.minEvening) {
+
+            // Pas de contrainte pour le mercredi soir
+            if (currentDay !== 'Mercredi' && eveningCount < dayConstraints.minEvening) {
                 alertsHTML += `<div class="bg-rose-50 border-l-4 border-rose-500 p-3 rounded-r-xl text-xs text-rose-800 flex items-center justify-between">
-                    <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i><strong>Alerte CPE Soir (${appState.currentDay} - 17h) :</strong> Seule(s) ${eveningCount} personne(s) présente(s) au lieu de ${currentCPE.minEvening} requises.</span>
+                    <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i><strong>Alerte CPE Soir (17h) [${currentDay}] :</strong> Seule(s) ${eveningCount} personne(s) présente(s) au lieu de ${dayConstraints.minEvening} requises.</span>
                 </div>`;
             }
 
@@ -1022,7 +1053,7 @@
                 alertsBar.classList.add('hidden');
             }
 
-            const html = generateDayScheduleHTML(appState.currentDay, false);
+            const html = generateDayScheduleHTML(currentDay, false);
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             
@@ -1507,6 +1538,7 @@
                     const data = JSON.parse(e.target.result);
                     if (data && data.aeds && data.missions) {
                         appState = data;
+                        validateCPEConstraintsStructure();
                         saveState();
                         showToast("Données importées avec succès.");
                     } else {
