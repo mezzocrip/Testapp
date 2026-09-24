@@ -1,1049 +1,577 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full bg-slate-100">
+<html lang="fr" class="h-full bg-slate-950 text-slate-100 select-none">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Permanence</title>
-    <link rel="apple-touch-icon" href="./Logo.png">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+    <title>Tournoi de Football - Manuel avec Compteur</title>
+    <link rel="apple-touch-icon" href="./Logo.PNG">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (Excel / CSV parsing) -->
+    <!-- SheetJS for Excel (.xlsx / .csv) parsing -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        brand: {
+                        pitch: {
                             50: '#f0fdf4',
                             100: '#dcfce7',
-                            200: '#bbf7d0',
                             500: '#22c55e',
                             600: '#16a34a',
                             700: '#15803d',
                             800: '#166534',
                             900: '#14532d',
+                        },
+                        accent: {
+                            50: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
                         }
-                    },
-                    screens: {
-                        'ipad-portrait': {'raw': '(min-width: 768px) and (max-width: 1023px) and (orientation: portrait)'},
-                        'ipad-landscape': {'raw': '(min-width: 768px) and (max-width: 1023px) and (orientation: landscape)'},
-                        'tablet': '768px',
-                        'desktop': '1024px',
                     }
                 }
             }
         }
     </script>
-
     <style>
-        /* Modern scrollbar styling */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* Highlight autocomplete selected item */
-        .autocomplete-selected {
-            background-color: #f0fdf4 !important;
-            border-left: 4px solid #16a34a !important;
+        * {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
-        /* Touch optimization for iPad and Mobile targets */
-        @media (max-width: 1023px) {
-            button, select, input, .touch-target {
-                min-height: 48px;
-            }
-            .touch-btn {
-                padding-top: 0.75rem !important;
-                padding-bottom: 0.75rem !important;
-            }
+        input, textarea {
+            -webkit-user-select: text;
+            user-select: text;
         }
 
-        /* Strict A4 Portrait Print Stylesheet */
-        @media print {
-            @page {
-                size: A4 portrait;
-                margin: 12mm 12mm 12mm 12mm;
-            }
-
-            body {
-                background-color: #ffffff !important;
-                color: #000000 !important;
-                font-size: 10pt !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .no-print { display: none !important; }
-            .print-only { display: block !important; }
-
-            .print-table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-                margin-top: 15px !important;
-            }
-
-            .print-table th, .print-table td {
-                border: 1px solid #334155 !important;
-                padding: 8px 10px !important;
-                text-align: left !important;
-                font-size: 9.5pt !important;
-            }
-
-            .print-table th {
-                background-color: #f1f5f9 !important;
-                font-weight: 800 !important;
-                color: #0f172a !important;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-            }
-
-            .print-badge {
-                padding: 3px 8px;
-                border-radius: 4px;
-                font-weight: 800;
-                font-size: 8pt;
-                display: inline-block;
-                text-transform: uppercase;
-            }
-            .print-badge-perm { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; }
-            .print-badge-excl { background-color: #ffe4e6; color: #9f1239; border: 1px solid #fca5a5; }
-            .print-badge-autre { background-color: #fef3c7; color: #92400e; border: 1px solid #fde047; }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(34, 197, 94, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(34, 197, 94, 0.8);
         }
 
-        .print-only { display: none; }
+        .touch-btn {
+            min-height: 48px;
+            min-width: 48px;
+        }
+        .touch-btn-sm {
+            min-height: 40px;
+            min-width: 40px;
+        }
     </style>
 </head>
-<body class="h-full text-slate-800 antialiased selection:bg-brand-500 selection:text-white flex flex-col">
+<body class="font-sans min-h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden pb-12">
 
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none no-print"></div>
-
-    <!-- MAIN APP LAYOUT CONTAINER -->
-    <div class="min-h-full flex flex-col no-print flex-1">
-        
-        <header class="bg-slate-900 text-white shadow-xl sticky top-0 z-30 border-b border-slate-800">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
-                
-                <!-- Logo & App Title -->
-                <div class="flex items-center space-x-3">
-                    <div class="bg-brand-500 text-slate-950 p-2.5 rounded-2xl shadow-lg font-bold">
-                        <i data-lucide="clipboard-check" class="w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <h1 class="text-xl font-black tracking-tight text-white">
-                                PERMANENCE
-                            </h1>
-                            <!-- Device Mode Badge (PC / iPad / Mobile) -->
-                            <span id="device-mode-badge" class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-slate-800 text-brand-500 border border-brand-500/30 flex items-center gap-1 shadow-inner">
-                                <i data-lucide="monitor" class="w-3.5 h-3.5"></i>
-                                <span>Mode PC</span>
-                            </span>
-                        </div>
-                        <p class="text-xs text-slate-400 font-medium">Saisie d'appel réactive & impression A4</p>
-                    </div>
-                </div>
-
-                <!-- AED Selection Controls -->
-                <div class="flex items-center gap-2 bg-slate-800/90 p-1.5 rounded-2xl border border-slate-700/80 w-full sm:w-auto justify-between sm:justify-start">
-                    <div class="flex items-center gap-2 px-2 text-slate-300">
-                        <i data-lucide="user-check" class="w-4 h-4 text-brand-500"></i>
-                        <span class="text-xs font-bold uppercase tracking-wider">AED :</span>
-                    </div>
-                    
-                    <select id="aed-select" class="bg-slate-900 text-white font-bold text-sm rounded-xl px-3 py-2 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer flex-1 sm:flex-initial">
-                        <!-- Dynamic options via JS -->
-                    </select>
-
-                    <button onclick="openModal('modal-aed')" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm hover:shadow-slate-700/50 touch-btn" title="Gérer ou ajouter des AED">
-                        <i data-lucide="users" class="w-4 h-4 text-brand-500"></i>
-                        <span>Gérer AED</span>
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
-
-            <!-- RESPONSIVE DASHBOARD LAYOUT -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
-                
-                <!-- LEFT COLUMN / PANEL (SEARCH, ACTIONS & KPIs) - lg:col-span-5 -->
-                <div class="lg:col-span-5 space-y-5 sm:space-y-6">
-                    
-                    <!-- SEARCH & AUTOCOMPLETE CARD -->
-                    <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200/90 space-y-3 relative">
-                        <label for="search-input" class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider flex items-center justify-between">
-                            <span class="flex items-center gap-1.5 text-slate-700">
-                                <i data-lucide="search" class="w-4 h-4 text-brand-600"></i>
-                                Appel Élève (Prénom / Nom)
-                            </span>
-                            <span class="hidden sm:inline-block text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-mono border border-slate-200">
-                                Raccourci: Ctrl + K
-                            </span>
-                        </label>
-
-                        <!-- SEARCH INPUT FIELD -->
-                        <div class="relative w-full">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-600">
-                                <i data-lucide="user-search" class="w-5 h-5"></i>
-                            </div>
-
-                            <input type="text" id="search-input" 
-                                   placeholder="Tapez le prénom ou le nom..." 
-                                   autocomplete="off"
-                                   oninput="handleSearchInput()"
-                                   onkeydown="handleSearchKeyDown(event)"
-                                   onfocus="handleSearchInput()"
-                                   class="w-full pl-11 pr-11 py-3.5 sm:py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl text-base sm:text-lg font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 transition shadow-inner">
-
-                            <!-- Clear Search Input Button -->
-                            <button id="clear-search-btn" onclick="clearSearchInput()" class="hidden absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 touch-target">
-                                <i data-lucide="x-circle" class="w-5 h-5"></i>
-                            </button>
-
-                            <!-- MENU DÉROULANT / DROPDOWN AUTOCLOSE -->
-                            <div id="autocomplete-dropdown" 
-                                 class="hidden absolute left-0 right-0 top-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto divide-y divide-slate-100 transition-all">
-                                <!-- Dynamically filled suggestions -->
-                            </div>
-                        </div>
-
-                        <p class="text-xs text-slate-400 flex items-center gap-1 pt-1">
-                            <i data-lucide="corner-down-left" class="w-3.5 h-3.5 text-brand-600 shrink-0"></i>
-                            <span>Cliquez ou tapez <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px] font-mono">Entrée</kbd> pour ajouter à l'appel. Le champ s'effacera immédiatement.</span>
-                        </p>
-                    </div>
-
-                    <!-- ACTION BUTTONS GRID -->
-                    <div class="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-slate-200/90 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Actions & Importation</h3>
-                            <span id="db-count-badge" class="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
-                                Base : 0 élève(s)
-                            </span>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <!-- Import Excel / CSV Button -->
-                            <label class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition shadow-sm hover:shadow-indigo-200 active:scale-95 touch-btn">
-                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                                <span>Importer Excel / CSV</span>
-                                <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileUpload(event)">
-                            </label>
-
-                            <!-- Add Unlisted Student Button -->
-                            <button onclick="openModal('modal-student')" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition shadow-sm active:scale-95 touch-btn">
-                                <i data-lucide="user-plus" class="w-4 h-4 text-brand-500"></i>
-                                <span>+ Élève (Hors-liste)</span>
-                            </button>
-                        </div>
-
-                        <!-- Demo data & Reset DB loader buttons -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                            <button onclick="loadDemoData()" class="w-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/90 px-3 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition touch-btn">
-                                <i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i>
-                                <span>Charger démo</span>
-                            </button>
-
-                            <!-- RESET STUDENT DATABASE BUTTON -->
-                            <button onclick="clearStudentDatabase()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200/90 px-3 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition touch-btn" title="Effacer tous les élèves importés dans la base de données">
-                                <i data-lucide="trash-2" class="w-4 h-4 text-rose-600"></i>
-                                <span>Effacer base élèves</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <!-- KPI 1: Total Appel -->
-                        <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200/90 flex items-center justify-between">
-                            <div>
-                                <p class="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Présents</p>
-                                <p id="stat-total" class="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">0</p>
-                            </div>
-                            <div class="p-2 sm:p-2.5 bg-slate-100 text-slate-700 rounded-xl">
-                                <i data-lucide="users" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                            </div>
-                        </div>
-
-                        <!-- KPI 2: Statut Permanence -->
-                        <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200/90 flex items-center justify-between">
-                            <div>
-                                <p class="text-[10px] sm:text-[11px] font-extrabold text-emerald-600 uppercase tracking-wider">Permanence</p>
-                                <p id="stat-perm" class="text-xl sm:text-2xl font-black text-emerald-600 mt-0.5">0</p>
-                            </div>
-                            <div class="p-2 sm:p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
-                                <i data-lucide="shield-check" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                            </div>
-                        </div>
-
-                        <!-- KPI 3: Exclusion / Retenue -->
-                        <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200/90 flex items-center justify-between">
-                            <div>
-                                <p class="text-[10px] sm:text-[11px] font-extrabold text-rose-600 uppercase tracking-wider">Exclusions</p>
-                                <p id="stat-excl" class="text-xl sm:text-2xl font-black text-rose-600 mt-0.5">0</p>
-                            </div>
-                            <div class="p-2 sm:p-2.5 bg-rose-50 text-rose-600 rounded-xl">
-                                <i data-lucide="alert-triangle" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                            </div>
-                        </div>
-
-                        <!-- KPI 4: Autre motif -->
-                        <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200/90 flex items-center justify-between">
-                            <div>
-                                <p class="text-[10px] sm:text-[11px] font-extrabold text-amber-600 uppercase tracking-wider">Autres</p>
-                                <p id="stat-autre" class="text-xl sm:text-2xl font-black text-amber-600 mt-0.5">0</p>
-                            </div>
-                            <div class="p-2 sm:p-2.5 bg-amber-50 text-amber-600 rounded-xl">
-                                <i data-lucide="clock" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- RIGHT COLUMN / PANEL (ACTIVE CALL SESSION LIST & PRINT BAR) - lg:col-span-7 -->
-                <div class="lg:col-span-7 space-y-4">
-                    
-                    <!-- SESSION LIST HEADER TOOLBAR -->
-                    <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200/90 flex flex-wrap items-center justify-between gap-3">
-                        <div class="flex items-center gap-2">
-                            <div class="bg-brand-50 p-2 rounded-xl text-brand-600">
-                                <i data-lucide="list-checks" class="w-5 h-5"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-base font-extrabold text-slate-900">
-                                    Feuille d'Appel en cours
-                                </h2>
-                                <p id="session-count-badge" class="text-xs font-semibold text-slate-400">
-                                    0 élève(s) enregistré(s)
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                            <!-- Reset Current Session List -->
-                            <button onclick="resetCurrentSession()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition touch-btn" title="Vider la liste d'appel actuelle">
-                                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-                                <span>Vider l'appel</span>
-                            </button>
-
-                            <!-- PRINT BUTTON (NATIVE A4 PORTRAIT) -->
-                            <button onclick="triggerPrint()" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 transition shadow-md shadow-brand-600/20 active:scale-95 touch-btn">
-                                <i data-lucide="printer" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                                <span>Imprimer A4</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="session-list-container" class="space-y-2.5">
-                        <!-- Dynamic Student Cards Rendered via JS -->
-                    </div>
-
-                    <!-- EMPTY SESSION STATE -->
-                    <div id="empty-session-state" class="bg-white rounded-3xl p-8 sm:p-12 text-center border-2 border-dashed border-slate-200 space-y-3">
-                        <div class="mx-auto w-14 h-14 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center">
-                            <i data-lucide="user-check" class="w-7 h-7"></i>
-                        </div>
-                        <h3 class="text-base font-bold text-slate-800">Aucun élève à l'appel pour le moment</h3>
-                        <p class="text-xs text-slate-500 max-w-sm mx-auto">
-                            Recherchez le prénom ou nom d'un élève à gauche pour l'ajouter instantanément.
-                        </p>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </main>
-    </div>
-
-    <!-- MODAL: GESTION & SUPPRESSION DES AED -->
-    <div id="modal-aed" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
-        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
-            <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-                <h3 class="font-bold text-base flex items-center gap-2">
-                    <i data-lucide="users" class="w-5 h-5 text-brand-500"></i>
-                    Gestion des Surveillants (AED)
-                </h3>
-                <button onclick="closeModal('modal-aed')" class="text-slate-400 hover:text-white touch-target">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            
-            <div class="p-6 space-y-4">
-                <!-- Formulaire d'ajout d'AED -->
-                <form onsubmit="handleAddAed(event)" class="space-y-2">
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Nouveau Surveillant</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="new-aed-name" placeholder="ex: Mme DUPONT Sarah" required
-                               class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-                        <button type="submit" class="px-4 py-2.5 bg-brand-600 text-white rounded-xl font-bold text-sm hover:bg-brand-700 shadow-sm touch-btn shrink-0">
-                            + Ajouter
-                        </button>
-                    </div>
-                </form>
-
-                <hr class="border-slate-100 my-2">
-
-                <!-- Liste dynamique des AEDs avec bouton de suppression -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">AED Enregistrés</label>
-                    <div id="modal-aed-list" class="max-h-48 overflow-y-auto space-y-2 pr-1">
-                        <!-- Injection JS des AEDs -->
-                    </div>
-                </div>
-
-                <div class="flex justify-end pt-2">
-                    <button type="button" onclick="closeModal('modal-aed')" class="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-medium text-sm hover:bg-slate-200 touch-btn">
-                        Fermer
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: ADD UNLISTED STUDENT (HORS-LISTE) -->
-    <div id="modal-student" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
-        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden transform transition-all">
-            <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-                <h3 class="font-bold text-base flex items-center gap-2">
-                    <i data-lucide="user-plus" class="w-5 h-5 text-brand-500"></i>
-                    Ajouter un Élève (Hors-liste)
-                </h3>
-                <button onclick="closeModal('modal-student')" class="text-slate-400 hover:text-white touch-target">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <form onsubmit="handleAddUnlistedStudent(event)" class="p-6 space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nom de famille</label>
-                    <input type="text" id="new-student-nom" placeholder="ex: MARTIN" required
-                           class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 uppercase">
+    <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
+        <div class="max-w-[1600px] mx-auto px-6 py-4 flex flex-col xl:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-pitch-600 flex items-center justify-center text-white shadow-lg shadow-pitch-600/30">
+                    <i class="fa-solid fa-futbol text-2xl"></i>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Prénom</label>
-                    <input type="text" id="new-student-prenom" placeholder="ex: Lucas" required
-                           class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Classe</label>
-                    <input type="text" id="new-student-classe" placeholder="ex: 6°A, 3°B, Tle2..." required
-                           class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 uppercase">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Statut initial</label>
-                    <select id="new-student-status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        <option value="Permanence">Permanence</option>
-                        <option value="Exclusion">Exclusion</option>
-                        <option value="Autre">Autre (Retenue / Travail)</option>
-                    </select>
-                </div>
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeModal('modal-student')" class="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-medium text-sm hover:bg-slate-200 touch-btn">
-                        Annuler
-                    </button>
-                    <button type="submit" class="px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 shadow-sm touch-btn">
-                        Ajouter à l'appel
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- PRINT ONLY CONTAINER (A4 FORMAT PORTRAIT STRICT) -->
-    <div id="print-zone" class="print-only print-container p-2">
-        
-        <!-- HEADER IMPRESSION -->
-        <div class="border-b-2 border-slate-900 pb-3 mb-4">
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <!-- EXIGENCE STRICTE DE TITRE: PERMANENCE DE (NOM AED) à (HEURE SANS MINUTES) -->
-                    <h1 id="print-title-header" class="text-xl font-black text-slate-900 tracking-tight uppercase">
-                        <!-- PERMANENCE DE [AED] à [XX]h -->
+                    <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-3">
+                        Tournoi Foot <span class="text-xs font-semibold px-2.5 py-1 bg-pitch-600/20 text-pitch-400 border border-pitch-500/30 rounded-lg">Gestionnaire Planning</span>
                     </h1>
-                    <p class="text-xs text-slate-600 mt-1 font-semibold">
-                        Vie Scolaire — Registre officiel d'appel de la permanence
+                    <p class="text-xs text-slate-400 font-medium flex items-center gap-2">
+                        <span>Gestionnaire Scolaire</span> &bull; 
+                        <span id="save-status-badge" class="text-emerald-400 font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-floppy-disk"></i> Sauvegarde locale active
+                        </span>
                     </p>
                 </div>
-                <div class="text-right text-xs text-slate-700">
-                    <p><strong>Date :</strong> <span id="print-date"></span></p>
-                    <p><strong>Heure édition :</strong> <span id="print-full-time"></span></p>
+            </div>
+            
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <div class="flex items-center gap-2 bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800">
+                    <i class="fa-solid fa-users text-pitch-500 text-sm"></i>
+                    <span class="text-xs text-slate-400 font-medium">Élèves:</span>
+                    <span id="total-players-count" class="text-sm font-bold text-white">0</span>
+                </div>
+                <div class="flex items-center gap-2 bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800">
+                    <i class="fa-solid fa-user-clock text-amber-400 text-sm"></i>
+                    <span class="text-xs text-slate-400 font-medium">Réserve:</span>
+                    <span id="unassigned-players-count" class="text-sm font-bold text-amber-400">0</span>
+                </div>
+                <div class="flex items-center gap-2 bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800">
+                    <i class="fa-solid fa-shield-halved text-blue-400 text-sm"></i>
+                    <span class="text-xs text-slate-400 font-medium">Équipes:</span>
+                    <span id="total-teams-count" class="text-sm font-bold text-blue-400">0</span>
+                </div>
+
+                <div class="h-6 w-px bg-slate-800 hidden md:block"></div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="exporterSauvegardeJSON()" title="Exporter toutes les données" class="touch-btn-sm bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-200 text-xs font-bold px-3.5 rounded-xl border border-slate-700 transition flex items-center gap-2">
+                        <i class="fa-solid fa-download text-pitch-400"></i>
+                        <span class="hidden sm:inline">Exporter JSON</span>
+                    </button>
+                    
+                    <label title="Importer un fichier JSON sauvegardé" class="touch-btn-sm bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-200 text-xs font-bold px-3.5 rounded-xl border border-slate-700 transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-upload text-amber-400"></i>
+                        <span class="hidden sm:inline">Importer JSON</span>
+                        <input type="file" id="jsonImportFile" accept=".json" class="hidden" onchange="importerSauvegardeJSON(event)">
+                    </label>
+
+                    <button onclick="demanderResetComplet()" title="Réinitialiser toutes les données" class="touch-btn-sm bg-red-950/60 hover:bg-red-900 text-red-300 text-xs font-bold px-3 rounded-xl border border-red-800/60 transition flex items-center justify-center">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-[1600px] w-full mx-auto px-6 py-6 space-y-8">
+
+        <!-- Étape 1 : Réserve Élèves -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+            <div class="flex items-center gap-2 text-pitch-500 font-bold text-xs uppercase tracking-wider mb-2">
+                <span class="w-7 h-7 rounded-lg bg-pitch-500/10 flex items-center justify-center text-sm font-extrabold border border-pitch-500/20">1</span>
+                Étape 1 &bull; Réserve Élèves
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-1">Importation Excel / CSV</h2>
+            <p class="text-slate-400 text-sm mb-6">
+                Chargez la liste des élèves. Les noms sont insérés dans la réserve globale sans affectation automatique.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <label for="excelFile" class="md:col-span-2 touch-btn flex items-center justify-center gap-3 px-6 py-4 rounded-xl border-2 border-dashed border-slate-700 bg-slate-950/60 hover:bg-slate-800 hover:border-pitch-500 transition cursor-pointer text-slate-300">
+                    <i class="fa-solid fa-file-excel text-2xl text-pitch-500"></i>
+                    <span id="file-label-text" class="text-sm font-semibold truncate">Choisir un fichier Excel (.xlsx) ou CSV</span>
+                    <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(event)" />
+                </label>
+
+                <button onclick="importerExcel()" class="touch-btn bg-pitch-600 hover:bg-pitch-500 active:bg-pitch-700 text-white font-bold px-8 rounded-xl shadow-lg shadow-pitch-600/30 transition flex items-center justify-center gap-3 text-base">
+                    <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                    <span>Importer les noms</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Étape 2 : Sélection Manuelle des Équipes -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+                <div>
+                    <div class="flex items-center gap-2 text-accent-500 font-bold text-xs uppercase tracking-wider mb-2">
+                        <span class="w-7 h-7 rounded-lg bg-accent-500/10 flex items-center justify-center text-sm font-extrabold border border-accent-500/20">2</span>
+                        Étape 2 &bull; Session de Jeu
+                    </div>
+                    <h2 class="text-2xl font-bold text-white">Sélection des Équipes pour le Match</h2>
+                    <p class="text-slate-400 text-sm">Cochez les équipes ou utilisez le bouton de planning automatique.</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <button onclick="selectionnerSelonPlanning()" class="touch-btn bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-bold px-5 rounded-xl shadow-lg shadow-amber-600/30 transition flex items-center gap-2 text-sm" title="Cocher automatiquement les équipes prévues pour le prochain match">
+                        <i class="fa-solid fa-calendar-check text-base"></i>
+                        <span>Auto-sélection Planning</span>
+                    </button>
+
+                    <button onclick="validerSelectionMatch()" class="touch-btn bg-gradient-to-r from-pitch-600 to-pitch-500 hover:from-pitch-500 hover:to-pitch-600 active:scale-[0.98] text-white font-bold px-6 rounded-xl shadow-xl shadow-pitch-600/30 transition flex items-center gap-3">
+                        <i class="fa-solid fa-check-double text-xl"></i>
+                        <span class="text-base">Valider & Faire Jouer</span>
+                    </button>
+
+                    <button onclick="reinitialiserEquipesTerrain()" class="touch-btn bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-300 font-semibold px-4 rounded-xl border border-slate-700 transition flex items-center gap-2 text-sm" title="Vider les équipes actuellement sur le terrain">
+                        <i class="fa-solid fa-xmark text-red-400"></i>
+                        <span>Réinit. Terrain</span>
+                    </button>
+
+                    <button onclick="reinitialiserCompteursJoues()" class="touch-btn bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-300 font-semibold px-4 rounded-xl border border-slate-700 transition flex items-center gap-2 text-sm" title="Remettre à zéro tous les compteurs de matchs">
+                        <i class="fa-solid fa-rotate-right text-amber-400"></i>
+                        <span>Réinit. Compteurs Joués</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- RESUME STATS IMPRESSION -->
-            <div class="flex gap-6 mt-2 pt-2 border-t border-slate-200 text-xs font-medium">
-                <div>Effectif présent : <strong id="print-stat-total" class="text-slate-900">0</strong></div>
-                <div>Permanence normale : <strong id="print-stat-perm" class="text-emerald-800">0</strong></div>
-                <div>Exclusions : <strong id="print-stat-excl" class="text-rose-800">0</strong></div>
-                <div>Autres : <strong id="print-stat-autre" class="text-amber-800">0</strong></div>
+            <!-- Équipes Actuellement Sélectionnées sur le Terrain -->
+            <div class="mt-6">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-display text-pitch-500"></i> Équipes actuellement sur le terrain
+                </h3>
+                <div id="playing-teams" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div class="col-span-full py-10 text-center border-2 border-dashed border-slate-800 rounded-2xl bg-slate-950/40">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-850 flex items-center justify-center mx-auto mb-2 text-slate-600">
+                            <i class="fa-solid fa-shield-halved text-2xl"></i>
+                        </div>
+                        <p class="text-slate-300 font-semibold text-base">Aucune équipe sur le terrain.</p>
+                        <p class="text-xs text-slate-500 mt-1">Cochez les équipes dans la liste ci-dessous puis cliquez sur "Valider & Faire Jouer".</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grille de Cochage avec Compteur -->
+            <div class="mt-8 pt-6 border-t border-slate-800">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-amber-400"></i> Cocher les équipes à faire jouer
+                </h3>
+                <div id="selection-teams-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <!-- Dynamiquement généré avec cases à cocher et compteurs -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Étape 3 : Attribution des Points -->
+        <section id="points-section" class="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl hidden">
+            <div class="flex items-center gap-2 text-pitch-500 font-bold text-xs uppercase tracking-wider mb-2">
+                <span class="w-7 h-7 rounded-lg bg-pitch-500/10 flex items-center justify-center text-sm font-extrabold border border-pitch-500/20">3</span>
+                Étape 3 &bull; Résultat des Matchs
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-1">Attribution des Points de la Session</h2>
+            <p class="text-slate-400 text-sm mb-6">Ajouter des points directement aux équipes actuellement sélectionnées sur le terrain.</p>
+
+            <div id="points-controls" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <!-- Populé dynamiquement -->
+            </div>
+        </section>
+
+        <!-- Étape 4 : Composition Tactique -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+                <div>
+                    <div class="flex items-center gap-2 text-pitch-500 font-bold text-xs uppercase tracking-wider mb-2">
+                        <span class="w-7 h-7 rounded-lg bg-pitch-500/10 flex items-center justify-center text-sm font-extrabold border border-pitch-500/20">4</span>
+                        Étape 4 &bull; Composition Tactique
+                    </div>
+                    <h2 class="text-2xl font-bold text-white">Gestion & Recherche par Équipe</h2>
+                    <p class="text-slate-400 text-sm">Tapez le nom d'un élève dans le champ d'une équipe pour afficher les suggestions et l'ajouter.</p>
+                </div>
+
+                <button onclick="ajouterNouvelleEquipe()" class="touch-btn bg-slate-800 hover:bg-pitch-600 text-slate-200 hover:text-white font-bold px-5 rounded-xl border border-slate-700 hover:border-pitch-500 transition shadow-md flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-plus text-pitch-500 text-base"></i>
+                    <span>Ajouter une équipe vide</span>
+                </button>
+            </div>
+
+            <div id="all-teams" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
+                <!-- Populé dynamiquement -->
+            </div>
+        </section>
+
+        <!-- Étape 5 : Classement -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+                <div>
+                    <div class="flex items-center gap-2 text-accent-500 font-bold text-xs uppercase tracking-wider mb-2">
+                        <span class="w-7 h-7 rounded-lg bg-accent-500/10 flex items-center justify-center text-sm font-extrabold border border-accent-500/20">5</span>
+                        Étape 5 &bull; Palmarès
+                    </div>
+                    <h2 class="text-2xl font-bold text-white">Classement Général des Équipes</h2>
+                    <p class="text-slate-400 text-sm">Cumul automatique des points obtenus par chaque équipe.</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                    <button onclick="reinitialiserTotalPoints()" class="touch-btn-sm bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-300 font-semibold px-4 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 text-xs shrink-0" title="Remettre le compteur de points de toutes les équipes à zero">
+                        <i class="fa-solid fa-rotate text-red-400"></i>
+                        <span>Réinit. Total Points</span>
+                    </button>
+
+                    <div class="relative w-full sm:w-72">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="text" id="leaderboard-filter" oninput="renderLeaderboard()" placeholder="Filtrer une équipe..." class="w-full h-12 bg-slate-950 text-slate-200 text-sm rounded-xl pl-11 pr-4 border border-slate-800 focus:outline-none focus:border-pitch-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto mt-6">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 font-bold text-xs uppercase tracking-wider bg-slate-950/60">
+                            <th class="py-4 px-6 rounded-l-xl">Rang</th>
+                            <th class="py-4 px-6">Équipe</th>
+                            <th class="py-4 px-6">Matchs Joués</th>
+                            <th class="py-4 px-6">Effectif</th>
+                            <th class="py-4 px-6 text-right rounded-r-xl">Total Points</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body" class="divide-y divide-slate-800/60">
+                        <tr>
+                            <td colspan="5" class="py-12 text-center text-slate-500 font-medium">Aucune équipe à afficher pour le moment.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal confirmation for reset -->
+    <div id="reset-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white">Réinitialiser tout le tournoi ?</h3>
+            <p class="text-sm text-slate-400">Cette action va supprimer l'intégralité des élèves, des équipes, des points et de l'historique de votre navigateur. Voulez-vous continuer ?</p>
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="fermerResetModal()" class="touch-btn-sm px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs">Annuler</button>
+                <button onclick="effectuerResetComplet()" class="touch-btn-sm px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-red-600/30">Oui, tout effacer</button>
             </div>
         </div>
+    </div>
 
-        <!-- TABLEAU COMPTE RENDU IMPRESSION -->
-        <table class="print-table">
-            <thead>
-                <tr>
-                    <th style="width: 6%;">N°</th>
-                    <th style="width: 50%;">NOM PRÉNOM</th>
-                    <th style="width: 14%;">CLASSE</th>
-                    <th style="width: 20%;">MOTIF / STATUT</th>
-                    <th style="width: 10%; text-align: center;">PRÉSENCE</th>
-                </tr>
-            </thead>
-            <tbody id="print-table-body">
-                <!-- Injection JS -->
-            </tbody>
-        </table>
-
-        <!-- ZONE DE SIGNATURES -->
-        <div class="mt-12 pt-4 border-t border-slate-300 grid grid-cols-2 gap-8 text-xs">
-            <div>
-                <p class="font-bold text-slate-800 mb-10">Signature de l'AED responsable :</p>
-                <p id="print-signature-aed" class="text-slate-600 border-b border-dashed border-slate-400 pb-1 font-semibold"></p>
-            </div>
-            <div>
-                <p class="font-bold text-slate-800 mb-10">Visa du CPE / Direction :</p>
-                <div class="border-b border-dashed border-slate-400 pb-1"></div>
-            </div>
-        </div>
+    <!-- Toast Notification Banner -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 max-w-md bg-slate-900 text-white border border-slate-700 px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
+        <i id="toast-icon" class="fa-solid fa-circle-info text-pitch-500 text-xl"></i>
+        <span id="toast-message" class="text-sm font-semibold">Notification</span>
     </div>
 
     <script>
-        /* LOCAL STORAGE KEYS */
-        const STORAGE_AEDS = 'perm_app_aeds_list_v4';
-        const STORAGE_SELECTED_AED = 'perm_app_selected_aed_v4';
-        const STORAGE_DATABASE = 'perm_app_students_db_v4';
-        const STORAGE_SESSION = 'perm_app_current_session_v4';
+        const STORAGE_KEY = 'FOOTBALL_TOURNAMENT_APP_DATA_V3';
 
-        /* APPLICATION STATE */
-        let aeds = [];
-        let selectedAed = '';
-        let studentDatabase = []; // Tous les élèves du collège/lycée (base de recherche)
-        let sessionStudents = [];  // Élèves présents dans la permanence actuelle
-        
-        let searchMatches = [];    // Résultats filtrés pour la recherche
-        let selectedDropdownIndex = -1; // Indice de sélection au clavier dans le dropdown
+        // Structure d'une équipe: { id, name, playCount: 0, checked: false, points: 0 }
+        let players = [];      // { id, name, teamId }
+        let teams = [];        // { id, name, playCount, checked, points }
+        let currentPlayingTeamIds = []; 
 
-        window.onload = function() {
-            loadStoredData();
-            renderAedDropdown();
-            renderSessionList();
-            updateStats();
-            updateDbCountBadge();
-            detectDeviceMode();
-            lucide.createIcons();
+        // Calendrier intégrant les phases de brassage
+        const PLANNING_MATCHS = [
+            { date: "2026-09-29", jour: "Mardi 29 Septembre (A)", teamIds: [6, 7, 8, 9, 10] },
+            { date: "2026-10-08", jour: "Jeudi 8 Octobre (B)", teamIds: [1, 2, 3, 4, 5] },
+            { date: "2026-10-13", jour: "Mardi 13 Octobre (A)", teamIds: [6, 7, 8, 9, 10] },
+            { date: "2026-11-05", jour: "Jeudi 5 Novembre (B)", teamIds: [1, 2, 3, 4, 5] },
+            { date: "2026-11-10", jour: "Mardi 10 Novembre (A)", teamIds: [6, 7, 8, 9, 10] },
+            { date: "2026-11-19", jour: "Jeudi 19 Novembre (B)", teamIds: [1, 2, 3, 4, 5] },
+            { date: "2026-11-24", jour: "Mardi 24 Novembre (A)", teamIds: [6, 7, 8, 9, 10] },
+            { date: "2026-12-03", jour: "Jeudi 3 Décembre (B)", teamIds: [2, 4, 6, 8, 10] },
+            { date: "2026-12-08", jour: "Mardi 8 Décembre (A)", teamIds: [1, 3, 5, 7, 9] },
+            { date: "2026-12-17", jour: "Jeudi 17 Décembre (B)", teamIds: [2, 4, 6, 8, 10] },
+            { date: "2027-01-05", jour: "Mardi 5 Janvier (A)", teamIds: [1, 3, 5, 7, 9] },
+            { date: "2027-01-14", jour: "Jeudi 14 Janvier (B)", teamIds: [2, 4, 6, 8, 10] },
+            { date: "2027-01-19", jour: "Mardi 19 Janvier (A)", teamIds: [1, 3, 5, 7, 9] },
+            { date: "2027-01-28", jour: "Jeudi 28 Janvier (B)", teamIds: [2, 4, 6, 8, 10] },
+            { date: "2027-02-02", jour: "Mardi 2 Février (A)", teamIds: [1, 3, 5, 7, 9] },
+            { date: "2027-02-25", jour: "Jeudi 25 Février (B)", teamIds: [3, 4, 5, 6, 10] },
+            { date: "2027-03-02", jour: "Mardi 2 Mars (A)", teamIds: [1, 2, 7, 8, 9] },
+            { date: "2027-03-11", jour: "Jeudi 11 Mars (B)", teamIds: [3, 4, 5, 6, 10] },
+            { date: "2027-03-16", jour: "Mardi 16 Mars (A)", teamIds: [1, 2, 7, 8, 9] },
+            { date: "2027-03-25", jour: "Jeudi 25 Mars (B)", teamIds: [3, 4, 5, 6, 10] },
+            { date: "2027-03-30", jour: "Mardi 30 Mars (A)", teamIds: [1, 2, 7, 8, 9] },
+            { date: "2027-04-08", jour: "Jeudi 8 Avril (B)", teamIds: [3, 4, 5, 6, 10] },
+            { date: "2027-04-27", jour: "Mardi 27 Avril (A)", teamIds: [2, 5, 6, 8, 9] },
+            { date: "2027-05-06", jour: "Jeudi 6 Mai (B)", teamIds: [1, 3, 4, 7, 10] },
+            { date: "2027-05-11", jour: "Mardi 11 Mai (A)", teamIds: [2, 5, 6, 8, 9] },
+            { date: "2027-05-20", jour: "Jeudi 20 Mai (B)", teamIds: [1, 3, 4, 7, 10] },
+            { date: "2027-05-25", jour: "Mardi 25 Mai (A)", teamIds: [2, 5, 6, 8, 9] },
+            { date: "2027-06-03", jour: "Jeudi 3 Juin (B)", teamIds: [1, 3, 4, 7, 10] },
+            { date: "2027-06-08", jour: "Mardi 8 Juin (A)", teamIds: [2, 5, 6, 8, 9] },
+            { date: "2027-06-17", jour: "Jeudi 17 Juin (B)", teamIds: [1, 3, 4, 7, 10] }
+        ];
 
-            // Detect window resize to update device indicator
-            window.addEventListener('resize', detectDeviceMode);
-
-            // Close dropdown on click outside
-            document.addEventListener('click', function(e) {
-                const searchContainer = document.getElementById('search-input')?.closest('.relative');
-                if (searchContainer && !searchContainer.contains(e.target)) {
-                    hideAutocompleteDropdown();
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+                    event.preventDefault();
                 }
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.textContent = message;
+
+            if (type === 'success') {
+                toastIcon.className = 'fa-solid fa-circle-check text-pitch-500 text-xl';
+            } else if (type === 'warning') {
+                toastIcon.className = 'fa-solid fa-triangle-exclamation text-accent-500 text-xl';
+            } else if (type === 'error') {
+                toastIcon.className = 'fa-solid fa-circle-exclamation text-red-500 text-xl';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-info text-blue-400 text-xl';
+            }
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3200);
+        }
+
+        // Auto-sélection basée sur la date/session courante
+        function selectionnerSelonPlanning() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            
+            // Cherche le match d'aujourd'hui ou le tout premier disponible à partir d'aujourd'hui
+            let match = PLANNING_MATCHS.find(m => m.date >= todayStr);
+            if (!match) {
+                match = PLANNING_MATCHS[0];
+            }
+
+            teams.forEach(t => {
+                t.checked = match.teamIds.includes(t.id);
             });
 
-            // Keyboard shortcut (Ctrl + K or /) to focus search box
-            document.addEventListener('keydown', function(e) {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    const searchInput = document.getElementById('search-input');
-                    if (searchInput) {
-                        searchInput.focus();
-                        searchInput.select();
+            sauvegarderAutomatiquement();
+            renderSelectionGrid();
+            showToast(`Équipes cochées pour ${match.jour} !`, "success");
+        }
+
+        function sauvegarderAutomatiquement() {
+            try {
+                const payload = {
+                    version: 3,
+                    timestamp: new Date().toISOString(),
+                    players: players,
+                    teams: teams,
+                    currentPlayingTeamIds: currentPlayingTeamIds
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+            } catch (e) {
+                console.error("Erreur de sauvegarde :", e);
+            }
+        }
+
+        function chargerDepuisLocalStorage() {
+            try {
+                const dataRaw = localStorage.getItem(STORAGE_KEY);
+                if (dataRaw) {
+                    const parsed = JSON.parse(dataRaw);
+                    if (parsed && Array.isArray(parsed.players) && Array.isArray(parsed.teams)) {
+                        players = parsed.players;
+                        teams = parsed.teams.map(t => ({
+                            id: t.id,
+                            name: t.name,
+                            playCount: t.playCount || 0,
+                            checked: !!t.checked,
+                            points: t.points || 0
+                        }));
+                        currentPlayingTeamIds = parsed.currentPlayingTeamIds || [];
+                        return true;
                     }
                 }
-            });
-        };
-
-        function detectDeviceMode() {
-            const badge = document.getElementById('device-mode-badge');
-            if (!badge) return;
-
-            const width = window.innerWidth;
-
-            if (width >= 1024) {
-                badge.innerHTML = `<i data-lucide="monitor" class="w-3.5 h-3.5"></i><span>Mode PC / Desktop</span>`;
-            } else if (width >= 768) {
-                const orientation = window.innerHeight > window.innerWidth ? 'Portrait' : 'Paysage';
-                badge.innerHTML = `<i data-lucide="tablet" class="w-3.5 h-3.5"></i><span>iPad / Tablette (${orientation})</span>`;
-            } else {
-                badge.innerHTML = `<i data-lucide="smartphone" class="w-3.5 h-3.5"></i><span>Mode Mobile</span>`;
+            } catch (e) {
+                console.error("Erreur de chargement :", e);
             }
-            lucide.createIcons();
+            return false;
         }
 
-        function loadStoredData() {
-            // 1. AEDs
-            const storedAeds = localStorage.getItem(STORAGE_AEDS);
-            if (storedAeds) {
-                aeds = JSON.parse(storedAeds);
-            } else {
-                aeds = ['Marie CURIE', 'Thomas PESQUET', 'Sarah CONNOR', 'Lucas MARTIN'];
-                saveAeds();
-            }
-
-            // Selected AED
-            const storedSelectedAed = localStorage.getItem(STORAGE_SELECTED_AED);
-            if (storedSelectedAed && aeds.includes(storedSelectedAed)) {
-                selectedAed = storedSelectedAed;
-            } else {
-                selectedAed = aeds[0] || 'AED Général';
-            }
-
-            // 2. Database globale d'élèves
-            const storedDb = localStorage.getItem(STORAGE_DATABASE);
-            if (storedDb) {
-                studentDatabase = JSON.parse(storedDb);
-            } else {
-                studentDatabase = [];
-            }
-
-            // 3. Élèves de la session en cours
-            const storedSession = localStorage.getItem(STORAGE_SESSION);
-            if (storedSession) {
-                sessionStudents = JSON.parse(storedSession);
-            } else {
-                sessionStudents = [];
-            }
-        }
-
-        function saveAeds() {
-            localStorage.setItem(STORAGE_AEDS, JSON.stringify(aeds));
-        }
-
-        function saveSelectedAed() {
-            localStorage.setItem(STORAGE_SELECTED_AED, selectedAed);
-        }
-
-        function saveStudentDatabase() {
-            localStorage.setItem(STORAGE_DATABASE, JSON.stringify(studentDatabase));
-            updateDbCountBadge();
-        }
-
-        function saveSessionStudents() {
-            localStorage.setItem(STORAGE_SESSION, JSON.stringify(sessionStudents));
-        }
-
-        function updateDbCountBadge() {
-            const badge = document.getElementById('db-count-badge');
-            if (badge) {
-                badge.textContent = `Base : ${studentDatabase.length} élève(s)`;
-            }
-        }
-
-        function handleSearchInput() {
-            const input = document.getElementById('search-input');
-            const clearBtn = document.getElementById('clear-search-btn');
-            const query = input.value.trim().toLowerCase();
-
-            if (query.length > 0) {
-                clearBtn.classList.remove('hidden');
-            } else {
-                clearBtn.classList.add('hidden');
-                hideAutocompleteDropdown();
+        function exporterSauvegardeJSON() {
+            if (players.length === 0 && teams.length === 0) {
+                showToast("Aucune donnée à exporter.", "warning");
                 return;
             }
 
-            // Filtrage dans la base globale par Nom, Prénom ou Classe
-            searchMatches = studentDatabase.filter(s => {
-                const fullStr = `${s.nom} ${s.prenom} ${s.classe}`.toLowerCase();
-                const reverseStr = `${s.prenom} ${s.nom} ${s.classe}`.toLowerCase();
-                return fullStr.includes(query) || reverseStr.includes(query);
-            }).slice(0, 10); // Max 10 résultats
-
-            selectedDropdownIndex = -1;
-            renderAutocompleteDropdown(searchMatches, query);
-        }
-
-        function renderAutocompleteDropdown(matches, query) {
-            const dropdown = document.getElementById('autocomplete-dropdown');
-            dropdown.innerHTML = '';
-
-            if (matches.length === 0) {
-                dropdown.innerHTML = `
-                    <div class="p-4 text-center text-slate-500 text-xs">
-                        Aucun élève trouvé pour "<strong>${escapeHtml(query)}</strong>".
-                        <br>
-                        <button onclick="openModal('modal-student')" class="mt-2 text-brand-600 font-bold hover:underline">
-                            + Ajouter comme élève hors-liste
-                        </button>
-                    </div>
-                `;
-                dropdown.classList.remove('hidden');
-                return;
-            }
-
-            matches.forEach((student, index) => {
-                const item = document.createElement('div');
-                item.className = `p-3.5 cursor-pointer flex items-center justify-between hover:bg-brand-50/80 transition ${index === selectedDropdownIndex ? 'autocomplete-selected' : ''}`;
-                
-                // Format exigé: NOM Prénom Classe
-                item.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
-                            ${student.prenom.charAt(0)}
-                        </div>
-                        <div>
-                            <div class="text-sm font-bold text-slate-900">
-                                <span class="uppercase">${escapeHtml(student.nom)}</span> ${escapeHtml(student.prenom)}
-                            </div>
-                            <div class="text-[11px] text-slate-400">Classe : ${escapeHtml(student.classe)}</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="bg-slate-100 text-slate-800 border border-slate-200 font-black text-[11px] px-2.5 py-1 rounded-lg">
-                            ${escapeHtml(student.classe)}
-                        </span>
-                        <i data-lucide="plus-circle" class="w-5 h-5 text-brand-600"></i>
-                    </div>
-                `;
-
-                item.onclick = function() {
-                    selectStudentFromSearch(student);
-                };
-
-                dropdown.appendChild(item);
-            });
-
-            dropdown.classList.remove('hidden');
-            lucide.createIcons();
-        }
-
-        function hideAutocompleteDropdown() {
-            const dropdown = document.getElementById('autocomplete-dropdown');
-            dropdown.classList.add('hidden');
-            selectedDropdownIndex = -1;
-        }
-
-        function clearSearchInput() {
-            const input = document.getElementById('search-input');
-            input.value = '';
-            document.getElementById('clear-search-btn').classList.add('hidden');
-            hideAutocompleteDropdown();
-            input.focus();
-        }
-
-        function handleSearchKeyDown(e) {
-            const dropdown = document.getElementById('autocomplete-dropdown');
-            const isVisible = !dropdown.classList.contains('hidden');
-
-            if (!isVisible || searchMatches.length === 0) return;
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                selectedDropdownIndex = (selectedDropdownIndex + 1) % searchMatches.length;
-                updateDropdownHighlight();
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                selectedDropdownIndex = (selectedDropdownIndex - 1 + searchMatches.length) % searchMatches.length;
-                updateDropdownHighlight();
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                if (selectedDropdownIndex >= 0 && selectedDropdownIndex < searchMatches.length) {
-                    selectStudentFromSearch(searchMatches[selectedDropdownIndex]);
-                } else if (searchMatches.length > 0) {
-                    selectStudentFromSearch(searchMatches[0]);
-                }
-            } else if (e.key === 'Escape') {
-                hideAutocompleteDropdown();
-            }
-        }
-
-        function updateDropdownHighlight() {
-            const dropdown = document.getElementById('autocomplete-dropdown');
-            const items = dropdown.children;
-
-            for (let i = 0; i < items.length; i++) {
-                if (i === selectedDropdownIndex) {
-                    items[i].classList.add('autocomplete-selected');
-                    items[i].scrollIntoView({ block: 'nearest' });
-                } else {
-                    items[i].classList.remove('autocomplete-selected');
-                }
-            }
-        }
-
-        function selectStudentFromSearch(student) {
-            const exists = sessionStudents.some(s => s.id === student.id || (s.nom === student.nom && s.prenom === student.prenom && s.classe === student.classe));
-
-            if (exists) {
-                showToast(`${student.nom} ${student.prenom} est déjà dans l'appel !`, 'info');
-            } else {
-                sessionStudents.unshift({
-                    id: student.id || ('stu_' + Date.now()),
-                    nom: student.nom,
-                    prenom: student.prenom,
-                    classe: student.classe,
-                    status: 'Permanence',
-                    present: true
-                });
-
-                saveSessionStudents();
-                renderSessionList();
-                updateStats();
-                showToast(`Ajouté : ${student.nom} ${student.prenom} (${student.classe})`, 'success');
-            }
-
-            clearSearchInput();
-        }
-
-        function cycleStudentStatus(id, event) {
-            if (event) event.stopPropagation();
-            
-            const student = sessionStudents.find(s => s.id === id);
-            if (!student) return;
-
-            if (student.status === 'Permanence') {
-                student.status = 'Exclusion';
-            } else if (student.status === 'Exclusion') {
-                student.status = 'Autre';
-            } else {
-                student.status = 'Permanence';
-            }
-
-            saveSessionStudents();
-            renderSessionList();
-            updateStats();
-        }
-
-        function removeFromSession(id, event) {
-            if (event) event.stopPropagation();
-
-            sessionStudents = sessionStudents.filter(s => s.id !== id);
-            saveSessionStudents();
-            renderSessionList();
-            updateStats();
-            showToast('Élève retiré de l\'appel', 'info');
-        }
-
-        function renderSessionList() {
-            const container = document.getElementById('session-list-container');
-            const emptyState = document.getElementById('empty-session-state');
-            const countBadge = document.getElementById('session-count-badge');
-
-            container.innerHTML = '';
-            countBadge.textContent = `${sessionStudents.length} élève(s) enregistré(s)`;
-
-            if (sessionStudents.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            } else {
-                emptyState.classList.add('hidden');
-            }
-
-            sessionStudents.forEach(student => {
-                const card = document.createElement('div');
-                
-                let borderBgClass = 'bg-white border-slate-200';
-                if (student.status === 'Exclusion') borderBgClass = 'bg-rose-50/50 border-rose-200';
-                if (student.status === 'Autre') borderBgClass = 'bg-amber-50/50 border-amber-200';
-
-                card.className = `p-3.5 sm:p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 shadow-sm hover:shadow-md ${borderBgClass}`;
-
-                // Status Toggle Button
-                let statusButtonHTML = '';
-                if (student.status === 'Permanence') {
-                    statusButtonHTML = `
-                        <button onclick="cycleStudentStatus('${student.id}', event)" 
-                                class="px-3 py-2 rounded-xl text-xs font-extrabold bg-emerald-500 text-white border border-emerald-600 hover:bg-emerald-600 transition flex items-center gap-1.5 shadow-sm active:scale-95 touch-btn">
-                            <i data-lucide="shield-check" class="w-4 h-4"></i>
-                            <span>Permanence</span>
-                        </button>
-                    `;
-                } else if (student.status === 'Exclusion') {
-                    statusButtonHTML = `
-                        <button onclick="cycleStudentStatus('${student.id}', event)" 
-                                class="px-3 py-2 rounded-xl text-xs font-extrabold bg-rose-600 text-white border border-rose-700 hover:bg-rose-700 transition flex items-center gap-1.5 shadow-sm active:scale-95 animate-pulse touch-btn">
-                            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-                            <span>Exclusion</span>
-                        </button>
-                    `;
-                } else {
-                    statusButtonHTML = `
-                        <button onclick="cycleStudentStatus('${student.id}', event)" 
-                                class="px-3 py-2 rounded-xl text-xs font-extrabold bg-amber-500 text-white border border-amber-600 hover:bg-amber-600 transition flex items-center gap-1.5 shadow-sm active:scale-95 touch-btn">
-                            <i data-lucide="clock" class="w-4 h-4"></i>
-                            <span>Autre</span>
-                        </button>
-                    `;
-                }
-
-                // Format: NOM Prénom Classe
-                card.innerHTML = `
-                    <div class="flex items-center gap-3 min-w-0 flex-1">
-                        <div class="w-10 h-10 rounded-xl bg-slate-900 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm">
-                            ${escapeHtml(student.classe)}
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
-                                <span class="uppercase text-slate-950">${escapeHtml(student.nom)}</span> ${escapeHtml(student.prenom)}
-                            </div>
-                            <p class="text-[11px] text-slate-400 font-semibold">Classe : ${escapeHtml(student.classe)}</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-2 shrink-0">
-                        ${statusButtonHTML}
-
-                        <button onclick="removeFromSession('${student.id}', event)" 
-                                class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition touch-target" 
-                                title="Retirer de l'appel">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                `;
-
-                container.appendChild(card);
-            });
-
-            lucide.createIcons();
-        }
-
-        function renderAedDropdown() {
-            const select = document.getElementById('aed-select');
-            select.innerHTML = '';
-
-            aeds.forEach(aed => {
-                const opt = document.createElement('option');
-                opt.value = aed;
-                opt.textContent = aed;
-                if (aed === selectedAed) opt.selected = true;
-                select.appendChild(opt);
-            });
-
-            select.onchange = function(e) {
-                selectedAed = e.target.value;
-                saveSelectedAed();
-                showToast(`AED actif : ${selectedAed}`, 'info');
+            const dataToExport = {
+                appName: "TournoiFoot",
+                exportDate: new Date().toISOString(),
+                players: players,
+                teams: teams,
+                currentPlayingTeamIds: currentPlayingTeamIds
             };
+
+            const jsonStr = JSON.stringify(dataToExport, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const nowStr = new Date().toISOString().slice(0,10);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sauvegarde_tournoi_foot_${nowStr}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast("Sauvegarde JSON téléchargée !", "success");
         }
 
-        function renderAedListInModal() {
-            const container = document.getElementById('modal-aed-list');
-            if (!container) return;
-            container.innerHTML = '';
-
-            if (aeds.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 italic">Aucun surveillant enregistré.</p>`;
-                return;
-            }
-
-            aeds.forEach(aed => {
-                const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800';
-                
-                const isSelected = (aed === selectedAed);
-                
-                item.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="user" class="w-4 h-4 text-slate-400"></i>
-                        <span>${escapeHtml(aed)}</span>
-                        ${isSelected ? '<span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md border border-emerald-200">Actif</span>' : ''}
-                    </div>
-                    <button type="button" onclick="deleteAed('${escapeHtml(aed).replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition touch-target" title="Supprimer cet AED">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
-                `;
-                container.appendChild(item);
-            });
-
-            lucide.createIcons();
-        }
-
-        function handleAddAed(e) {
-            e.preventDefault();
-            const input = document.getElementById('new-aed-name');
-            const name = input.value.trim();
-            if (name) {
-                if (!aeds.includes(name)) {
-                    aeds.push(name);
-                    saveAeds();
-                }
-                selectedAed = name;
-                saveSelectedAed();
-                renderAedDropdown();
-                renderAedListInModal();
-                input.value = '';
-                showToast(`Nouvel AED ajouté : ${name}`, 'success');
-            }
-        }
-
-        function deleteAed(name) {
-            if (aeds.length <= 1) {
-                showToast("Impossible de supprimer le dernier AED.", "error");
-                return;
-            }
-
-            const confirmDelete = confirm(`Voulez-vous vraiment supprimer l'AED "${name}" ?`);
-            if (confirmDelete) {
-                aeds = aeds.filter(a => a !== name);
-                saveAeds();
-
-                if (selectedAed === name) {
-                    selectedAed = aeds[0] || '';
-                    saveSelectedAed();
-                }
-
-                renderAedDropdown();
-                renderAedListInModal();
-                showToast(`AED "${name}" supprimé.`, 'info');
-            }
-        }
-
-        function handleAddUnlistedStudent(e) {
-            e.preventDefault();
-            const nom = document.getElementById('new-student-nom').value.trim().toUpperCase();
-            const prenom = capitalizeFirstLetter(document.getElementById('new-student-prenom').value.trim());
-            const classe = document.getElementById('new-student-classe').value.trim().toUpperCase();
-            const status = document.getElementById('new-student-status').value || 'Permanence';
-
-            if (nom && prenom && classe) {
-                const newStudent = {
-                    id: 'stu_' + Date.now(),
-                    nom: nom,
-                    prenom: prenom,
-                    classe: classe,
-                    status: status,
-                    present: true
-                };
-
-                studentDatabase.push(newStudent);
-                saveStudentDatabase();
-
-                sessionStudents.unshift(newStudent);
-                saveSessionStudents();
-
-                renderSessionList();
-                updateStats();
-
-                document.getElementById('new-student-nom').value = '';
-                document.getElementById('new-student-prenom').value = '';
-                document.getElementById('new-student-classe').value = '';
-                closeModal('modal-student');
-
-                showToast(`Élève ${nom} ${prenom} ajouté à la permanence !`, 'success');
-            }
-        }
-
-        function handleFileUpload(event) {
+        function importerSauvegardeJSON(event) {
             const file = event.target.files[0];
             if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && Array.isArray(parsed.players) && Array.isArray(parsed.teams)) {
+                        players = parsed.players;
+                        teams = parsed.teams.map(t => ({
+                            id: t.id,
+                            name: t.name,
+                            playCount: t.playCount || 0,
+                            checked: !!t.checked,
+                            points: t.points || 0
+                        }));
+                        currentPlayingTeamIds = parsed.currentPlayingTeamIds || [];
+                        
+                        sauvegarderAutomatiquement();
+                        renderAll();
+                        showToast("Sauvegarde JSON chargée avec succès !", "success");
+                    } else {
+                        showToast("Format du fichier JSON invalide.", "error");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast("Erreur lors de la lecture du fichier JSON.", "error");
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function demanderResetComplet() {
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
+
+        function fermerResetModal() {
+            document.getElementById('reset-modal').classList.add('hidden');
+        }
+
+        function effectuerResetComplet() {
+            players = [];
+            teams = [];
+            currentPlayingTeamIds = [];
+            localStorage.removeItem(STORAGE_KEY);
+            fermerResetModal();
+            renderAll();
+            showToast("Toutes les données ont été réinitialisées.", "info");
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            const labelText = document.getElementById('file-label-text');
+            if (file) {
+                labelText.textContent = file.name;
+            } else {
+                labelText.textContent = "Choisir un fichier Excel (.xlsx) ou CSV";
+            }
+        }
+
+        function importerExcel() {
+            const fileInput = document.getElementById('excelFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showToast("Veuillez sélectionner un fichier Excel ou CSV.", "warning");
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -1051,296 +579,487 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
                     const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    const firstSheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                    if (!rawRows || rawRows.length === 0) {
-                        showToast('Fichier Excel vide', 'error');
+                    let loadedNames = [];
+                    jsonData.forEach(row => {
+                        if (row && row[0] !== undefined && row[0] !== null) {
+                            const name = String(row[0]).trim();
+                            if (name !== "" && name.toLowerCase() !== "nom" && name.toLowerCase() !== "élèves" && name.toLowerCase() !== "eleves") {
+                                loadedNames.push(name);
+                            }
+                        }
+                    });
+
+                    if (loadedNames.length === 0) {
+                        showToast("Aucun nom d'élève valide trouvé dans la première colonne.", "error");
                         return;
                     }
 
-                    parseAndSaveExcelData(rawRows);
-                    event.target.value = '';
+                    let startId = players.length > 0 ? Math.max(...players.map(p => p.id)) + 1 : 1;
+                    let countAdded = 0;
+
+                    loadedNames.forEach(name => {
+                        if (!players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                            players.push({
+                                id: startId++,
+                                name: name,
+                                teamId: null
+                            });
+                            countAdded++;
+                        }
+                    });
+
+                    if (teams.length === 0) {
+                        for (let i = 1; i <= 10; i++) {
+                            teams.push({
+                                id: i,
+                                name: `Équipe ${i}`,
+                                playCount: 0,
+                                checked: false,
+                                points: 0
+                            });
+                        }
+                    }
+
+                    showToast(`${countAdded} élève(s) ajouté(s) à la réserve !`, "success");
+                    renderAll();
                 } catch (err) {
                     console.error(err);
-                    showToast('Erreur lors de l\'importation Excel', 'error');
+                    showToast("Erreur lors de l'analyse du fichier Excel.", "error");
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        function parseAndSaveExcelData(rows) {
-            let nomIdx = -1, prenomIdx = -1, classeIdx = -1;
-            const header = rows[0].map(c => String(c || '').toLowerCase().trim());
-
-            for (let i = 0; i < header.length; i++) {
-                if (header[i].includes('nom') && !header[i].includes('prenom') && !header[i].includes('prénom')) nomIdx = i;
-                if (header[i].includes('prenom') || header[i].includes('prénom')) prenomIdx = i;
-                if (header[i].includes('classe') || header[i].includes('div')) classeIdx = i;
+        function toggleTeamSelection(teamId) {
+            const team = teams.find(t => t.id === teamId);
+            if (team) {
+                team.checked = !team.checked;
+                sauvegarderAutomatiquement();
+                renderSelectionGrid();
             }
-
-            if (nomIdx === -1) nomIdx = 0;
-            if (prenomIdx === -1) prenomIdx = 1;
-            if (classeIdx === -1) classeIdx = 2;
-
-            let addedCount = 0;
-            const startRow = (header[nomIdx] && header[nomIdx].includes('nom')) ? 1 : 0;
-
-            for (let r = startRow; r < rows.length; r++) {
-                const row = rows[r];
-                if (!row || row.length === 0) continue;
-
-                const nom = String(row[nomIdx] || '').trim().toUpperCase();
-                const prenom = capitalizeFirstLetter(String(row[prenomIdx] || '').trim());
-                let classe = String(row[classeIdx] || '').trim().toUpperCase();
-
-                if (!classe) classe = '6°A';
-
-                if (nom && prenom) {
-                    const exists = studentDatabase.some(s => s.nom === nom && s.prenom === prenom && s.classe === classe);
-                    if (!exists) {
-                        studentDatabase.push({
-                            id: 'stu_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                            nom: nom,
-                            prenom: prenom,
-                            classe: classe
-                        });
-                        addedCount++;
-                    }
-                }
-            }
-
-            saveStudentDatabase();
-            showToast(`${addedCount} élève(s) importé(s) dans la base !`, 'success');
         }
 
-        function loadDemoData() {
-            const demo = [
-                { nom: 'DUPONT', prenom: 'Jean', classe: '6°A' },
-                { nom: 'MARTIN', prenom: 'Sophie', classe: '6°A' },
-                { nom: 'BENALI', prenom: 'Yassine', classe: '5°B' },
-                { nom: 'LEGRAND', prenom: 'Camille', classe: '4°C' },
-                { nom: 'RABAT', prenom: 'Lucas', classe: '3°A' },
-                { nom: 'KOWALSKI', prenom: 'Emma', classe: '6°B' },
-                { nom: 'MOREAU', prenom: 'Thomas', classe: '5°A' },
-                { nom: 'DIALLO', prenom: 'Aïcha', classe: '3°C' },
-                { nom: 'GARCIA', prenom: 'Antoine', classe: '4°B' },
-                { nom: 'PETIT', prenom: 'Chloé', classe: '5°C' }
-            ];
-
-            let count = 0;
-            demo.forEach(item => {
-                if (!studentDatabase.some(s => s.nom === item.nom && s.prenom === item.prenom)) {
-                    studentDatabase.push({
-                        id: 'stu_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-                        nom: item.nom,
-                        prenom: item.prenom,
-                        classe: item.classe
-                    });
-                    count++;
-                }
-            });
-
-            saveStudentDatabase();
-            showToast(`Base de données chargée avec ${studentDatabase.length} élèves !`, 'info');
-        }
-
-        /* FUNCTION: CLEAR ENTIRE STUDENT DATABASE */
-        function clearStudentDatabase() {
-            if (studentDatabase.length === 0) {
-                showToast('La base de données d\'élèves est déjà vide.', 'info');
+        function validerSelectionMatch() {
+            const selectedTeams = teams.filter(t => t.checked);
+            
+            if (selectedTeams.length === 0) {
+                showToast("Veuillez cocher au moins une équipe à faire jouer.", "warning");
                 return;
             }
 
-            const confirmClear = confirm(`Voulez-vous vraiment effacer les ${studentDatabase.length} élève(s) enregistrés dans la base de données ?\nCette action est irréversible.`);
-            
-            if (confirmClear) {
-                studentDatabase = [];
-                saveStudentDatabase();
-                hideAutocompleteDropdown();
-                showToast('La base de données des élèves a été réinitialisée.', 'error');
+            selectedTeams.forEach(t => {
+                t.playCount = (t.playCount || 0) + 1;
+            });
+
+            currentPlayingTeamIds = selectedTeams.map(t => t.id);
+
+            sauvegarderAutomatiquement();
+            renderAll();
+            showToast(`${selectedTeams.length} équipe(s) envoyée(s) sur le terrain (+1 match au compteur) !`, "success");
+        }
+
+        function reinitialiserEquipesTerrain() {
+            currentPlayingTeamIds = [];
+            teams.forEach(t => t.checked = false);
+            sauvegarderAutomatiquement();
+            renderAll();
+            showToast("Le terrain et la sélection ont été réinitialisés.", "info");
+        }
+
+        function reinitialiserCompteursJoues() {
+            teams.forEach(t => t.playCount = 0);
+            sauvegarderAutomatiquement();
+            renderAll();
+            showToast("Tous les compteurs de matchs ont été réinitialisés à 0.", "info");
+        }
+
+        function reinitialiserTotalPoints() {
+            teams.forEach(t => t.points = 0);
+            sauvegarderAutomatiquement();
+            renderLeaderboard();
+            showToast("Le total des points a été réinitialisé à 0.", "info");
+        }
+
+        function ajouterNouvelleEquipe() {
+            const newId = teams.length > 0 ? Math.max(...teams.map(t => t.id)) + 1 : 1;
+            teams.push({
+                id: newId,
+                name: `Équipe ${newId}`,
+                playCount: 0,
+                checked: false,
+                points: 0
+            });
+            showToast(`Nouvelle équipe "${teams[teams.length - 1].name}" ajoutée !`, "success");
+            renderAll();
+        }
+
+        function changerNomEquipe(teamId, newName) {
+            const team = teams.find(t => t.id === teamId);
+            if (team && newName.trim() !== "") {
+                team.name = newName.trim();
+                renderAll();
             }
         }
 
-        function resetCurrentSession() {
-            if (sessionStudents.length === 0) return;
-            sessionStudents = [];
-            saveSessionStudents();
-            renderSessionList();
-            updateStats();
-            showToast('L\'appel a été réinitialisé', 'info');
+        function supprimerEquipe(teamId) {
+            const team = teams.find(t => t.id === teamId);
+            if (!team) return;
+
+            players.forEach(p => {
+                if (p.teamId === teamId) p.teamId = null;
+            });
+
+            teams = teams.filter(t => t.id !== teamId);
+            currentPlayingTeamIds = currentPlayingTeamIds.filter(id => id !== teamId);
+
+            showToast(`L'équipe "${team.name}" a été supprimée.`, "info");
+            renderAll();
         }
 
-        function updateStats() {
-            const total = sessionStudents.length;
-            const perm = sessionStudents.filter(s => s.status === 'Permanence').length;
-            const excl = sessionStudents.filter(s => s.status === 'Exclusion').length;
-            const autre = sessionStudents.filter(s => s.status === 'Autre').length;
+        function filtrerSuggestions(teamId, query) {
+            const listContainer = document.getElementById(`suggestions-${teamId}`);
+            if (!listContainer) return;
 
-            document.getElementById('stat-total').textContent = total;
-            document.getElementById('stat-perm').textContent = perm;
-            document.getElementById('stat-excl').textContent = excl;
-            document.getElementById('stat-autre').textContent = autre;
-        }
-
-        function triggerPrint() {
-            const now = new Date();
-            
-            // Format heure sans les minutes: 08h, 14h, etc.
-            const currentHourNum = now.getHours();
-            const hourFormatted = currentHourNum.toString().padStart(2, '0') + 'h';
-
-            const aedName = selectedAed || 'L\'AED';
-
-            // EXIGENCE DE TITRE : PERMANENCE DE (nom de L’AED) à (heure sans minutes)
-            const requiredTitle = `PERMANENCE DE ${aedName.toUpperCase()} à ${hourFormatted}`;
-
-            document.getElementById('print-title-header').textContent = requiredTitle;
-            document.getElementById('print-date').textContent = now.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('print-full-time').textContent = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-
-            const total = sessionStudents.length;
-            const perm = sessionStudents.filter(s => s.status === 'Permanence').length;
-            const excl = sessionStudents.filter(s => s.status === 'Exclusion').length;
-            const autre = sessionStudents.filter(s => s.status === 'Autre').length;
-
-            document.getElementById('print-stat-total').textContent = total;
-            document.getElementById('print-stat-perm').textContent = perm;
-            document.getElementById('print-stat-excl').textContent = excl;
-            document.getElementById('print-stat-autre').textContent = autre;
-            document.getElementById('print-signature-aed').textContent = aedName;
-
-            // Remplir tableau
-            const printTbody = document.getElementById('print-table-body');
-            printTbody.innerHTML = '';
-
-            if (sessionStudents.length === 0) {
-                printTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 25px; color:#64748b;">Aucun élève enregistré lors de cet appel.</td></tr>`;
-            } else {
-                sessionStudents.forEach((s, idx) => {
-                    const tr = document.createElement('tr');
-                    
-                    let badgeClass = 'print-badge-perm';
-                    if (s.status === 'Exclusion') badgeClass = 'print-badge-excl';
-                    if (s.status === 'Autre') badgeClass = 'print-badge-autre';
-
-                    tr.innerHTML = `
-                        <td style="text-align: center;">${idx + 1}</td>
-                        <td><strong>${escapeHtml(s.nom)}</strong> ${escapeHtml(s.prenom)}</td>
-                        <td><strong>${escapeHtml(s.classe)}</strong></td>
-                        <td><span class="print-badge ${badgeClass}">${escapeHtml(s.status)}</span></td>
-                        <td style="text-align: center;"><b>PRÉSENT</b></td>
-                    `;
-                    printTbody.appendChild(tr);
-                });
+            if (!query.trim()) {
+                listContainer.innerHTML = '';
+                listContainer.classList.add('hidden');
+                return;
             }
 
-            // Détection iOS WebApp Standalone (écran d'accueil)
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-            const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+            const matches = players.filter(p => 
+                p.name.toLowerCase().includes(query.toLowerCase())
+            );
 
-            if (isIOS && isStandalone) {
-                // Sur iOS WebApp (écran d'accueil), window.print() est bloqué par le système WebKit.
-                // On crée une fenêtre popup avec le contenu pour déclencher l'impression AirPrint.
-                const printContent = document.getElementById('print-zone').innerHTML;
-                const printWindow = window.open('', '_blank');
+            if (matches.length === 0) {
+                listContainer.innerHTML = `<li class="p-3 text-xs text-slate-500 text-center font-medium">Aucun élève trouvé</li>`;
+                listContainer.classList.remove('hidden');
+                return;
+            }
 
-                if (printWindow) {
-                    printWindow.document.write(`
-                        <!DOCTYPE html>
-                        <html lang="fr">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>${requiredTitle}</title>
-                            <script src="https://cdn.tailwindcss.com"><\/script>
-                            <style>
-                                @page { size: A4 portrait; margin: 12mm; }
-                                body { background-color: #ffffff !important; color: #000000 !important; font-family: system-ui, -apple-system, sans-serif; padding: 12px; }
-                                .print-table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px !important; }
-                                .print-table th, .print-table td { border: 1px solid #334155 !important; padding: 8px 10px !important; text-align: left !important; font-size: 9.5pt !important; }
-                                .print-table th { background-color: #f1f5f9 !important; font-weight: 800 !important; color: #0f172a !important; text-transform: uppercase; }
-                                .print-badge { padding: 3px 8px; border-radius: 4px; font-weight: 800; font-size: 8pt; display: inline-block; text-transform: uppercase; }
-                                .print-badge-perm { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; }
-                                .print-badge-excl { background-color: #ffe4e6; color: #9f1239; border: 1px solid #fca5a5; }
-                                .print-badge-autre { background-color: #fef3c7; color: #92400e; border: 1px solid #fde047; }
-                            </style>
-                        </head>
-                        <body>
-                            <div>${printContent}</div>
-                            <script>
-                                window.onload = function() {
-                                    setTimeout(function() {
-                                        window.print();
-                                    }, 400);
-                                };
-                            <\/script>
-                        </body>
-                        </html>
-                    `);
-                    printWindow.document.close();
+            listContainer.innerHTML = '';
+            matches.slice(0, 6).forEach(p => {
+                const currentTeam = teams.find(t => t.id === p.teamId);
+                const teamLabel = currentTeam 
+                    ? `<span class="text-amber-400 font-semibold">${currentTeam.name}</span>` 
+                    : `<span class="text-pitch-400 font-semibold">Disponible</span>`;
+                
+                const item = document.createElement('li');
+                item.className = 'touch-btn-sm px-4 py-3 hover:bg-slate-800 cursor-pointer text-xs flex items-center justify-between transition border-b border-slate-800/80 last:border-0';
+                item.innerHTML = `
+                    <span class="font-bold text-slate-200">${p.name}</span>
+                    <span class="text-[10px] bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800">${teamLabel}</span>
+                `;
+                item.onclick = function() {
+                    assignerJoueurAEquipe(p.id, teamId);
+                };
+                listContainer.appendChild(item);
+            });
+
+            listContainer.classList.remove('hidden');
+        }
+
+        function assignerJoueurAEquipe(playerId, targetTeamId) {
+            const player = players.find(p => p.id === playerId);
+            const team = teams.find(t => t.id === targetTeamId);
+            
+            if (player && team) {
+                player.teamId = targetTeamId;
+                showToast(`${player.name} placé dans ${team.name}`, "success");
+                renderAll();
+            }
+        }
+
+        function retirerJoueurDeEquipe(playerId) {
+            const player = players.find(p => p.id === playerId);
+            if (player) {
+                player.teamId = null;
+                showToast(`${player.name} retiré de l'équipe`, "info");
+                renderAll();
+            }
+        }
+
+        function ajouterPointsEquipe(teamId, pts) {
+            const team = teams.find(t => t.id === teamId);
+            if (team) {
+                team.points = (team.points || 0) + pts;
+                sauvegarderAutomatiquement();
+                renderLeaderboard();
+                showToast(`+${pts} pt(s) attribué(s) à l'équipe ${team.name} !`, pts === 0 ? "info" : "success");
+            }
+        }
+
+        function renderAll() {
+            sauvegarderAutomatiquement();
+            renderSelectionGrid();
+            renderPlayingTeams();
+            renderAllTeams();
+            renderLeaderboard();
+            updateStatsBadges();
+        }
+
+        function updateStatsBadges() {
+            document.getElementById('total-players-count').textContent = players.length;
+            const unassigned = players.filter(p => p.teamId === null).length;
+            document.getElementById('unassigned-players-count').textContent = unassigned;
+            document.getElementById('total-teams-count').textContent = teams.length;
+        }
+
+        function renderSelectionGrid() {
+            const grid = document.getElementById('selection-teams-grid');
+            if (teams.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-slate-500 text-sm text-center py-4">Aucune équipe créée pour le moment.</p>`;
+                return;
+            }
+
+            grid.innerHTML = '';
+            teams.forEach(team => {
+                const count = team.playCount || 0;
+                let badgeColor = 'bg-slate-800 text-slate-400 border-slate-700';
+                
+                if (count === 0) {
+                    badgeColor = 'bg-red-500/20 text-red-400 border-red-500/40 font-bold';
+                } else if (count === 1) {
+                    badgeColor = 'bg-amber-500/20 text-amber-400 border-amber-500/40';
                 } else {
-                    showToast("Autorisez les popups dans Réglages > Safari pour imprimer", "error");
+                    badgeColor = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40';
                 }
-            } else {
-                // Mode navigateur habituel (PC, Android, Safari classique)
-                setTimeout(() => {
-                    window.print();
-                }, 150);
+
+                grid.innerHTML += `
+                    <div onclick="toggleTeamSelection(${team.id})" class="touch-btn cursor-pointer p-4 rounded-xl border ${team.checked ? 'border-pitch-500 bg-pitch-950/40 shadow-lg shadow-pitch-950/50' : 'border-slate-800 bg-slate-950/60 hover:bg-slate-850'} transition flex items-center justify-between">
+                        <div class="flex items-center gap-3 truncate">
+                            <input type="checkbox" ${team.checked ? 'checked' : ''} class="w-5 h-5 rounded border-slate-700 text-pitch-600 focus:ring-pitch-500 pointer-events-none">
+                            <span class="font-bold text-sm text-slate-200 truncate">${team.name}</span>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 rounded-lg border ${badgeColor} shrink-0 flex items-center gap-1" title="${count === 0 ? 'N\'a pas encore joué !' : 'Nombre de fois sélectionnée'}">
+                            <i class="fa-solid fa-gamepad text-[10px]"></i>
+                            ${count === 0 ? 'Jamais joué' : count + ' match(s)'}
+                        </span>
+                    </div>
+                `;
+            });
+        }
+
+        function renderPlayingTeams() {
+            const container = document.getElementById('playing-teams');
+            const pointsSection = document.getElementById('points-section');
+            const pointsControls = document.getElementById('points-controls');
+
+            const selectedTeams = teams.filter(t => currentPlayingTeamIds.includes(t.id));
+
+            if (selectedTeams.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-10 text-center border-2 border-dashed border-slate-800 rounded-2xl bg-slate-950/40">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-850 flex items-center justify-center mx-auto mb-2 text-slate-600">
+                            <i class="fa-solid fa-shield-halved text-2xl"></i>
+                        </div>
+                        <p class="text-slate-300 font-semibold text-base">Aucune équipe sur le terrain.</p>
+                        <p class="text-xs text-slate-500 mt-1">Cochez les équipes dans la liste ci-dessous puis cliquez sur "Valider & Faire Jouer".</p>
+                    </div>
+                `;
+                pointsSection.classList.add('hidden');
+                return;
             }
+
+            container.innerHTML = '';
+            pointsControls.innerHTML = '';
+
+            selectedTeams.forEach(team => {
+                const teamPlayers = players.filter(p => p.teamId === team.id);
+                let playersHtml = teamPlayers.map(p => `
+                    <li class="flex items-center gap-2 text-xs py-1.5 text-slate-200">
+                        <i class="fa-solid fa-user text-pitch-500 text-xs"></i>
+                        <span class="font-bold">${p.name}</span>
+                    </li>
+                `).join('');
+
+                if (teamPlayers.length === 0) {
+                    playersHtml = `<li class="text-xs text-slate-500 italic py-2">Équipe vide</li>`;
+                }
+
+                container.innerHTML += `
+                    <div class="bg-slate-950 border-2 border-pitch-500/80 rounded-2xl p-5 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                        <div class="absolute top-0 right-0 bg-pitch-600 text-white text-[10px] font-black tracking-wider uppercase px-3 py-1 rounded-bl-xl">
+                            SUR LE TERRAIN
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-800">
+                                <i class="fa-solid fa-shield-cat text-pitch-500 text-xl"></i>
+                                <div>
+                                    <h3 class="font-extrabold text-white text-lg truncate">${team.name}</h3>
+                                    <p class="text-[10px] text-pitch-400 font-semibold">${team.playCount || 0} match(s) joué(s)</p>
+                                </div>
+                            </div>
+                            <ul class="space-y-1 mb-4">
+                                ${playersHtml}
+                            </ul>
+                        </div>
+                        <div class="text-xs text-slate-400 border-t border-slate-900 pt-3 flex justify-between items-center">
+                            <span>Effectif</span>
+                            <span class="font-bold text-white bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">${teamPlayers.length} joueur(s)</span>
+                        </div>
+                    </div>
+                `;
+
+                pointsControls.innerHTML += `
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-lg">
+                        <div class="font-extrabold text-white mb-4 text-center text-base truncate">${team.name}</div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="ajouterPointsEquipe(${team.id}, 3)" class="touch-btn bg-pitch-600 hover:bg-pitch-500 active:bg-pitch-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 shadow-md">
+                                <i class="fa-solid fa-trophy text-xs"></i> +3 (Victoire)
+                            </button>
+                            <button onclick="ajouterPointsEquipe(${team.id}, 1)" class="touch-btn bg-accent-600 hover:bg-accent-500 active:bg-accent-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 shadow-md">
+                                <i class="fa-solid fa-handshake text-xs"></i> +1 (Nul)
+                            </button>
+                            <button onclick="ajouterPointsEquipe(${team.id}, 0)" class="touch-btn bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 shadow-md">
+                                <i class="fa-solid fa-xmark text-xs"></i> +0 (Perdu)
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            pointsSection.classList.remove('hidden');
         }
 
-        function capitalizeFirstLetter(str) {
-            if (!str) return '';
-            return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
-
-        function openModal(id) {
-            if (id === 'modal-aed') {
-                renderAedListInModal();
+        function renderAllTeams() {
+            const container = document.getElementById('all-teams');
+            if (teams.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-12 text-center border-2 border-dashed border-slate-800 rounded-2xl">
+                        <p class="text-slate-400 font-medium">Aucune équipe n'existe encore. Cliquez sur "Ajouter une équipe vide".</p>
+                    </div>
+                `;
+                return;
             }
-            document.getElementById(id).classList.remove('hidden');
+
+            container.innerHTML = '';
+
+            teams.forEach(team => {
+                const teamPlayers = players.filter(p => p.teamId === team.id);
+                
+                let playersHtml = teamPlayers.map(p => `
+                    <li class="flex items-center justify-between bg-slate-900/90 hover:bg-slate-850 px-3.5 py-2 rounded-xl border border-slate-800/80 transition">
+                        <span class="text-xs font-bold text-slate-200 truncate">👤 ${p.name}</span>
+                        <button onclick="retirerJoueurDeEquipe(${p.id})" title="Retirer de l'équipe" class="touch-btn-sm text-slate-500 hover:text-red-400 transition flex items-center justify-center">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    </li>
+                `).join('');
+
+                container.innerHTML += `
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-800">
+                                <input 
+                                    type="text" 
+                                    value="${team.name}" 
+                                    onchange="changerNomEquipe(${team.id}, this.value)"
+                                    title="Cliquer pour modifier le nom"
+                                    class="bg-transparent font-extrabold text-slate-100 text-base focus:outline-none focus:bg-slate-900 focus:px-2 focus:py-1 rounded-lg border border-transparent focus:border-pitch-500 w-full truncate"
+                                />
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800 shrink-0">
+                                        ${teamPlayers.length}/5
+                                    </span>
+                                    <button onclick="supprimerEquipe(${team.id})" title="Supprimer l'équipe" class="touch-btn-sm text-slate-600 hover:text-red-400 transition flex items-center justify-center">
+                                        <i class="fa-solid fa-trash-can text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <ul class="space-y-2 mb-4 max-h-56 overflow-y-auto pr-1">
+                                ${playersHtml.length > 0 ? playersHtml : '<li class="text-xs text-slate-500 text-center py-6 italic border border-dashed border-slate-900 rounded-xl">Équipe vide</li>'}
+                            </ul>
+                        </div>
+
+                        <div class="relative mt-2">
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                                <input 
+                                    type="text" 
+                                    placeholder="🔍 Ajouter un élève..." 
+                                    oninput="filtrerSuggestions(${team.id}, this.value)"
+                                    onfocus="filtrerSuggestions(${team.id}, this.value)"
+                                    class="w-full h-11 bg-slate-900 text-slate-200 text-xs rounded-xl pl-10 pr-3 border border-slate-800 focus:outline-none focus:border-pitch-500 transition"
+                                />
+                            </div>
+                            <ul id="suggestions-${team.id}" class="suggestions-dropdown hidden absolute left-0 right-0 bottom-full mb-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-30 max-h-48 overflow-y-auto">
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
+        function renderLeaderboard() {
+            const tbody = document.getElementById('leaderboard-body');
+            const filterInput = document.getElementById('leaderboard-filter');
+            const filterQuery = filterInput ? filterInput.value.toLowerCase().trim() : '';
+
+            if (teams.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-slate-500 font-medium">Aucune équipe disponible.</td></tr>`;
+                return;
+            }
+
+            let teamsRanking = teams.map(team => {
+                const teamPlayers = players.filter(p => p.teamId === team.id);
+                return {
+                    id: team.id,
+                    name: team.name,
+                    playCount: team.playCount || 0,
+                    playerCount: teamPlayers.length,
+                    points: team.points || 0
+                };
+            });
+
+            let filtered = teamsRanking.filter(t => t.name.toLowerCase().includes(filterQuery));
+            filtered.sort((a, b) => b.points - a.points);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-slate-500 font-medium">Aucune équipe ne correspond à votre recherche.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            filtered.forEach((t, index) => {
+                let rankBadge = `<span class="font-bold text-slate-400 text-sm">#${index + 1}</span>`;
+                if (index === 0) rankBadge = `<span class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 font-black text-sm flex items-center justify-center">🥇</span>`;
+                if (index === 1) rankBadge = `<span class="w-8 h-8 rounded-xl bg-slate-400/20 text-slate-300 border border-slate-400/40 font-black text-sm flex items-center justify-center">🥈</span>`;
+                if (index === 2) rankBadge = `<span class="w-8 h-8 rounded-xl bg-amber-700/20 text-amber-600 border border-amber-700/40 font-black text-sm flex items-center justify-center">🥉</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-900/80 transition">
+                        <td class="py-4 px-6">${rankBadge}</td>
+                        <td class="py-4 px-6 font-bold text-slate-100 text-base">
+                            <span class="inline-flex items-center gap-2">
+                                <i class="fa-solid fa-shield text-pitch-500 text-sm"></i>
+                                ${t.name}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6 text-slate-300 text-sm font-semibold">${t.playCount} match(s)</td>
+                        <td class="py-4 px-6 text-slate-400 text-sm font-medium">${t.playerCount} joueur(s)</td>
+                        <td class="py-4 px-6 text-right font-black text-pitch-400 text-lg">${t.points} <span class="text-xs font-medium text-slate-500">pts</span></td>
+                    </tr>
+                `;
+            });
         }
 
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.relative')) {
+                document.querySelectorAll('.suggestions-dropdown').forEach(el => el.classList.add('hidden'));
+            }
+        });
 
-            let bg = 'bg-slate-900 text-white';
-            if (type === 'success') bg = 'bg-emerald-700 text-white';
-            if (type === 'error') bg = 'bg-rose-700 text-white';
-
-            toast.className = `${bg} px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto`;
-            toast.innerHTML = `
-                <i data-lucide="info" class="w-4 h-4"></i>
-                <span>${escapeHtml(message)}</span>
-            `;
-
-            container.appendChild(toast);
-            lucide.createIcons();
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            }, 10);
-
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
+        window.onload = function() {
+            const hasRestored = chargerDepuisLocalStorage();
+            if (hasRestored) {
+                showToast("Dernière session restaurée automatiquement.", "info");
+            }
+            renderAll();
+        };
     </script>
 </body>
 </html>
