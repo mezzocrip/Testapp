@@ -576,7 +576,6 @@
             if (!badge) return;
 
             const width = window.innerWidth;
-            const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
             if (width >= 1024) {
                 badge.innerHTML = `<i data-lucide="monitor" class="w-3.5 h-3.5"></i><span>Mode PC / Desktop</span>`;
@@ -801,7 +800,6 @@
                 showToast(`Ajouté : ${student.nom} ${student.prenom} (${student.classe})`, 'success');
             }
 
-            // Exigence : Effacement direct de la recherche & conservation du focus
             clearSearchInput();
         }
 
@@ -1237,9 +1235,59 @@
                 });
             }
 
-            setTimeout(() => {
-                window.print();
-            }, 150);
+            // Détection iOS WebApp Standalone (écran d'accueil)
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+            if (isIOS && isStandalone) {
+                // Sur iOS WebApp (écran d'accueil), window.print() est bloqué par le système WebKit.
+                // On crée une fenêtre popup avec le contenu pour déclencher l'impression AirPrint.
+                const printContent = document.getElementById('print-zone').innerHTML;
+                const printWindow = window.open('', '_blank');
+
+                if (printWindow) {
+                    printWindow.document.write(`
+                        <!DOCTYPE html>
+                        <html lang="fr">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>${requiredTitle}</title>
+                            <script src="https://cdn.tailwindcss.com"><\/script>
+                            <style>
+                                @page { size: A4 portrait; margin: 12mm; }
+                                body { background-color: #ffffff !important; color: #000000 !important; font-family: system-ui, -apple-system, sans-serif; padding: 12px; }
+                                .print-table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px !important; }
+                                .print-table th, .print-table td { border: 1px solid #334155 !important; padding: 8px 10px !important; text-align: left !important; font-size: 9.5pt !important; }
+                                .print-table th { background-color: #f1f5f9 !important; font-weight: 800 !important; color: #0f172a !important; text-transform: uppercase; }
+                                .print-badge { padding: 3px 8px; border-radius: 4px; font-weight: 800; font-size: 8pt; display: inline-block; text-transform: uppercase; }
+                                .print-badge-perm { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; }
+                                .print-badge-excl { background-color: #ffe4e6; color: #9f1239; border: 1px solid #fca5a5; }
+                                .print-badge-autre { background-color: #fef3c7; color: #92400e; border: 1px solid #fde047; }
+                            </style>
+                        </head>
+                        <body>
+                            <div>${printContent}</div>
+                            <script>
+                                window.onload = function() {
+                                    setTimeout(function() {
+                                        window.print();
+                                    }, 400);
+                                };
+                            <\/script>
+                        </body>
+                        </html>
+                    `);
+                    printWindow.document.close();
+                } else {
+                    showToast("Autorisez les popups dans Réglages > Safari pour imprimer", "error");
+                }
+            } else {
+                // Mode navigateur habituel (PC, Android, Safari classique)
+                setTimeout(() => {
+                    window.print();
+                }, 150);
+            }
         }
 
         function capitalizeFirstLetter(str) {
