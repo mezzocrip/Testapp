@@ -29,7 +29,6 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* Masquage de la barre de défilement pour les rubans de filtres mobile */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -62,7 +61,6 @@
             background-color: rgba(254, 226, 226, 1) !important;
         }
 
-        /* Safe area bottom padding for iOS notch phones */
         .pb-safe {
             padding-bottom: env(safe-area-inset-bottom, 1rem);
         }
@@ -70,11 +68,10 @@
 </head>
 <body class="h-full text-slate-800 antialiased flex flex-col min-h-screen pb-20 md:pb-0">
 
-    <!-- EN-TÊTE PRINCIPAL (Responsive PC / iPad / Mobile) -->
+    <!-- EN-TÊTE PRINCIPAL -->
     <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-30 no-print border-b border-indigo-800/50">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
             
-            <!-- Logo & Temoin Version -->
             <div class="flex items-center space-x-2.5 cursor-pointer shrink-0" onclick="showListPage()">
                 <div class="bg-indigo-600/80 p-2 rounded-xl border border-indigo-400/30 shadow-inner">
                     <i data-lucide="graduation-cap" class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-100"></i>
@@ -82,7 +79,6 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-extrabold text-base sm:text-lg leading-tight tracking-tight">VieScolaire</h1>
-                        <!-- TEMOIN DE VERSION -->
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                             v6.5 Mobile Pro
                         </span>
@@ -91,7 +87,6 @@
                 </div>
             </div>
             
-            <!-- Barre de navigation Desktop / Tablette -->
             <div class="hidden md:flex items-center space-x-1.5 lg:space-x-2 overflow-x-auto no-scrollbar py-1">
                 <button onclick="showListPage()" class="inline-flex items-center gap-1.5 bg-indigo-800/80 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-2 rounded-xl transition border border-indigo-700">
                     <i data-lucide="users" class="w-4 h-4"></i>
@@ -108,7 +103,6 @@
                 
                 <div class="h-5 w-px bg-indigo-700/60"></div>
 
-                <!-- CARTES DE CANTINE -->
                 <button onclick="exportCanteenCardsJSON()" class="inline-flex items-center gap-1.5 bg-amber-600/90 hover:bg-amber-500 text-white text-xs font-medium px-2.5 py-2 rounded-xl transition shadow-xs" title="Sauvegarder les cartes de cantine">
                     <i data-lucide="qr-code" class="w-4 h-4"></i>
                     <span class="hidden lg:inline">Sauvegarder Cartes</span>
@@ -134,7 +128,6 @@
                 </button>
             </div>
 
-            <!-- Bouton d'action rapide Mobile (+) -->
             <div class="flex md:hidden items-center gap-2">
                 <button onclick="openAddStudentModal()" class="p-2 bg-emerald-500 active:bg-emerald-600 text-white rounded-xl shadow-xs">
                     <i data-lucide="user-plus" class="w-5 h-5"></i>
@@ -146,7 +139,7 @@
         </div>
     </header>
 
-    <!-- BARRE DE NAVIGATION MOBILE AU POUCE (Mobile Navigation Bar) -->
+    <!-- NAVIGATION MOBILE -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 z-40 px-4 py-2 flex justify-around items-center shadow-lg pb-safe no-print">
         <button onclick="showListPage()" class="flex flex-col items-center gap-1 text-slate-600 active:text-indigo-600">
             <i data-lucide="users" class="w-5 h-5"></i>
@@ -172,7 +165,6 @@
         <section id="pageList" class="page-fade space-y-4">
             <div class="bg-white rounded-2xl p-3.5 sm:p-5 shadow-xs border border-slate-200/80 flex flex-col gap-4">
                 
-                <!-- Recherche & Actions Principales -->
                 <div class="flex flex-col lg:flex-row gap-3 justify-between items-stretch lg:items-center">
                     <div class="relative w-full lg:w-80">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -215,7 +207,6 @@
                     </div>
                 </div>
 
-                <!-- Ruban Filtres Rapides (Défilement horizontal mobile) -->
                 <div class="flex items-center justify-between gap-2 border-t border-slate-100 pt-3 overflow-x-auto no-scrollbar">
                     <div class="flex items-center gap-2 shrink-0">
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">Filtres :</span>
@@ -239,7 +230,6 @@
                 </div>
             </div>
 
-            <!-- Grille Élèves Responsive (1 col Mobile, 2 iPad, 3-4 Desktop) -->
             <div id="studentsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4"></div>
 
             <div id="emptyMessage" class="hidden text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-6">
@@ -271,7 +261,6 @@
 
             <div id="studentDetailCard" class="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
                 
-                <!-- Carte En-tête Élève (Adapté Mobile & Desktop) -->
                 <div class="bg-slate-900 text-white p-5 sm:p-7 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div class="flex items-center space-x-4">
                         <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-indigo-500/20 border-2 border-indigo-400/40 flex items-center justify-center text-indigo-300 font-extrabold text-xl sm:text-2xl shrink-0 shadow-inner">
@@ -293,7 +282,6 @@
                         </div>
                     </div>
 
-                    <!-- Bloc QR Code Cantine -->
                     <div id="detailCanteenQRBox" class="hidden bg-slate-800/90 border border-slate-700 p-3.5 rounded-2xl items-center gap-4 w-full md:w-auto">
                         <div id="qrcodeCanvas" class="bg-white p-2 rounded-xl shadow-md border border-slate-300 shrink-0"></div>
                         <div class="flex flex-col gap-1.5 flex-1">
@@ -313,7 +301,6 @@
                     </div>
                 </div>
 
-                <!-- Grille Compteurs -->
                 <div class="p-4 sm:p-6 border-b border-slate-200 bg-slate-50/50">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Compteurs & Synthèse</h3>
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
@@ -367,7 +354,6 @@
                     </div>
                 </div>
 
-                <!-- Tableau Historique -->
                 <div class="p-4 sm:p-6">
                     <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-2 mb-4">
                         <i data-lucide="history" class="w-4 h-4 text-indigo-600"></i>
@@ -420,7 +406,6 @@
                 </div>
             </div>
 
-            <!-- Tabs de Navigation par Catégorie (Scroll horizontal mobile) -->
             <div class="border-b border-slate-200 bg-white rounded-2xl shadow-2xs p-1.5 flex items-center gap-1 overflow-x-auto no-scrollbar">
                 <button onclick="switchRecapTab('retard')" id="tab-retard" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow-2xs">
                     <i data-lucide="clock" class="w-4 h-4"></i>
@@ -463,7 +448,6 @@
             </div>
         </section>
 
-        <!-- TEMOIN DE VERSION DISCRET EN BAS DE PAGE -->
         <footer class="mt-8 text-center text-[11px] text-slate-400 no-print pb-4">
             VieScolaire Pro &bull; Version <span class="font-mono font-semibold">6.5 Mobile Pro</span> &bull; Modèle Haute Précision
         </footer>
@@ -731,9 +715,9 @@
                 badgeRepere: 'REP-101',
                 badgeCantine: 'DP-30982',
                 events: [
-                    { id: 'e1', type: 'retard', date: '2026-03-10T08:12', motif: 'Problème de bus' },
-                    { id: 'e2', type: 'absence', date: '2026-03-12T08:00', justified: 'Oui', motif: 'Rendez-vous médical' },
-                    { id: 'e3', type: 'observation', date: '2026-03-14T14:30', motif: 'Oubli du matériel' }
+                    { id: 'e1', type: 'retard', date: '2026-03-10T08:12', motif: '10/03/2026 08:12 - Problème de bus' },
+                    { id: 'e2', type: 'absence', date: '2026-03-12T08:00', justified: 'Oui', motif: '12/03/2026 - Rendez-vous médical' },
+                    { id: 'e3', type: 'observation', date: '2026-03-14T14:30', motif: '14/03/2026 14:30 - Oubli du matériel' }
                 ]
             },
             {
@@ -747,8 +731,8 @@
                 badgeRepere: '',
                 badgeCantine: '',
                 events: [
-                    { id: 'e4', type: 'carnet', date: '2026-03-08T09:00', motif: 'Contrôle à l\'entrée' },
-                    { id: 'e5', type: 'retenue', date: '2026-03-15T17:00', duration: 1, motif: 'Bavardages répétés' }
+                    { id: 'e4', type: 'carnet', date: '2026-03-08T09:00', motif: '08/03/2026 - Contrôle à l\'entrée' },
+                    { id: 'e5', type: 'retenue', date: '2026-03-15T17:00', duration: 1, motif: '15/03/2026 17:00 - Bavardages répétés' }
                 ]
             },
             {
@@ -762,13 +746,13 @@
                 badgeRepere: 'REP-103',
                 badgeCantine: 'DP-30985',
                 events: [
-                    { id: 'e6', type: 'sanction', date: '2026-03-16T10:30', pronoteType: 'Avertissement', motif: 'Insolence' }
+                    { id: 'e6', type: 'sanction', date: '2026-03-16T10:30', pronoteType: 'Avertissement', motif: '16/03/2026 - Insolence' }
                 ]
             }
         ];
 
         // =========================================================
-        // 2. UTILS & PARTAGE IOS
+        // 2. UTILS & EXTRACTION DE DATE DEPUIS LE MOTIF
         // =========================================================
         function sanitize(str) {
             if (str === null || str === undefined) return '';
@@ -789,6 +773,36 @@
                 const v = c === 'x' ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             });
+        }
+
+        // Extrait la date et l'heure à partir des informations contenues dans le texte du motif / commentaire
+        function extractDateFromText(text) {
+            if (!text) return null;
+
+            // Format YYYY-MM-DD ou YYYY/MM/DD [HH:MM]
+            let isoMatch = text.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[T\s]+(\d{1,2})[:h](\d{2}))?/i);
+            if (isoMatch) {
+                let y = isoMatch[1];
+                let m = isoMatch[2].padStart(2, '0');
+                let d = isoMatch[3].padStart(2, '0');
+                let hh = isoMatch[4] ? isoMatch[4].padStart(2, '0') : '08';
+                let mm = isoMatch[5] ? isoMatch[5].padStart(2, '0') : '00';
+                return `${y}-${m}-${d}T${hh}:${mm}`;
+            }
+
+            // Format DD/MM/YYYY ou DD.MM.YYYY ou DD-MM-YYYY [HH:MM]
+            let frMatch = text.match(/(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})(?:\s*(?:à|a)?\s*(\d{1,2})[:h](\d{2}))?/i);
+            if (frMatch) {
+                let d = frMatch[1].padStart(2, '0');
+                let m = frMatch[2].padStart(2, '0');
+                let y = frMatch[3];
+                if (y.length === 2) y = '20' + y;
+                let hh = frMatch[4] ? frMatch[4].padStart(2, '0') : '08';
+                let mm = frMatch[5] ? frMatch[5].padStart(2, '0') : '00';
+                return `${y}-${m}-${d}T${hh}:${mm}`;
+            }
+
+            return null;
         }
 
         async function shareOrDownloadFile(contentString, filename, mimeType = 'application/json') {
@@ -1005,7 +1019,11 @@
             const emptyHistory = document.getElementById('emptyHistory');
             tbody.innerHTML = '';
 
-            const events = (student.events || []).slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+            const events = (student.events || []).slice().sort((a,b) => {
+                const dateA = extractDateFromText(a.motif) || a.date;
+                const dateB = extractDateFromText(b.motif) || b.date;
+                return new Date(dateB) - new Date(dateA);
+            });
 
             if (events.length === 0) {
                 emptyHistory.classList.remove('hidden');
@@ -1044,9 +1062,14 @@
                     detailText = `<span class="font-semibold text-xs text-red-700">${sanitize(ev.pronoteType)}</span>`;
                 }
 
-                const formattedDate = new Date(ev.date).toLocaleString('fr-FR', {
-                    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                });
+                // Extraction prioritaire de la date & heure depuis le motif/commentaire
+                const eventDateStr = extractDateFromText(ev.motif) || ev.date;
+                const parsedDate = new Date(eventDateStr);
+                const formattedDate = !isNaN(parsedDate.getTime())
+                    ? parsedDate.toLocaleString('fr-FR', {
+                        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                      })
+                    : sanitize(ev.date || '--');
 
                 const safeMotif = sanitize(ev.motif || '-');
 
@@ -1090,7 +1113,10 @@
                 card.onclick = () => openStudentDetail(student.id);
 
                 let listHtml = catEvents.map(e => {
-                    const formattedDate = new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                    const dateStr = extractDateFromText(e.motif) || e.date;
+                    const parsed = new Date(dateStr);
+                    const formattedDate = !isNaN(parsed.getTime()) ? parsed.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '--';
+                    
                     let detail = sanitize(e.motif || '');
                     if (e.pronoteType) detail = `[${sanitize(e.pronoteType)}] ${detail}`;
                     if ((e.type === 'absence' || e.type === 'retard') && e.justified) detail += ` (${e.justified === 'Oui' ? 'Justifié' : 'Non justifié'})`;
@@ -1353,8 +1379,10 @@
             if (!student) return;
 
             const type = document.getElementById('eventTypeInput').value;
-            const date = document.getElementById('eventDateInput').value;
             const motif = document.getElementById('eventMotifInput').value.trim();
+            
+            // Priorité à la date extraite du motif s'il en contient une, sinon champ de saisie
+            const date = extractDateFromText(motif) || document.getElementById('eventDateInput').value;
 
             const newEv = {
                 id: generateUUID(),
@@ -1602,11 +1630,15 @@
 
                         if (eventType) {
                             if (!student.events) student.events = [];
+                            
+                            // Extraction de la date et de l'heure directement depuis la ligne de motif/commentaire
+                            const extractedDate = extractDateFromText(line) || new Date().toISOString().slice(0, 16);
+
                             student.events.push({
                                 id: generateUUID(),
                                 type: eventType,
                                 pronoteType: pronoteType,
-                                date: new Date().toISOString().slice(0, 16),
+                                date: extractedDate,
                                 justified: justified,
                                 duration: duration,
                                 motif: line.trim()
@@ -1767,12 +1799,20 @@
             doc.text(`Classe: ${student.classe || '-'} | Régime: ${student.regime || '-'} | Sortie: ${student.autorisationSortie}`, 14, 28);
             doc.text(`Professeur Principal: ${student.profPrincipal || 'Non renseigné'}`, 14, 34);
 
-            const tableData = (student.events || []).map(e => [
-                new Date(e.date).toLocaleString('fr-FR'),
-                e.type.toUpperCase(),
-                e.pronoteType || e.justified || '-',
-                e.motif || '-'
-            ]);
+            const tableData = (student.events || []).map(e => {
+                const eventDateStr = extractDateFromText(e.motif) || e.date;
+                const parsedDate = new Date(eventDateStr);
+                const dateDisplay = !isNaN(parsedDate.getTime())
+                    ? parsedDate.toLocaleString('fr-FR')
+                    : (e.date || '-');
+
+                return [
+                    dateDisplay,
+                    e.type.toUpperCase(),
+                    e.pronoteType || e.justified || '-',
+                    e.motif || '-'
+                ];
+            });
 
             doc.autoTable({
                 startY: 42,
@@ -1790,7 +1830,6 @@
         function handleExportClassPDF(e) {
             e.preventDefault();
             const selectedClass = document.getElementById('exportClassSelect').value;
-            const exportType = document.getElementById('exportTypeSelect').value;
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
