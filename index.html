@@ -341,7 +341,7 @@
 
                         <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                             <!-- Reset Current Session List -->
-                            <button onclick="resetCurrentSession()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition touch-btn" title="Vider la liste d'appel actuelle">
+                            <button onclick="resetCurrentSession()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition touch-btn" title="Vider et sauvegarder la liste d'appel actuelle dans l'historique">
                                 <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                                 <span>Vider l'appel</span>
                             </button>
@@ -1140,11 +1140,19 @@
 
         function resetCurrentSession() {
             if (sessionStudents.length === 0) return;
+
+            // Sauvegarde automatique dans l'historique avant de vider l'appel
+            const now = new Date();
+            const currentHourNum = now.getHours();
+            const hourFormatted = currentHourNum.toString().padStart(2, '0') + 'h';
+            const aedName = selectedAed || 'L\'AED';
+            saveSessionToHistory(aedName, now, hourFormatted, sessionStudents);
+
             sessionStudents = [];
             saveSessionStudents();
             renderSessionList();
             updateStats();
-            showToast('L\'appel a été réinitialisé', 'info');
+            showToast('Appel vidé et enregistré dans l\'historique', 'success');
         }
 
         function updateStats() {
@@ -1253,7 +1261,7 @@
                         </div>
                         <h4 class="text-sm font-bold text-slate-700">Aucun historique enregistré</h4>
                         <p class="text-xs text-slate-400 max-w-xs mx-auto">
-                            Les appels de permanence imprimés ou enregistrés apparaîtront ici automatiquement avec l'heure et la liste des élèves.
+                            Les appels de permanence imprimés ou vidés apparaîtront ici automatiquement avec l'heure et la liste des élèves.
                         </p>
                     </div>
                 `;
