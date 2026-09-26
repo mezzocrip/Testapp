@@ -635,6 +635,7 @@
                         <option value="Travail d'intérêt général">Travail d'intérêt général (TIG)</option>
                         <option value="Avertissement">Avertissement</option>
                         <option value="Blâme">Blâme</option>
+                        <option value="Exclusion temporaire de l’établissement">Exclusion temporaire de l’établissement</option>
                         <option value="Mise en garde">Mise en garde</option>
                         <option value="Commission éducative">Commission éducative</option>
                         <option value="Conseil de discipline">Conseil de discipline</option>
@@ -811,6 +812,19 @@
         function getStatutDetailFromMotif(motif) {
             if (!motif) return null;
             const lower = motif.toLowerCase();
+
+            if (lower.includes('exclusion temporaire de l’établissement') || lower.includes('exclusion temporaire de l\'établissement') || lower.includes('exclusion temporaire')) {
+                return 'Exclusion temporaire de l’établissement';
+            }
+            if (lower.includes('blâme') || lower.includes('blame')) {
+                return 'Blâme';
+            }
+            if (lower.includes('avertissement')) {
+                return 'Avertissement';
+            }
+            if (lower.includes('travail d’intérêt général') || lower.includes('travail d\'intérêt général') || lower.includes('travail d’interet general') || lower.includes('travail d\'interet general') || lower.includes('tig')) {
+                return 'Travail d’intérêt général';
+            }
             if (lower.includes('exclusion de cours') || lower.includes('exclusion')) {
                 return 'Exclusion de cours';
             }
@@ -1120,7 +1134,11 @@
 
                 if (motifStatut) {
                     let badgeColor = "bg-slate-100 text-slate-800 border-slate-300";
-                    if (motifStatut === 'Exclusion de cours') badgeColor = "bg-rose-100 text-rose-800 border-rose-300 font-semibold";
+                    if (motifStatut === 'Exclusion temporaire de l’établissement') badgeColor = "bg-rose-200 text-rose-900 border-rose-400 font-bold";
+                    else if (motifStatut === 'Exclusion de cours') badgeColor = "bg-rose-100 text-rose-800 border-rose-300 font-semibold";
+                    else if (motifStatut === 'Blâme') badgeColor = "bg-red-100 text-red-800 border-red-300 font-bold";
+                    else if (motifStatut === 'Avertissement') badgeColor = "bg-amber-100 text-amber-800 border-amber-300 font-semibold";
+                    else if (motifStatut === 'Travail d’intérêt général') badgeColor = "bg-purple-100 text-purple-800 border-purple-300 font-semibold";
                     else if (motifStatut === 'emploi du temps bloqué') badgeColor = "bg-amber-100 text-amber-800 border-amber-300 font-semibold";
                     else if (motifStatut === 'Retenue') badgeColor = "bg-purple-100 text-purple-800 border-purple-300 font-semibold";
                     else if (motifStatut === 'Observations') badgeColor = "bg-blue-100 text-blue-800 border-blue-300 font-semibold";
@@ -1723,7 +1741,7 @@
                         else if (lowerLine.includes('observation')) type = 'observation';
                         else if (lowerLine.includes('retard')) type = 'retard';
                         else if (lowerLine.includes('absent') || lowerLine.includes('absence')) type = 'absence';
-                        else if (lowerLine.includes('sanction') || lowerLine.includes('avertissement') || lowerLine.includes('blâme')) type = 'sanction';
+                        else if (lowerLine.includes('sanction') || lowerLine.includes('avertissement') || lowerLine.includes('blâme') || lowerLine.includes('travail d’intérêt général') || lowerLine.includes('travail d\'intérêt général') || lowerLine.includes('exclusion temporaire')) type = 'sanction';
                         else if (lowerLine.includes('carnet')) type = 'carnet';
 
                         const eventDate = extractDateFromText(line) || new Date().toISOString().slice(0, 16);
@@ -1777,22 +1795,20 @@
             alert("Les données Vie Scolaire ont été effacées.");
         }
 
-        function openResetModal() {
-            document.getElementById('resetDbModal').classList.remove('hidden');
-        }
-
         function executeResetDb() {
             students = [];
             saveStorage();
             populateClassFilter();
             filterStudents();
             closeModal('resetDbModal');
-            showListPage();
-            alert("La base de données a été réinitialisée.");
+            alert("Base de données réinitialisée.");
+        }
+
+        function openResetModal() {
+            document.getElementById('resetDbModal').classList.remove('hidden');
         }
 
         function openAddStudentModal() {
-            document.getElementById('addStudentForm').reset();
             document.getElementById('addStudentModal').classList.remove('hidden');
         }
 
@@ -1805,30 +1821,30 @@
             const autorisationSortie = document.getElementById('newAutorisation').value;
             const profPrincipal = document.getElementById('newProf').value.trim();
 
-            if (!nom || !prenom || !classe) return;
+            if (nom && prenom && classe) {
+                const newStudent = {
+                    id: generateUUID(),
+                    nom,
+                    prenom,
+                    classe,
+                    regime,
+                    autorisationSortie,
+                    profPrincipal,
+                    badgeRepere: '',
+                    badgeCantine: '',
+                    events: []
+                };
 
-            const newStudent = {
-                id: generateUUID(),
-                nom,
-                prenom,
-                classe,
-                regime,
-                autorisationSortie,
-                profPrincipal,
-                badgeRepere: '',
-                badgeCantine: '',
-                events: []
-            };
-
-            students.push(newStudent);
-            saveStorage();
-            populateClassFilter();
-            filterStudents();
-            closeModal('addStudentModal');
+                students.push(newStudent);
+                saveStorage();
+                populateClassFilter();
+                filterStudents();
+                closeModal('addStudentModal');
+                document.getElementById('addStudentForm').reset();
+            }
         }
 
         function confirmDeleteStudent() {
-            if (!selectedStudentId) return;
             document.getElementById('deleteModal').classList.remove('hidden');
         }
 
@@ -1836,44 +1852,61 @@
             if (!selectedStudentId) return;
             students = students.filter(s => s.id !== selectedStudentId);
             saveStorage();
-            populateClassFilter();
             closeModal('deleteModal');
             showListPage();
         }
 
+        function openExportClassModal() {
+            document.getElementById('exportClassModal').classList.remove('hidden');
+        }
+
+        function exportGlobalCSV() {
+            let csv = 'Nom,Prénom,Classe,Régime,Sortie,Prof Principal,Retards,Absences,Retenues (h)\n';
+            students.forEach(s => {
+                const events = s.events || [];
+                const retards = events.filter(e => e.type === 'retard').length;
+                const absences = events.filter(e => e.type === 'absence').length;
+                const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + (parseInt(e.duration) || 1), 0);
+                csv += `"${s.nom}","${s.prenom}","${s.classe}","${s.regime}","${s.autorisationSortie}","${s.profPrincipal}",${retards},${absences},${retenues}\n`;
+            });
+
+            shareOrDownloadFile(csv, 'viescolaire_export.csv', 'text/csv');
+        }
+
         function exportJSON() {
             const dataStr = JSON.stringify(students, null, 2);
-            shareOrDownloadFile(dataStr, `viescolaire_export_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
+            shareOrDownloadFile(dataStr, 'viescolaire_backup.json', 'application/json');
         }
 
         function triggerJsonImport() {
             document.getElementById('jsonInput').click();
         }
 
-        function importJSON(e) {
-            const file = e.target.files[0];
+        function importJSON(event) {
+            const file = event.target.files[0];
             if (!file) return;
+
             const reader = new FileReader();
-            reader.onload = function(evt) {
+            reader.onload = function(e) {
                 try {
-                    const parsed = JSON.parse(evt.target.result);
-                    if (Array.isArray(parsed)) {
-                        students = parsed;
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        students = imported;
                         saveStorage();
                         populateClassFilter();
                         filterStudents();
-                        alert("Base de données restaurée avec succès !");
+                        alert("Base de données importée avec succès !");
                     }
                 } catch(err) {
-                    alert("Erreur de lecture du fichier JSON.");
+                    alert("Fichier JSON invalide.");
                 }
             };
             reader.readAsText(file);
-            e.target.value = '';
+            event.target.value = '';
         }
 
         function exportCanteenCardsJSON() {
-            const canteenData = students.filter(s => s.regime === 'Demi-pensionnaire').map(s => ({
+            const canteenData = students.map(s => ({
                 id: s.id,
                 nom: s.nom,
                 prenom: s.prenom,
@@ -1881,99 +1914,155 @@
                 badgeCantine: s.badgeCantine,
                 badgeRepere: s.badgeRepere
             }));
-            const dataStr = JSON.stringify(canteenData, null, 2);
-            shareOrDownloadFile(dataStr, `viescolaire_cantine_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
+            shareOrDownloadFile(JSON.stringify(canteenData, null, 2), 'cantine_cards.json', 'application/json');
         }
 
         function triggerCanteenCardsImport() {
             document.getElementById('canteenCardsInput').click();
         }
 
-        function importCanteenCardsJSON(e) {
-            const file = e.target.files[0];
+        function importCanteenCardsJSON(event) {
+            const file = event.target.files[0];
             if (!file) return;
+
             const reader = new FileReader();
-            reader.onload = function(evt) {
+            reader.onload = function(e) {
                 try {
-                    const parsed = JSON.parse(evt.target.result);
-                    if (Array.isArray(parsed)) {
-                        let updated = 0;
-                        parsed.forEach(item => {
-                            const student = students.find(s => s.id === item.id || (s.nom === item.nom && s.prenom === item.prenom));
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        let count = 0;
+                        imported.forEach(item => {
+                            const student = students.find(s => s.id === item.id || (s.nom === item.nom && s.prenom === item.prenom && s.classe === item.classe));
                             if (student) {
                                 if (item.badgeCantine) student.badgeCantine = item.badgeCantine;
                                 if (item.badgeRepere) student.badgeRepere = item.badgeRepere;
-                                updated++;
+                                count++;
                             }
                         });
                         saveStorage();
                         filterStudents();
-                        alert(`${updated} donnée(s) cantine mise(s) à jour !`);
+                        alert(`Cartes cantine mises à jour pour ${count} élève(s).`);
                     }
                 } catch(err) {
-                    alert("Erreur de lecture du fichier JSON cantine.");
+                    alert("Fichier JSON de cartes cantine invalide.");
                 }
             };
             reader.readAsText(file);
-            e.target.value = '';
-        }
-
-        function exportGlobalCSV() {
-            let csv = "ID,Nom,Prénom,Classe,Régime,AutorisationSortie,ProfPrincipal,BadgeRepere,BadgeCantine,NombreEvenements\n";
-            students.forEach(s => {
-                const countEv = (s.events || []).length;
-                csv += `"${s.id}","${s.nom || ''}","${s.prenom || ''}","${s.classe || ''}","${s.regime || ''}","${s.autorisationSortie || ''}","${s.profPrincipal || ''}","${s.badgeRepere || ''}","${s.badgeCantine || ''}",${countEv}\n`;
-            });
-            shareOrDownloadFile(csv, `viescolaire_eleves_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
-        }
-
-        function openExportClassModal() {
-            document.getElementById('exportClassModal').classList.remove('hidden');
+            event.target.value = '';
         }
 
         function handleExportClassPDF(e) {
             e.preventDefault();
             const selectedClass = document.getElementById('exportClassSelect').value;
+            const exportType = document.getElementById('exportTypeSelect').value;
+            
+            const targetStudents = selectedClass === 'ALL' ? students : students.filter(s => s.classe === selectedClass);
+            
+            if (targetStudents.length === 0) {
+                alert("Aucun élève dans cette sélection.");
+                return;
+            }
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            const listToExport = selectedClass === 'ALL' 
-                ? students 
-                : students.filter(s => s.classe === selectedClass);
-
             doc.setFontSize(16);
             doc.text(`Rapport Vie Scolaire - ${selectedClass === 'ALL' ? 'Toutes les classes' : selectedClass}`, 14, 20);
             doc.setFontSize(10);
-            doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 14, 28);
+            doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 14, 26);
 
-            const tableData = listToExport.map(s => {
-                const events = s.events || [];
-                const retards = events.filter(ev => ev.type === 'retard').length;
-                const absences = events.filter(ev => ev.type === 'absence').length;
-                const retenues = events.filter(ev => ev.type === 'retenue' || getStatutDetailFromMotif(ev.motif) === 'Retenue').reduce((sum, ev) => sum + (parseInt(ev.duration) || 1), 0);
-                const emploiBloque = events.filter(ev => ev.type === 'emploi_bloque' || getStatutDetailFromMotif(ev.motif) === 'emploi du temps bloqué').length;
-                const exclusions = events.filter(ev => ev.type === 'exclusion' || getStatutDetailFromMotif(ev.motif) === 'Exclusion de cours').length;
+            let startY = 32;
 
-                return [
-                    `${s.nom.toUpperCase()} ${s.prenom}`,
-                    s.classe,
-                    s.regime,
-                    s.autorisationSortie === 'Oui' ? 'Autorisé' : 'Interdit',
-                    `${retards} ret / ${absences} abs / ${retenues}h col / ${emploiBloque} EDT / ${exclusions} excl`
-                ];
+            if (exportType === 'summary' || exportType === 'both') {
+                const head = [['Nom Prénom', 'Classe', 'Régime', 'Sortie', 'Retards', 'Absences', 'Colles', 'EDT Bloqué']];
+                const body = targetStudents.map(s => {
+                    const events = s.events || [];
+                    const retards = events.filter(e => e.type === 'retard').length;
+                    const absences = events.filter(e => e.type === 'absence').length;
+                    const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + (parseInt(e.duration) || 1), 0);
+                    const emploiBloque = events.filter(e => e.type === 'emploi_bloque' || getStatutDetailFromMotif(e.motif) === 'emploi du temps bloqué').length;
+                    return [`${s.nom} ${s.prenom}`, s.classe, s.regime, s.autorisationSortie, retards, absences, `${retenues}h`, emploiBloque];
+                });
+
+                doc.autoTable({
+                    startY: startY,
+                    head: head,
+                    body: body,
+                    theme: 'grid',
+                    styles: { fontSize: 8 }
+                });
+
+                startY = doc.lastAutoTable.finalY + 10;
+            }
+
+            if (exportType === 'details' || exportType === 'both') {
+                targetStudents.forEach(s => {
+                    if ((s.events || []).length === 0) return;
+
+                    if (startY > 260) {
+                        doc.addPage();
+                        startY = 20;
+                    }
+
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`${s.nom} ${s.prenom} (${s.classe})`, 14, startY);
+                    doc.setFont(undefined, 'normal');
+
+                    const head = [['Date', 'Type', 'Statut / Détail', 'Motif']];
+                    const body = (s.events || []).map(ev => {
+                        const motifStatut = getStatutDetailFromMotif(ev.motif);
+                        let detail = motifStatut || (ev.justified ? (ev.justified === 'Oui' ? 'Justifié' : 'Non justifié') : '-');
+                        return [ev.date || '-', ev.type, detail, ev.motif || '-'];
+                    });
+
+                    doc.autoTable({
+                        startY: startY + 4,
+                        head: head,
+                        body: body,
+                        theme: 'plain',
+                        styles: { fontSize: 7 }
+                    });
+
+                    startY = doc.lastAutoTable.finalY + 8;
+                });
+            }
+
+            doc.save(`VieScolaire_${selectedClass.replace(/\s+/g, '_')}.pdf`);
+            closeModal('exportClassModal');
+        }
+
+        function exportStudentPDF() {
+            if (!selectedStudentId) return;
+            const student = students.find(s => s.id === selectedStudentId);
+            if (!student) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(16);
+            doc.text(`Fiche Élève : ${student.nom} ${student.prenom}`, 14, 20);
+            doc.setFontSize(10);
+            doc.text(`Classe : ${student.classe} | Régime : ${student.regime} | Autorisation Sortie : ${student.autorisationSortie}`, 14, 27);
+            doc.text(`Professeur Principal : ${student.profPrincipal || 'Non renseigné'}`, 14, 33);
+
+            const events = student.events || [];
+            const head = [['Date', 'Type', 'Statut / Détail', 'Motif / Commentaire']];
+            const body = events.map(ev => {
+                const motifStatut = getStatutDetailFromMotif(ev.motif);
+                let detail = motifStatut || (ev.justified ? (ev.justified === 'Oui' ? 'Justifié' : 'Non justifié') : '-');
+                return [ev.date || '-', ev.type, detail, ev.motif || '-'];
             });
 
             doc.autoTable({
-                startY: 35,
-                head: [['Élève', 'Classe', 'Régime', 'Sortie', 'Synthèse Events']],
-                body: tableData,
+                startY: 40,
+                head: head,
+                body: body,
                 theme: 'striped',
-                headStyles: { fillColor: [49, 46, 129] }
+                styles: { fontSize: 8 }
             });
 
-            doc.save(`VieScolaire_Rapport_${selectedClass}_${new Date().toISOString().slice(0,10)}.pdf`);
-            closeModal('exportClassModal');
+            doc.save(`Fiche_${student.nom}_${student.prenom}.pdf`);
         }
     </script>
 </body>
