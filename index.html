@@ -307,9 +307,10 @@
                     </div>
                 </div>
 
+                <!-- COMPTEURS ET SYNTHÈSE MODIFIÉS -->
                 <div class="p-4 sm:p-6 border-b border-slate-200 bg-slate-50/50">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Compteurs & Synthèse</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5 sm:gap-3">
                         <div class="bg-white p-3 rounded-xl border border-slate-200 text-center shadow-2xs">
                             <div class="text-xs text-slate-500 font-semibold">Retards</div>
                             <div class="text-xl sm:text-2xl font-extrabold text-amber-600 my-0.5" id="countRetards">0</div>
@@ -334,10 +335,20 @@
                             </button>
                         </div>
 
+                        <!-- EMPLOI DU TEMPS BLOQUÉ (REMPLACE OBSERVATIONS) -->
                         <div class="bg-white p-3 rounded-xl border border-slate-200 text-center shadow-2xs">
-                            <div class="text-xs text-slate-500 font-semibold">Observations</div>
-                            <div class="text-xl sm:text-2xl font-extrabold text-blue-600 my-0.5" id="countObservations">0</div>
-                            <button onclick="openAddEventModal('observation')" class="no-print mt-1 text-[11px] text-blue-700 bg-blue-50 active:bg-blue-100 px-2 py-1 rounded-lg w-full font-semibold transition flex items-center justify-center gap-1">
+                            <div class="text-xs text-slate-500 font-semibold">Emploi du temps bloqué</div>
+                            <div class="text-xl sm:text-2xl font-extrabold text-amber-700 my-0.5" id="countEmploiBloque">0</div>
+                            <button onclick="openAddEventModal('emploi_bloque')" class="no-print mt-1 text-[11px] text-amber-800 bg-amber-50 active:bg-amber-100 px-2 py-1 rounded-lg w-full font-semibold transition flex items-center justify-center gap-1">
+                                <i data-lucide="plus" class="w-3 h-3"></i> Ajouter
+                            </button>
+                        </div>
+
+                        <!-- EXCLUSION DE COURS (RAJOUR) -->
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 text-center shadow-2xs">
+                            <div class="text-xs text-slate-500 font-semibold">Exclusion de cours</div>
+                            <div class="text-xl sm:text-2xl font-extrabold text-rose-700 my-0.5" id="countExclusion">0</div>
+                            <button onclick="openAddEventModal('exclusion')" class="no-print mt-1 text-[11px] text-rose-800 bg-rose-50 active:bg-rose-100 px-2 py-1 rounded-lg w-full font-semibold transition flex items-center justify-center gap-1">
                                 <i data-lucide="plus" class="w-3 h-3"></i> Ajouter
                             </button>
                         </div>
@@ -388,7 +399,7 @@
             </div>
         </section>
 
-        <!-- PAGE 3 : RÉCAPITULATIF DES ÉVÉNEMENTS -->
+        <!-- PAGE 3 : RÉCAPITULATIF DES ÉVÉNEMENTS MODIFIÉS -->
         <section id="pageRecap" class="hidden page-fade space-y-4 sm:space-y-6">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
@@ -412,6 +423,7 @@
                 </div>
             </div>
 
+            <!-- ONGLETS RÉCAPITULATIF MODIFIÉS -->
             <div class="border-b border-slate-200 bg-white rounded-2xl shadow-2xs p-1.5 flex items-center gap-1 overflow-x-auto no-scrollbar">
                 <button onclick="switchRecapTab('retard')" id="tab-retard" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow-2xs">
                     <i data-lucide="clock" class="w-4 h-4"></i>
@@ -428,10 +440,15 @@
                     <span>Retenues</span>
                     <span id="badge-retenue" class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
                 </button>
-                <button onclick="switchRecapTab('observation')" id="tab-observation" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100">
-                    <i data-lucide="message-square" class="w-4 h-4"></i>
-                    <span>Observations</span>
-                    <span id="badge-observation" class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+                <button onclick="switchRecapTab('emploi_bloque')" id="tab-emploi_bloque" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100">
+                    <i data-lucide="calendar-x" class="w-4 h-4"></i>
+                    <span>Emploi du temps bloqué</span>
+                    <span id="badge-emploi_bloque" class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+                </button>
+                <button onclick="switchRecapTab('exclusion')" id="tab-exclusion" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                    <span>Exclusion de cours</span>
+                    <span id="badge-exclusion" class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
                 </button>
                 <button onclick="switchRecapTab('sanction')" id="tab-sanction" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100">
                     <i data-lucide="shield-alert" class="w-4 h-4"></i>
@@ -611,8 +628,10 @@
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Type de Punition / Sanction</label>
                     <select id="eventPronoteTypeInput" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="Retenue">Retenue / Colle</option>
-                        <option value="Devoir supplémentaire">Devoir supplémentaire</option>
                         <option value="Exclusion de cours">Exclusion de cours</option>
+                        <option value="emploi du temps bloqué">emploi du temps bloqué</option>
+                        <option value="Observations">Observations</option>
+                        <option value="Devoir supplémentaire">Devoir supplémentaire</option>
                         <option value="Travail d'intérêt général">Travail d'intérêt général (TIG)</option>
                         <option value="Avertissement">Avertissement</option>
                         <option value="Blâme">Blâme</option>
@@ -741,7 +760,7 @@
                 events: [
                     { id: 'e1', type: 'retard', date: '2026-03-10T08:12', motif: '10/03/2026 08:12 - Problème de bus' },
                     { id: 'e2', type: 'absence', date: '2026-03-12T08:00', justified: 'Oui', motif: '12/03/2026 - Rendez-vous médical' },
-                    { id: 'e3', type: 'observation', date: '2026-03-14T14:30', motif: '14/03/2026 14:30 - Oubli du matériel' }
+                    { id: 'e3', type: 'emploi_bloque', date: '2026-03-14T14:30', motif: '14/03/2026 14:30 - emploi du temps bloqué suite retards' }
                 ]
             },
             {
@@ -756,7 +775,7 @@
                 badgeCantine: '',
                 events: [
                     { id: 'e4', type: 'carnet', date: '2026-03-08T09:00', motif: '08/03/2026 - Contrôle à l\'entrée' },
-                    { id: 'e5', type: 'retenue', date: '2026-03-15T17:00', duration: 1, motif: '15/03/2026 17:00 - Bavardages répétés' }
+                    { id: 'e5', type: 'retenue', date: '2026-03-15T17:00', duration: 1, motif: '15/03/2026 17:00 - Retenue pour bavardages répétés' }
                 ]
             },
             {
@@ -770,13 +789,13 @@
                 badgeRepere: 'REP-103',
                 badgeCantine: 'DP-30985',
                 events: [
-                    { id: 'e6', type: 'sanction', date: '2026-03-16T10:30', pronoteType: 'Avertissement', motif: '16/03/2026 - Insolence' }
+                    { id: 'e6', type: 'exclusion', date: '2026-03-16T10:30', motif: '16/03/2026 - Exclusion de cours pour comportement perturbateur' }
                 ]
             }
         ];
 
         // =========================================================
-        // 2. UTILS & EXTRACTION DE DATE
+        // 2. UTILS & EXTRACTION DE MOTS-CLÉS / DATE
         // =========================================================
         function sanitize(str) {
             if (str === null || str === undefined) return '';
@@ -786,6 +805,25 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        }
+
+        // Extrait le statut/détail si un des mots clés figure dans le motif / commentaire
+        function getStatutDetailFromMotif(motif) {
+            if (!motif) return null;
+            const lower = motif.toLowerCase();
+            if (lower.includes('exclusion de cours') || lower.includes('exclusion')) {
+                return 'Exclusion de cours';
+            }
+            if (lower.includes('emploi du temps bloqué') || lower.includes('emploi du temps bloque')) {
+                return 'emploi du temps bloqué';
+            }
+            if (lower.includes('retenue')) {
+                return 'Retenue';
+            }
+            if (lower.includes('observations') || lower.includes('observation')) {
+                return 'Observations';
+            }
+            return null;
         }
 
         function generateUUID() {
@@ -930,10 +968,11 @@
             }
 
             items.forEach(student => {
-                const retards = (student.events || []).filter(e => e.type === 'retard').length;
-                const absences = (student.events || []).filter(e => e.type === 'absence').length;
-                const retenues = (student.events || []).filter(e => e.type === 'retenue').reduce((sum, e) => sum + (parseInt(e.duration) || 1), 0);
-                const obs = (student.events || []).filter(e => e.type === 'observation').length;
+                const events = student.events || [];
+                const retards = events.filter(e => e.type === 'retard').length;
+                const absences = events.filter(e => e.type === 'absence').length;
+                const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + (parseInt(e.duration) || 1), 0);
+                const emploiBloque = events.filter(e => e.type === 'emploi_bloque' || getStatutDetailFromMotif(e.motif) === 'emploi du temps bloqué').length;
 
                 const isNoExit = student.autorisationSortie === 'Non';
                 const isCanteen = student.regime === 'Demi-pensionnaire';
@@ -1016,8 +1055,8 @@
                             <span class="font-extrabold text-xs sm:text-sm ${retenues > 0 ? 'text-purple-600' : 'text-slate-600'}">${retenues}h</span>
                         </div>
                         <div class="bg-white/90 py-1 rounded-lg border border-slate-200/60">
-                            <span class="block text-[9px] text-slate-400 font-bold uppercase">Obs.</span>
-                            <span class="font-extrabold text-xs sm:text-sm ${obs > 0 ? 'text-blue-600' : 'text-slate-600'}">${obs}</span>
+                            <span class="block text-[9px] text-slate-400 font-bold uppercase">EDT Bloqué</span>
+                            <span class="font-extrabold text-xs sm:text-sm ${emploiBloque > 0 ? 'text-amber-800' : 'text-slate-600'}">${emploiBloque}</span>
                         </div>
                     </div>
                 `;
@@ -1067,13 +1106,27 @@
                 if (ev.type === 'retard') { badgeClass = "bg-amber-100 text-amber-800"; typeLabel = "RETARD"; }
                 else if (ev.type === 'absence') { badgeClass = "bg-rose-100 text-rose-800"; typeLabel = "ABSENCE"; }
                 else if (ev.type === 'retenue') { badgeClass = "bg-purple-100 text-purple-800"; typeLabel = ev.pronoteType ? `RETENUE (${ev.pronoteType.toUpperCase()})` : "RETENUE"; }
+                else if (ev.type === 'emploi_bloque') { badgeClass = "bg-amber-100 text-amber-900"; typeLabel = "EMPLOI DU TEMPS BLOQUÉ"; }
+                else if (ev.type === 'exclusion') { badgeClass = "bg-rose-100 text-rose-900"; typeLabel = "EXCLUSION DE COURS"; }
                 else if (ev.type === 'observation') { badgeClass = "bg-blue-100 text-blue-800"; typeLabel = "OBSERVATION"; }
                 else if (ev.type === 'sanction') { badgeClass = "bg-red-100 text-red-800 font-bold"; typeLabel = ev.pronoteType ? `SANCTION (${ev.pronoteType.toUpperCase()})` : "SANCTION"; }
                 else if (ev.type === 'carnet') { badgeClass = "bg-slate-200 text-slate-800"; typeLabel = "OUBLI CARNET"; }
 
                 const safeEvId = sanitize(ev.id);
+                
+                // Recherche des mots clés dans le motif / commentaire
+                const motifStatut = getStatutDetailFromMotif(ev.motif);
                 let detailText = "--";
-                if (ev.type === 'absence' || ev.type === 'retard') {
+
+                if (motifStatut) {
+                    let badgeColor = "bg-slate-100 text-slate-800 border-slate-300";
+                    if (motifStatut === 'Exclusion de cours') badgeColor = "bg-rose-100 text-rose-800 border-rose-300 font-semibold";
+                    else if (motifStatut === 'emploi du temps bloqué') badgeColor = "bg-amber-100 text-amber-800 border-amber-300 font-semibold";
+                    else if (motifStatut === 'Retenue') badgeColor = "bg-purple-100 text-purple-800 border-purple-300 font-semibold";
+                    else if (motifStatut === 'Observations') badgeColor = "bg-blue-100 text-blue-800 border-blue-300 font-semibold";
+
+                    detailText = `<span class="inline-block text-xs px-2.5 py-0.5 rounded-full border ${badgeColor}">${sanitize(motifStatut)}</span>`;
+                } else if (ev.type === 'absence' || ev.type === 'retard') {
                     const isJust = ev.justified === 'Oui';
                     detailText = `
                         <button onclick="toggleAbsenceJustified('${safeEvId}')" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border transition ${isJust ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-rose-50 text-rose-700 border-rose-300'}">
@@ -1086,6 +1139,10 @@
                     detailText = `Durée: ${sanitize(ev.duration || 1)}h`;
                 } else if (ev.type === 'sanction' && ev.pronoteType) {
                     detailText = `<span class="font-semibold text-xs text-red-700">${sanitize(ev.pronoteType)}</span>`;
+                } else if (ev.type === 'emploi_bloque') {
+                    detailText = `<span class="font-semibold text-xs text-amber-800">emploi du temps bloqué</span>`;
+                } else if (ev.type === 'exclusion') {
+                    detailText = `<span class="font-semibold text-xs text-rose-800">Exclusion de cours</span>`;
                 }
 
                 const eventDateStr = extractDateFromText(ev.motif) || ev.date;
@@ -1120,7 +1177,16 @@
             const emptyMsg = document.getElementById('recapEmptyMessage');
             container.innerHTML = '';
 
-            const filteredStudents = students.filter(s => (s.events || []).some(e => e.type === cat));
+            const matchesCat = (e) => {
+                if (e.type === cat) return true;
+                const motifStatut = getStatutDetailFromMotif(e.motif);
+                if (cat === 'emploi_bloque' && motifStatut === 'emploi du temps bloqué') return true;
+                if (cat === 'exclusion' && motifStatut === 'Exclusion de cours') return true;
+                if (cat === 'retenue' && motifStatut === 'Retenue') return true;
+                return false;
+            };
+
+            const filteredStudents = students.filter(s => (s.events || []).some(matchesCat));
 
             if (filteredStudents.length === 0) {
                 emptyMsg.classList.remove('hidden');
@@ -1130,7 +1196,7 @@
             }
 
             filteredStudents.forEach(student => {
-                const catEvents = (student.events || []).filter(e => e.type === cat);
+                const catEvents = (student.events || []).filter(matchesCat);
                 
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs hover:shadow-md transition cursor-pointer flex flex-col justify-between";
@@ -1363,17 +1429,20 @@
         }
 
         function updateCounters(student) {
-            const retards = (student.events || []).filter(e => e.type === 'retard').length;
-            const absences = (student.events || []).filter(e => e.type === 'absence').length;
-            const retenues = (student.events || []).filter(e => e.type === 'retenue').reduce((sum, e) => sum + (parseInt(e.duration) || 1), 0);
-            const obs = (student.events || []).filter(e => e.type === 'observation').length;
-            const sanctions = (student.events || []).filter(e => e.type === 'sanction').length;
-            const carnet = (student.events || []).filter(e => e.type === 'carnet').length;
+            const events = student.events || [];
+            const retards = events.filter(e => e.type === 'retard').length;
+            const absences = events.filter(e => e.type === 'absence').length;
+            const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + (parseInt(e.duration) || 1), 0);
+            const emploiBloque = events.filter(e => e.type === 'emploi_bloque' || getStatutDetailFromMotif(e.motif) === 'emploi du temps bloqué').length;
+            const exclusions = events.filter(e => e.type === 'exclusion' || getStatutDetailFromMotif(e.motif) === 'Exclusion de cours').length;
+            const sanctions = events.filter(e => e.type === 'sanction').length;
+            const carnet = events.filter(e => e.type === 'carnet').length;
 
             document.getElementById('countRetards').textContent = retards;
             document.getElementById('countAbsences').textContent = absences;
             document.getElementById('countRetenues').textContent = `${retenues} h`;
-            document.getElementById('countObservations').textContent = obs;
+            document.getElementById('countEmploiBloque').textContent = emploiBloque;
+            document.getElementById('countExclusion').textContent = exclusions;
             document.getElementById('countSanctions').textContent = sanctions;
             document.getElementById('countCarnet').textContent = carnet;
         }
@@ -1382,7 +1451,10 @@
             if (!selectedStudentId) return;
             
             document.getElementById('eventTypeInput').value = type;
-            document.getElementById('eventModalTitle').textContent = `Ajouter : ${type.toUpperCase()}`;
+            let title = type.toUpperCase();
+            if (type === 'emploi_bloque') title = "EMPLOI DU TEMPS BLOQUÉ";
+            if (type === 'exclusion') title = "EXCLUSION DE COURS";
+            document.getElementById('eventModalTitle').textContent = `Ajouter : ${title}`;
             
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -1453,9 +1525,16 @@
         }
 
         function updateRecapBadges() {
-            const categories = ['retard', 'absence', 'retenue', 'observation', 'sanction', 'carnet'];
+            const categories = ['retard', 'absence', 'retenue', 'emploi_bloque', 'exclusion', 'sanction', 'carnet'];
             categories.forEach(cat => {
-                const count = students.filter(s => (s.events || []).some(e => e.type === cat)).length;
+                const count = students.filter(s => (s.events || []).some(e => {
+                    if (e.type === cat) return true;
+                    const motifStatut = getStatutDetailFromMotif(e.motif);
+                    if (cat === 'emploi_bloque' && motifStatut === 'emploi du temps bloqué') return true;
+                    if (cat === 'exclusion' && motifStatut === 'Exclusion de cours') return true;
+                    if (cat === 'retenue' && motifStatut === 'Retenue') return true;
+                    return false;
+                })).length;
                 const badge = document.getElementById(`badge-${cat}`);
                 if (badge) badge.textContent = count;
             });
@@ -1538,16 +1617,13 @@
             event.target.value = '';
         }
 
-        // Affiche la popup de confirmation d'importation PRONOTE
         function triggerAbsenceImport() {
             document.getElementById('confirmImportPronoteModal').classList.remove('hidden');
         }
 
-        // Exécuté si l'utilisateur clique sur "Continuer" dans la popup
         function confirmAndTriggerAbsenceImport() {
             closeModal('confirmImportPronoteModal');
             
-            // Effacement de toutes les données Vie Scolaire existantes
             students.forEach(student => {
                 student.events = [];
             });
@@ -1563,7 +1639,6 @@
                 filterStudents();
             }
 
-            // Ouverture de la fenêtre de sélection de fichier
             document.getElementById('absenceFileInput').click();
         }
 
@@ -1641,10 +1716,13 @@
                     if (nom && line.toUpperCase().includes(nom) && prenom && line.toUpperCase().includes(prenom)) {
                         let type = 'observation';
                         const lowerLine = line.toLowerCase();
-                        
-                        if (lowerLine.includes('retard')) type = 'retard';
-                        else if (lowerLine.includes('absent') || lowerLine.includes('absence')) type = 'absence';
+
+                        if (lowerLine.includes('exclusion de cours') || lowerLine.includes('exclusion')) type = 'exclusion';
+                        else if (lowerLine.includes('emploi du temps bloqué') || lowerLine.includes('emploi du temps bloque')) type = 'emploi_bloque';
                         else if (lowerLine.includes('retenue') || lowerLine.includes('colle')) type = 'retenue';
+                        else if (lowerLine.includes('observation')) type = 'observation';
+                        else if (lowerLine.includes('retard')) type = 'retard';
+                        else if (lowerLine.includes('absent') || lowerLine.includes('absence')) type = 'absence';
                         else if (lowerLine.includes('sanction') || lowerLine.includes('avertissement') || lowerLine.includes('blâme')) type = 'sanction';
                         else if (lowerLine.includes('carnet')) type = 'carnet';
 
@@ -1870,29 +1948,31 @@
             doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 14, 28);
 
             const tableData = listToExport.map(s => {
-                const retards = (s.events || []).filter(ev => ev.type === 'retard').length;
-                const absences = (s.events || []).filter(ev => ev.type === 'absence').length;
-                const retenues = (s.events || []).filter(ev => ev.type === 'retenue').reduce((sum, ev) => sum + (parseInt(ev.duration) || 1), 0);
-                const obs = (s.events || []).filter(ev => ev.type === 'observation').length;
+                const events = s.events || [];
+                const retards = events.filter(ev => ev.type === 'retard').length;
+                const absences = events.filter(ev => ev.type === 'absence').length;
+                const retenues = events.filter(ev => ev.type === 'retenue' || getStatutDetailFromMotif(ev.motif) === 'Retenue').reduce((sum, ev) => sum + (parseInt(ev.duration) || 1), 0);
+                const emploiBloque = events.filter(ev => ev.type === 'emploi_bloque' || getStatutDetailFromMotif(ev.motif) === 'emploi du temps bloqué').length;
+                const exclusions = events.filter(ev => ev.type === 'exclusion' || getStatutDetailFromMotif(ev.motif) === 'Exclusion de cours').length;
+
                 return [
-                    `${s.nom || ''} ${s.prenom || ''}`,
-                    s.classe || '',
-                    s.regime || '',
-                    s.autorisationSortie || '',
-                    retards,
-                    absences,
-                    `${retenues}h`,
-                    obs
+                    `${s.nom.toUpperCase()} ${s.prenom}`,
+                    s.classe,
+                    s.regime,
+                    s.autorisationSortie === 'Oui' ? 'Autorisé' : 'Interdit',
+                    `${retards} ret / ${absences} abs / ${retenues}h col / ${emploiBloque} EDT / ${exclusions} excl`
                 ];
             });
 
             doc.autoTable({
                 startY: 35,
-                head: [['Nom Prénom', 'Classe', 'Régime', 'Sortie', 'Retards', 'Absences', 'Retenues', 'Obs.']],
-                body: tableData
+                head: [['Élève', 'Classe', 'Régime', 'Sortie', 'Synthèse Events']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: [49, 46, 129] }
             });
 
-            doc.save(`rapport_viescolaire_${selectedClass}_${new Date().toISOString().slice(0,10)}.pdf`);
+            doc.save(`VieScolaire_Rapport_${selectedClass}_${new Date().toISOString().slice(0,10)}.pdf`);
             closeModal('exportClassModal');
         }
     </script>
