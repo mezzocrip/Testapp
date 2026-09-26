@@ -162,7 +162,7 @@
                             <i data-lucide="file-check-2" class="w-4 h-4 text-amber-600"></i>
                             <span>Importer Vie Scolaire / PRONOTE</span>
                         </button>
-                        <input type="file" id="absenceFileInput" accept=".pdf, .xlsx, .xls, .csv, .txt" class="hidden" onchange="importAbsenceDataFile(event)">
+                        <input type="file" id="absenceFileInput" accept=".pdf, .xlsx, .xls, .csv, .txt" multiple class="hidden" onchange="importAbsenceDataFile(event)">
 
                         <button onclick="openClearVieScolaireModal()" class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-800 text-xs font-semibold px-3 py-2.5 rounded-xl border border-rose-200 transition shadow-2xs" title="Effacer l'importation Vie Scolaire">
                             <i data-lucide="trash" class="w-4 h-4 text-rose-600"></i>
@@ -173,7 +173,8 @@
                             <i data-lucide="file-spreadsheets" class="w-4 h-4 text-emerald-600"></i>
                             <span class="hidden md:inline">Importer Élèves</span>
                         </button>
-                        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv, .txt" class="hidden" onchange="importDataFile(event)">
+                        <!-- Ajout de l'attribut multiple pour autoriser plusieurs fichiers Excel/CSV -->
+                        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv, .txt" multiple class="hidden" onchange="importDataFile(event)">
 
                         <button onclick="openExportClassModal()" class="hidden sm:inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold px-3 py-2.5 rounded-xl border border-rose-200 transition">
                             <i data-lucide="file-text" class="w-4 h-4 text-rose-600"></i>
@@ -1478,58 +1479,90 @@
         }
 
         // =========================================================
-        // 7. IMPORTATION ÉLÈVES ET VIE SCOLAIRE / PRONOTE
+        // 7. IMPORTATION ÉLÈVES ET VIE SCOLAIRE / PRONOTE (MULTI-FICHIERS)
         // =========================================================
         function triggerFileImport() {
             document.getElementById('fileInput').click();
         }
 
-        function importDataFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(firstSheet);
-
-                    if (json && json.length > 0) {
+        // Helper Promise pour lire un fichier Excel / CSV unique
+        function processExcelFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
                         let count = 0;
-                        json.forEach(row => {
-                            const nom = row.Nom || row.NOM || row.nom || '';
-                            const prenom = row.Prénom || row.PRENOM || row.prenom || '';
-                            const classe = row.Classe || row.CLASSE || row.classe || '';
 
-                            if (nom && prenom) {
-                                students.push({
-                                    id: generateUUID(),
-                                    nom: String(nom).trim(),
-                                    prenom: String(prenom).trim(),
-                                    classe: String(classe).trim(),
-                                    regime: row.Régime || row.REGIME || row.regime || 'Demi-pensionnaire',
-                                    autorisationSortie: row.Sortie || row.SORTIE || 'Oui',
-                                    profPrincipal: row.Professeur || row.PROF || '',
-                                    badgeRepere: row.Repere || row.REPERE || '',
-                                    badgeCantine: row.Badge || row.BADGE || '',
-                                    events: []
+                        workbook.SheetNames.forEach(sheetName => {
+                            const worksheet = workbook.Sheets[sheetName];
+                            const json = XLSX.utils.sheet_to_json(worksheet);
+
+                            if (json && json.length > 0) {
+                                json.forEach(row => {
+                                    const nom = row.Nom || row.NOM || row.nom || '';
+                                    const prenom = row.Prénom || row.PRENOM || row.prenom || '';
+                                    const classe = row.Classe || row.CLASSE || row.classe || '';
+
+                                    if (nom && prenom) {
+                                        students.push({
+                                            id: generateUUID(),
+                                            nom: String(nom).trim(),
+                                            prenom: String(prenom).trim(),
+                                            classe: String(classe).trim(),
+                                            regime: row.Régime || row.REGIME || row.regime || 'Demi-pensionnaire',
+                                            autorisationSortie: row.Sortie || row.SORTIE || 'Oui',
+                                            profPrincipal: row.Professeur || row.PROF || '',
+                                            badgeRepere: row.Repere || row.REPERE || '',
+                                            badgeCantine: row.Badge || row.BADGE || '',
+                                            events: []
+                                        });
+                                        count++;
+                                    }
                                 });
-                                count++;
                             }
                         });
-
-                        saveStorage();
-                        populateClassFilter();
-                        filterStudents();
-                        alert(`${count} élève(s) importé(s) avec succès !`);
+                        resolve(count);
+                    } catch (err) {
+                        reject(err);
                     }
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // Fonction d'import de plusieurs fichiers Excel / CSV simultanés
+        async function importDataFile(event) {
+            const files = Array.from(event.target.files || []);
+            if (files.length === 0) return;
+
+            let totalCount = 0;
+            let fileErrors = 0;
+
+            for (const file of files) {
+                try {
+                    const count = await processExcelFile(file);
+                    totalCount += count;
                 } catch (err) {
-                    alert("Erreur lors de la lecture du fichier Excel ou CSV.");
+                    console.error("Erreur lors de la lecture du fichier :", file.name, err);
+                    fileErrors++;
                 }
-            };
-            reader.readAsArrayBuffer(file);
+            }
+
+            if (totalCount > 0 || files.length > 0) {
+                saveStorage();
+                populateClassFilter();
+                filterStudents();
+                
+                if (fileErrors > 0) {
+                    alert(`${totalCount} élève(s) importé(s) à partir de ${files.length - fileErrors} fichier(s). (${fileErrors} fichier(s) en erreur)`);
+                } else {
+                    alert(`${totalCount} élève(s) importé(s) avec succès à partir de ${files.length} fichier(s) !`);
+                }
+            }
+
             event.target.value = '';
         }
 
@@ -1562,59 +1595,67 @@
             document.getElementById('absenceFileInput').click();
         }
 
-        function importAbsenceDataFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+        async function importAbsenceDataFile(event) {
+            const files = Array.from(event.target.files || []);
+            if (files.length === 0) return;
 
-            const extension = file.name.split('.').pop().toLowerCase();
+            for (const file of files) {
+                const extension = file.name.split('.').pop().toLowerCase();
 
-            if (extension === 'pdf') {
-                parseAbsencePDF(file);
-            } else if (['xlsx', 'xls', 'csv', 'txt'].includes(extension)) {
-                parseAbsenceExcelCSV(file);
-            } else {
-                alert("Format de fichier non pris en charge.");
+                if (extension === 'pdf') {
+                    await parseAbsencePDF(file);
+                } else if (['xlsx', 'xls', 'csv', 'txt'].includes(extension)) {
+                    await parseAbsenceExcelCSV(file);
+                } else {
+                    alert(`Format non pris en charge pour : ${file.name}`);
+                }
             }
 
             event.target.value = '';
         }
 
         function parseAbsencePDF(file) {
-            const fileReader = new FileReader();
-            fileReader.onload = function() {
-                const typedarray = new Uint8Array(this.result);
-                pdfjsLib.getDocument(typedarray).promise.then(pdf => {
-                    let totalPages = pdf.numPages;
-                    let countPromises = [];
+            return new Promise((resolve) => {
+                const fileReader = new FileReader();
+                fileReader.onload = function() {
+                    const typedarray = new Uint8Array(this.result);
+                    pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+                        let totalPages = pdf.numPages;
+                        let countPromises = [];
 
-                    for (let i = 1; i <= totalPages; i++) {
-                        countPromises.push(pdf.getPage(i).then(page => {
-                            return page.getTextContent().then(textContent => {
-                                return textContent.items.map(s => s.str).join(' ');
-                            });
-                        }));
-                    }
+                        for (let i = 1; i <= totalPages; i++) {
+                            countPromises.push(pdf.getPage(i).then(page => {
+                                return page.getTextContent().then(textContent => {
+                                    return textContent.items.map(s => s.str).join(' ');
+                                });
+                            }));
+                        }
 
-                    Promise.all(countPromises).then(pagesText => {
-                        const fullText = pagesText.join('\n');
-                        processExtractedTextForEvents(fullText);
+                        Promise.all(countPromises).then(pagesText => {
+                            const fullText = pagesText.join('\n');
+                            processExtractedTextForEvents(fullText);
+                            resolve();
+                        });
                     });
-                });
-            };
-            fileReader.readAsArrayBuffer(file);
+                };
+                fileReader.readAsArrayBuffer(file);
+            });
         }
 
         function parseAbsenceExcelCSV(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const csvText = XLSX.utils.sheet_to_csv(worksheet);
-                processExtractedTextForEvents(csvText);
-            };
-            reader.readAsArrayBuffer(file);
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const csvText = XLSX.utils.sheet_to_csv(worksheet);
+                    processExtractedTextForEvents(csvText);
+                    resolve();
+                };
+                reader.readAsArrayBuffer(file);
+            });
         }
 
         function processExtractedTextForEvents(text) {
@@ -1664,7 +1705,6 @@
             } else {
                 filterStudents();
             }
-            alert(`${importedCount} événement(s) Vie Scolaire importé(s) avec succès !`);
         }
 
         // =========================================================
@@ -1863,25 +1903,28 @@
             const tableData = listToExport.map(s => {
                 const retards = (s.events || []).filter(ev => ev.type === 'retard').length;
                 const absences = (s.events || []).filter(ev => ev.type === 'absence').length;
-                const colles = (s.events || []).filter(ev => ev.type === 'retenue').reduce((a,b) => a + (parseInt(b.duration)||1), 0);
+                const colles = (s.events || []).filter(ev => ev.type === 'retenue').reduce((sum, ev) => sum + (parseInt(ev.duration) || 1), 0);
                 const obs = (s.events || []).filter(ev => ev.type === 'observation').length;
-
                 return [
-                    `${s.nom} ${s.prenom}`,
-                    s.classe,
-                    s.regime,
-                    s.autorisationSortie,
-                    `${retards} retards, ${absences} abs., ${colles}h colles, ${obs} obs.`
+                    s.nom ? s.nom.toUpperCase() : '',
+                    s.prenom || '',
+                    s.classe || '',
+                    s.regime || '',
+                    s.autorisationSortie || '',
+                    retards,
+                    absences,
+                    `${colles}h`,
+                    obs
                 ];
             });
 
             doc.autoTable({
                 startY: 35,
-                head: [['Nom Prénom', 'Classe', 'Régime', 'Sortie', 'Synthèse Events']],
+                head: [['Nom', 'Prénom', 'Classe', 'Régime', 'Sortie', 'Retards', 'Absences', 'Retenues', 'Obs.']],
                 body: tableData,
             });
 
-            doc.save(`Rapport_VieScolaire_${selectedClass}.pdf`);
+            doc.save(`Rapport_VieScolaire_${selectedClass}_${new Date().toISOString().slice(0,10)}.pdf`);
             closeModal('exportClassModal');
         }
 
@@ -1893,26 +1936,27 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            doc.setFontSize(18);
-            doc.text(`Fiche Élève : ${student.nom} ${student.prenom}`, 14, 20);
-            doc.setFontSize(11);
-            doc.text(`Classe : ${student.classe} | Régime : ${student.regime} | Sortie : ${student.autorisationSortie}`, 14, 28);
-            doc.text(`Professeur principal : ${student.profPrincipal || 'Non renseigné'}`, 14, 35);
+            doc.setFontSize(16);
+            doc.text(`Fiche Élève : ${student.nom ? student.nom.toUpperCase() : ''} ${student.prenom || ''}`, 14, 20);
+            doc.setFontSize(10);
+            doc.text(`Classe : ${student.classe || ''} | Régime : ${student.regime || ''} | Sortie : ${student.autorisationSortie || ''}`, 14, 28);
+            doc.text(`Professeur Principal : ${student.profPrincipal || 'Non renseigné'}`, 14, 34);
 
-            const eventsData = (student.events || []).map(e => [
-                e.date || '--',
-                e.type.toUpperCase(),
-                e.justified || (e.duration ? `${e.duration}h` : '--'),
-                e.motif || '-'
+            const events = (student.events || []).slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+            const tableData = events.map(ev => [
+                ev.date || '',
+                ev.type ? ev.type.toUpperCase() : '',
+                ev.justified ? (ev.justified === 'Oui' ? 'Justifié' : 'Non justifié') : (ev.duration ? `${ev.duration}h` : '-'),
+                ev.motif || ''
             ]);
 
             doc.autoTable({
                 startY: 42,
-                head: [['Date', 'Type', 'Détail', 'Motif']],
-                body: eventsData,
+                head: [['Date', 'Type', 'Détail', 'Motif / Commentaire']],
+                body: tableData,
             });
 
-            doc.save(`Fiche_${student.nom}_${student.prenom}.pdf`);
+            doc.save(`Fiche_${student.nom}_${student.prenom}_${new Date().toISOString().slice(0,10)}.pdf`);
         }
     </script>
 </body>
