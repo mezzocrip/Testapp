@@ -2029,233 +2029,121 @@
             }
             alert(`Importation terminée : ${countEvents} événement(s) assigné(s).`);
         }
-                // =========================================================
-        function openExportClassModal() {
-            populateClassFilter();
-            document.getElementById('exportClassModal').classList.remove('hidden');
-        }
 
-        function handleExportClassPDF(e) {
-            e.preventDefault();
-            const selectedClass = document.getElementById('exportClassSelect').value;
-            const exportType = document.getElementById('exportTypeSelect').value;
-
-            closeModal('exportClassModal');
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-
-            const targetStudents = selectedClass === 'ALL' ? students : students.filter(s => s.classe === selectedClass);
-            targetStudents.sort((a,b) => (a.nom || '').localeCompare(b.nom || ''));
-
-            doc.setFont('Helvetica', 'bold');
-            doc.setFontSize(16);
-            doc.text(`Rapport Vie Scolaire - ${selectedClass === 'ALL' ? 'Toutes les classes' : selectedClass}`, 14, 15);
-            
-            doc.setFontSize(9);
-            doc.setFont('Helvetica', 'normal');
-            doc.text(`Généré le : ${new Date().toLocaleDateString('fr-FR')} - Total élèves : ${targetStudents.length}`, 14, 21);
-
-            let currentY = 28;
-
-            if (exportType === 'summary' || exportType === 'both') {
-                const tableData = targetStudents.map(s => {
-                    const events = s.events || [];
-                    const retards = events.filter(e => e.type === 'retard').length;
-                    const absences = events.filter(e => e.type === 'absence').length;
-                    const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + getRetenueHours(e), 0);
-                    const formattedRetenues = Number.isInteger(retenues) ? retenues : retenues.toFixed(1);
-
-                    return [
-                        `${s.nom.toUpperCase()} ${s.prenom}`,
-                        s.classe,
-                        s.regime,
-                        s.autorisationSortie === 'Oui' ? 'OUI' : 'NON (Interdit)',
-                        s.badgeRepere || '--',
-                        retards,
-                        absences,
-                        `${formattedRetenues} h`
-                    ];
-                });
-
-                doc.autoTable({
-                    startY: currentY,
-                    head: [['Élève', 'Classe', 'Régime', 'Sortie', 'Badge Repère', 'Retards', 'Absences', 'Retenues']],
-                    body: tableData,
-                    theme: 'striped',
-                    headStyles: { fillColor: [49, 46, 129] },
-                    styles: { fontSize: 8 }
-                });
-
-                currentY = doc.lastAutoTable.finalY + 10;
-            }
-
-            if (exportType === 'details' || exportType === 'both') {
-                if (currentY > 230) {
-                    doc.addPage();
-                    currentY = 15;
-                }
-
-                doc.setFont('Helvetica', 'bold');
-                doc.setFontSize(12);
-                doc.text("Détail de l'historique des événements", 14, currentY);
-                currentY += 6;
-
-                targetStudents.forEach(s => {
-                    const events = s.events || [];
-                    if (events.length > 0) {
-                        if (currentY > 250) {
-                            doc.addPage();
-                            currentY = 15;
-                        }
-
-                        doc.setFont('Helvetica', 'bold');
-                        doc.setFontSize(10);
-                        doc.text(`${s.nom.toUpperCase()} ${s.prenom} (${s.classe})`, 14, currentY);
-                        currentY += 4;
-
-                        const evData = events.map(ev => {
-                            const dateStr = extractDateFromText(ev.motif) || ev.date;
-                            const parsed = new Date(dateStr);
-                            const formattedDate = !isNaN(parsed.getTime()) ? parsed.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ev.date;
-                            
-                            let hDetail = ev.type.toUpperCase();
-                            if (ev.type === 'retenue') {
-                                const h = getRetenueHours(ev);
-                                hDetail = `RETENUE (${Number.isInteger(h) ? h : h.toFixed(1)}h)`;
-                            }
-
-                            return [
-                                formattedDate,
-                                hDetail,
-                                ev.motif || '--'
-                            ];
-                        });
-
-                        doc.autoTable({
-                            startY: currentY,
-                            head: [['Date', 'Type', 'Motif / Détail']],
-                            body: evData,
-                            theme: 'plain',
-                            styles: { fontSize: 7 },
-                            margin: { left: 14 }
-                        });
-
-                        currentY = doc.lastAutoTable.finalY + 6;
-                    }
-                });
-            }
-
-            doc.save(`Rapport_VieScolaire_${selectedClass}_${new Date().toISOString().slice(0,10)}.pdf`);
-        }
-
+        // =========================================================
+        // 7. EXPORTATION PDF
+        // =========================================================
         function exportStudentPDF() {
             if (!selectedStudentId) return;
             const student = students.find(s => s.id === selectedStudentId);
             if (!student) return;
 
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+            const doc = new jsPDF();
 
-            doc.setFont('Helvetica', 'bold');
-            doc.setFontSize(16);
-            doc.text(`Fiche Individuelle - ${student.nom.toUpperCase()} ${student.prenom}`, 14, 15);
-
-            doc.setFontSize(10);
-            doc.setFont('Helvetica', 'normal');
-            doc.text(`Classe : ${student.classe || '--'} | Régime : ${student.regime || '--'} | Sortie : ${student.autorisationSortie === 'Oui' ? 'AUTORISÉE' : 'INTERDITE'}`, 14, 22);
-            doc.text(`Professeur Principal : ${student.profPrincipal || 'Non renseigné'}`, 14, 27);
+            doc.setFontSize(18);
+            doc.text(`Fiche Élève : ${student.nom} ${student.prenom}`, 14, 20);
+            
+            doc.setFontSize(11);
+            doc.text(`Classe : ${student.classe || '--'}`, 14, 28);
+            doc.text(`Régime : ${student.regime || '--'}`, 14, 34);
+            doc.text(`Autorisation Sortie : ${student.autorisationSortie || '--'}`, 14, 40);
+            doc.text(`Professeur Principal : ${student.profPrincipal || '--'}`, 14, 46);
 
             const events = student.events || [];
             const retards = events.filter(e => e.type === 'retard').length;
             const absences = events.filter(e => e.type === 'absence').length;
             const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + getRetenueHours(e), 0);
-            const formattedRetenues = Number.isInteger(retenues) ? retenues : retenues.toFixed(1);
+
+            doc.text(`Synthèse : ${retards} Retard(s), ${absences} Absence(s), ${retenues}h Retenue(s)`, 14, 54);
+
+            const tableRows = events.map(e => [
+                e.date ? new Date(e.date).toLocaleString('fr-FR') : '--',
+                e.type.toUpperCase(),
+                e.motif || '--'
+            ]);
 
             doc.autoTable({
-                startY: 32,
-                head: [['Retards', 'Absences', 'Heures de Retenue']],
-                body: [[retards, absences, `${formattedRetenues} h`]],
-                theme: 'grid',
-                headStyles: { fillColor: [49, 46, 129] }
+                startY: 60,
+                head: [['Date & Heure', 'Événement', 'Motif / Détail']],
+                body: tableRows,
             });
 
-            const evData = events.map(ev => {
-                const dateStr = extractDateFromText(ev.motif) || ev.date;
-                const parsed = new Date(dateStr);
-                const formattedDate = !isNaN(parsed.getTime()) ? parsed.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ev.date;
-                
-                let detail = ev.type.toUpperCase();
-                if (ev.type === 'retenue') {
-                    const h = getRetenueHours(ev);
-                    detail = `RETENUE (${Number.isInteger(h) ? h : h.toFixed(1)}h)`;
+            doc.save(`Fiche_${student.nom}_${student.prenom}.pdf`);
+        }
+
+        function openExportClassModal() {
+            document.getElementById('exportClassModal').classList.remove('hidden');
+        }
+
+        function handleExportClassPDF(e) {
+            e.preventDefault();
+            const classVal = document.getElementById('exportClassSelect').value;
+            const exportType = document.getElementById('exportTypeSelect').value;
+
+            const targetStudents = classVal === 'ALL' ? students : students.filter(s => s.classe === classVal);
+            if (targetStudents.length === 0) {
+                alert("Aucun élève trouvé pour cette classe.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(16);
+            doc.text(`Rapport Vie Scolaire - Classe : ${classVal}`, 14, 18);
+
+            let currentY = 25;
+
+            targetStudents.forEach((student, idx) => {
+                if (idx > 0 && currentY > 230) {
+                    doc.addPage();
+                    currentY = 20;
                 }
 
-                return [formattedDate, detail, ev.motif || '--'];
+                doc.setFontSize(12);
+                doc.text(`${student.nom} ${student.prenom} (${student.classe})`, 14, currentY);
+                currentY += 6;
+
+                const events = student.events || [];
+                const retards = events.filter(ev => ev.type === 'retard').length;
+                const absences = events.filter(ev => ev.type === 'absence').length;
+                const retenues = events.filter(ev => ev.type === 'retenue' || getStatutDetailFromMotif(ev.motif) === 'Retenue').reduce((sum, ev) => sum + getRetenueHours(ev), 0);
+
+                if (exportType === 'summary' || exportType === 'both') {
+                    doc.setFontSize(10);
+                    doc.text(`Retards: ${retards} | Absences: ${absences} | Colles: ${retenues}h | Cantine: ${student.regime === 'Demi-pensionnaire' ? 'OUI' : 'NON'}`, 14, currentY);
+                    currentY += 6;
+                }
+
+                if (exportType === 'details' || exportType === 'both') {
+                    const rows = events.map(ev => [
+                        ev.date ? new Date(ev.date).toLocaleDateString('fr-FR') : '--',
+                        ev.type,
+                        ev.motif || ''
+                    ]);
+
+                    if (rows.length > 0) {
+                        doc.autoTable({
+                            startY: currentY,
+                            head: [['Date', 'Type', 'Motif']],
+                            body: rows,
+                            margin: { left: 14, right: 14 },
+                            styles: { fontSize: 8 }
+                        });
+                        currentY = doc.lastAutoTable.finalY + 8;
+                    } else {
+                        doc.setFontSize(9);
+                        doc.text("Aucun événement enregistré.", 14, currentY);
+                        currentY += 8;
+                    }
+                }
             });
 
-            doc.autoTable({
-                startY: doc.lastAutoTable.finalY + 8,
-                head: [['Date & Heure', 'Événement', 'Commentaire / Motif']],
-                body: evData,
-                theme: 'striped',
-                styles: { fontSize: 8 }
-            });
-
-            doc.save(`Fiche_${student.nom.toUpperCase()}_${student.prenom}_${new Date().toISOString().slice(0,10)}.pdf`);
-        }
-
-        // =========================================================
-        // 10. GESTION DES ÉLÈVES (AJOUT / SUPPRESSION)
-        // =========================================================
-        function openAddStudentModal() {
-            document.getElementById('addStudentForm').reset();
-            document.getElementById('addStudentModal').classList.remove('hidden');
-        }
-
-        function handleAddStudent(e) {
-            e.preventDefault();
-            const nom = document.getElementById('newNom').value.trim().toUpperCase();
-            const prenom = document.getElementById('newPrenom').value.trim();
-            const classe = document.getElementById('newClasse').value.trim();
-            const regime = document.getElementById('newRegime').value;
-            const autoris = document.getElementById('newAutorisation').value;
-            const prof = document.getElementById('newProf').value.trim();
-
-            const newStudent = {
-                id: generateUUID(),
-                nom,
-                prenom,
-                classe,
-                regime,
-                autorisationSortie: autoris,
-                profPrincipal: prof,
-                badgeRepere: '',
-                badgeCantine: '',
-                events: []
-            };
-
-            students.push(newStudent);
-            saveStorage();
-            populateClassFilter();
-            filterStudents();
-            closeModal('addStudentModal');
-        }
-
-        function confirmDeleteStudent() {
-            document.getElementById('deleteModal').classList.remove('hidden');
-        }
-
-        function executeDeleteStudent() {
-            if (!selectedStudentId) return;
-            students = students.filter(s => s.id !== selectedStudentId);
-            saveStorage();
-            closeModal('deleteModal');
-            showListPage();
+            closeModal('exportClassModal');
+            doc.save(`Rapport_VieScolaire_${classVal}.pdf`);
         }
     </script>
 </body>
 </html>
-    
-
 
