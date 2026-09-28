@@ -17,6 +17,8 @@
  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
  <!-- Html5-QRCode (Scanner) -->
  <script src="https://unpkg.com/html5-qrcode"></script>
+ <!-- Chart.js pour la génération des graphiques -->
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
  <!-- jsPDF, html2canvas & jsPDF-AutoTable -->
  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
@@ -508,6 +510,11 @@
 
  </main>
 
+ <!-- CANVAS HORS-ÉCRAN POUR GÉNÉRATION DU GRAPHIQUE PDF -->
+ <div style="position: absolute; left: -9999px; top: -9999px;">
+    <canvas id="pdfChartCanvas" width="800" height="400"></canvas>
+ </div>
+
  <!-- MODALE : AVERTISSEMENT CONFIRMATION IMPORT PRONOTE -->
  <div id="confirmImportPronoteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
  <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 space-y-4 border border-slate-100 text-center">
@@ -780,6 +787,7 @@
  let qrCodeObj = null;
  let html5QrCodeScanner = null;
  let showOnlyUnjustifiedAbsences = false;
+ let pdfChartInstance = null;
 
  const demoData = [
  {
@@ -2173,14 +2181,50 @@ students.push({
  }
 
  // =========================================================
- // 9. EXPORTATION PDF DE CLASSE & FICHES ÉLÈVES
+ // 9. EXPORTATION PDF DE CLASSE & FICHES ÉLÈVES AVEC GRAPHIQUES ET TRIS
  // =========================================================
  function openExportClassModal() {
  populateClassFilter();
  document.getElementById('exportClassModal').classList.remove('hidden');
  }
 
- function handleExportClassPDF(e) {
+ async function generateChartImage(labels, data, title) {
+ return new Promise((resolve) => {
+ const ctx = document.getElementById('pdfChartCanvas').getContext('2d');
+ if (pdfChartInstance) {
+ pdfChartInstance.destroy();
+ }
+ pdfChartInstance = new Chart(ctx, {
+ type: 'bar',
+ data: {
+ labels: labels,
+ datasets: [{
+ label: title,
+ data: data,
+ backgroundColor: 'rgba(79, 70, 229, 0.7)',
+ borderColor: 'rgba(67, 56, 202, 1)',
+ borderWidth: 1
+ }]
+ },
+ options: {
+ animation: false,
+ responsive: false,
+ plugins: {
+ legend: { display: true },
+ title: { display: true, text: title, font: { size: 14, weight: 'bold' } }
+ },
+ scales: {
+ y: { beginAtZero: true, ticks: { precision: 0 } }
+ }
+ }
+ });
+ setTimeout(() => {
+ resolve(pdfChartInstance.toBase64Image());
+ }, 200);
+ });
+ }
+
+ async function handleExportClassPDF(e) {
  e.preventDefault();
  const selectedClass = document.getElementById('exportClassSelect').value;
  const exportType = document.getElementById('exportTypeSelect').value;
@@ -2203,13 +2247,92 @@ doc.setFontSize(9);
 
  let currentY = 28;
 
- if (exportType === 'summary' || exportType === 'both') {
- const tableData = targetStudents.map(s => {
+ // Calcul des compteurs totaux pour la synthèse et les graphiques
+ let totauxCompteurs = {
+ 'Retards': 0,
+ 'Absences': 0,
+ 'Heures de Retenue': 0,
+ 'Emploi du temps bloqué': 0,
+ 'Exclusions de cours': 0,
+ 'Sanctions': 0
+ };
+
+ const preparedStudentData = targetStudents.map(s => {
  const events = s.events || [];
  const retards = events.filter(e => e.type === 'retard').length;
  const absences = events.filter(e => e.type === 'absence').length;
  const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + getRetenueHours(e), 0);
- const formattedRetenues = Number.isInteger(retenues) ? retenues : retenues.toFixed(1);
+ const emploiBloque = events.filter(e => e.type === 'emploi_bloque' || getStatutDetailFromMotif(e.motif) === 'emploi du temps bloqué').length;
+ const exclusions = events.filter(e => e.type === 'exclusion' || getStatutDetailFromMotif(e.motif) === 'Exclusion de cours').length;
+ const sanctions = events.filter(e => e.type === 'sanction').length;
+
+ totauxCompteurs['Retards'] += retards;
+ totauxCompteurs['Absences'] += absences;
+ totauxCompteurs['Heures de Retenue'] += retenues;
+ totauxCompteurs['Emploi du temps bloqué'] += emploiBloque;
+ totauxCompteurs['Exclusions de cours'] += exclusions;
+ totauxCompteurs['Sanctions'] += sanctions;
+
+ const totalEvents = retards + absences + retenues + emploiBloque + exclusions + sanctions;
+
+ return {
+ student: s,
+ retards,
+ absences,
+ retenues,
+ emploiBloque,
+ exclusions,
+ sanctions,
+ totalEvents
+ };
+ });
+
+ if (exportType === 'summary' || exportType === 'both') {
+ // --- SECTION SYNTHÈSE GLOBALE & GRAPHIQUE ---
+ doc.setFont('Helvetica', 'bold');
+ doc.setFontSize(12);
+ doc.text("1. Synthèse globale des compteurs", 14, currentY);
+ currentY += 5;
+
+ // Tri des catégories globales du plus grand au plus petit nombre
+ const sortedTotaux = Object.entries(totauxCompteurs).sort((a, b) => b[1] - a[1]);
+
+ doc.autoTable({
+ startY: currentY,
+ head: [['Type de Compteur / Événement', 'Total de la Classe / Sélection']],
+ body: sortedTotaux.map(([cat, count]) => [cat, typeof count === 'number' && !Number.isInteger(count) ? count.toFixed(1) : count]),
+ theme: 'grid',
+ headStyles: { fillColor: [49, 46, 129] },
+ styles: { fontSize: 8 }
+ });
+
+ currentY = doc.lastAutoTable.finalY + 8;
+
+ // Génération du graphique trié du plus grand au plus petit
+ const chartLabels = sortedTotaux.map(item => item[0]);
+ const chartData = sortedTotaux.map(item => item[1]);
+ const chartImage = await generateChartImage(chartLabels, chartData, `Répartition des compteurs (${selectedClass})`);
+
+ doc.addImage(chartImage, 'PNG', 14, currentY, 180, 85);
+ currentY += 92;
+
+ if (currentY > 230) {
+ doc.addPage();
+ currentY = 15;
+ }
+
+ // --- TABLEAU DÉTAILLÉ PAR ÉLÈVE TRIÉ PAR NOMBRE DE COMPTEURS ---
+ doc.setFont('Helvetica', 'bold');
+ doc.setFontSize(12);
+ doc.text("2. Détail synthétique par élève (trié par volume d'événements)", 14, currentY);
+ currentY += 5;
+
+ // Tri des élèves du plus grand nombre d'événements cumulés au plus petit
+ const sortedStudentData = [...preparedStudentData].sort((a, b) => b.totalEvents - a.totalEvents);
+
+ const tableData = sortedStudentData.map(item => {
+ const s = item.student;
+ const formattedRetenues = Number.isInteger(item.retenues) ? item.retenues : item.retenues.toFixed(1);
 
  return [
  `${s.nom.toUpperCase()} ${s.prenom}`,
@@ -2217,19 +2340,22 @@ doc.setFontSize(9);
  s.regime,
  s.autorisationSortie === 'Oui' ? 'OUI' : 'NON (Interdit)',
  s.badgeRepere || '--',
- retards,
- absences,
- `${formattedRetenues} h`
+ item.retards,
+ item.absences,
+ `${formattedRetenues} h`,
+ item.emploiBloque,
+ item.exclusions,
+ item.sanctions
  ];
  });
 
  doc.autoTable({
  startY: currentY,
- head: [['Élève', 'Classe', 'Régime', 'Sortie', 'Badge Repère', 'Retards', 'Absences', 'Retenues']],
+ head: [['Élève', 'Classe', 'Régime', 'Sortie', 'Badge', 'Ret.', 'Abs.', 'Colles', 'EDT Blq.', 'Excl.', 'Sanc.']],
  body: tableData,
  theme: 'striped',
- headStyles: { fillColor: [49, 46, 129] },
- styles: { fontSize: 8 }
+ headStyles: { fillColor: [30, 41, 59] },
+ styles: { fontSize: 7, cellPadding: 1.5 }
  });
 
  currentY = doc.lastAutoTable.finalY + 10;
@@ -2243,7 +2369,7 @@ doc.setFontSize(9);
 
  doc.setFont('Helvetica', 'bold');
  doc.setFontSize(12);
- doc.text("Détail de l'historique des événements", 14, currentY);
+ doc.text("3. Historique chronologique et détaillé des événements", 14, currentY);
  currentY += 6;
 
  targetStudents.forEach(s => {
