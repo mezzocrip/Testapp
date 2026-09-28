@@ -484,15 +484,20 @@
  </button>
  </div>
 
- <!-- FILTRE PAR CLASSE POUR LE MODE CLASSE -->
- <div id="recapClassFilterContainer" class="hidden bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between gap-3">
+ <!-- FILTRE PAR CLASSE & BOUTON DE TRI POUR LE MODE CLASSE -->
+ <div id="recapClassFilterContainer" class="hidden bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
  <div class="flex items-center gap-2">
  <i data-lucide="filter" class="w-4 h-4 text-indigo-600"></i>
  <span class="text-xs font-semibold text-slate-700">Sélectionner la classe :</span>
- </div>
  <select id="recapClassSelect" onchange="renderRecapClassCards()" class="bg-slate-50 border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
  <option value="ALL">Toutes les classes</option>
  </select>
+ </div>
+
+ <button id="btnRecapSort" onclick="toggleRecapClassSort()" class="inline-flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 text-indigo-900 border border-indigo-200/80 px-3 py-1.5 rounded-xl text-xs font-semibold transition shadow-2xs">
+ <i data-lucide="arrow-down-narrow-wide" class="w-4 h-4 text-indigo-600"></i>
+ <span id="recapSortLabel">Trier : Du + grand au + petit</span>
+ </button>
  </div>
 
  <div id="recapCategoryList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4"></div>
@@ -782,6 +787,7 @@
  let currentQuickFilter = 'all';
  let currentRecapCategory = 'retard';
  let currentRecapViewMode = 'category'; // 'category' ou 'class'
+ let recapClassSortOrder = 'desc'; // 'desc' (+ grand au + petit) ou 'asc' (+ petit au + grand)
  let currentHistoryFilter = 'all';
  let pendingToggleAction = null;
  let qrCodeObj = null;
@@ -1333,6 +1339,17 @@ if (ev.type === 'retard') { badgeClass = "bg-amber-100 text-amber-800"; typeLabe
  }
  }
 
+ function toggleRecapClassSort() {
+ recapClassSortOrder = recapClassSortOrder === 'desc' ? 'asc' : 'desc';
+ const label = document.getElementById('recapSortLabel');
+ if (label) {
+ label.textContent = recapClassSortOrder === 'desc' 
+ ? "Trier : Du + grand au + petit" 
+ : "Trier : Du + petit au + grand";
+ }
+ renderRecapClassCards();
+ }
+
  function renderRecapCategoryCards(cat) {
  const container = document.getElementById('recapCategoryList');
  const emptyMsg = document.getElementById('recapEmptyMessage');
@@ -1414,9 +1431,16 @@ if (e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue') {
  const selectedClass = document.getElementById('recapClassSelect').value;
  container.innerHTML = '';
 
- const filteredStudents = students.filter(s => {
+ let filteredStudents = students.filter(s => {
  const matchesClass = selectedClass === 'ALL' || s.classe === selectedClass;
  return matchesClass && (s.events || []).length > 0;
+ });
+
+ // Tri du nombre d'événements du plus grand au plus petit (ou inversement)
+ filteredStudents.sort((a, b) => {
+ const countA = (a.events || []).length;
+ const countB = (b.events || []).length;
+ return recapClassSortOrder === 'desc' ? countB - countA : countA - countB;
  });
 
  if (filteredStudents.length === 0) {
@@ -1489,6 +1513,8 @@ if (e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue') {
  `;
  container.appendChild(card);
  });
+
+ lucide.createIcons();
  }
 
  // =========================================================
