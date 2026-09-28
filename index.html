@@ -791,6 +791,7 @@
  let html5QrCodeScanner = null;
  let showOnlyUnjustifiedAbsences = false;
  let pdfChartInstance = null;
+ let lastScrollPosition = 0;
 
  const demoData = [
  {
@@ -1641,10 +1642,12 @@ pendingToggleAction = () => {
  document.getElementById('pageList').classList.remove('hidden');
  selectedStudentId = null;
  filterStudents();
+ window.scrollTo({ top: lastScrollPosition, behavior: 'instant' });
  }
 
  function openStudentDetail(id) {
  stopBadgeScanner();
+ lastScrollPosition = window.scrollY || document.documentElement.scrollTop || 0;
  selectedStudentId = id;
  showOnlyUnjustifiedAbsences = false;
  currentHistoryFilter = 'all';
@@ -1698,6 +1701,8 @@ qrBox.classList.remove('hidden');
  document.getElementById('pageList').classList.add('hidden');
  document.getElementById('pageRecap').classList.add('hidden');
  document.getElementById('pageDetail').classList.remove('hidden');
+
+ window.scrollTo(0, 0);
 
  lucide.createIcons();
  }
