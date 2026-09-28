@@ -422,6 +422,15 @@
  </div>
  
 <div class="flex items-center gap-2 w-full sm:w-auto">
+ <div class="bg-slate-200 p-1 rounded-xl flex items-center gap-1 text-xs font-semibold">
+ <button id="btnRecapViewCategory" onclick="setRecapViewMode('category')" class="px-3 py-1.5 rounded-lg bg-white text-indigo-900 shadow-2xs transition">
+ Par catégorie
+ </button>
+ <button id="btnRecapViewClass" onclick="setRecapViewMode('class')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">
+ Fiches par classe
+ </button>
+ </div>
+
  <button onclick="openExportClassModal()" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition text-xs sm:text-sm">
  <i data-lucide="file-text" class="w-4 h-4"></i>
  <span>Export PDF</span>
@@ -434,8 +443,8 @@
  </div>
  </div>
 
- <!-- ONGLETS RÉCAPITULATIF -->
- <div class="border-b border-slate-200 bg-white rounded-2xl shadow-2xs p-1.5 flex items-center gap-1 overflow-x-auto no-scrollbar">
+ <!-- ONGLETS RÉCAPITULATIF PAR CATÉGORIE -->
+ <div id="recapCategoryTabs" class="border-b border-slate-200 bg-white rounded-2xl shadow-2xs p-1.5 flex items-center gap-1 overflow-x-auto no-scrollbar">
  <button onclick="switchRecapTab('retard')" id="tab-retard" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow-2xs">
  <i data-lucide="clock" class="w-4 h-4"></i>
  <span>Retards</span>
@@ -473,12 +482,23 @@
  </button>
  </div>
 
+ <!-- FILTRE PAR CLASSE POUR LE MODE CLASSE -->
+ <div id="recapClassFilterContainer" class="hidden bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between gap-3">
+ <div class="flex items-center gap-2">
+ <i data-lucide="filter" class="w-4 h-4 text-indigo-600"></i>
+ <span class="text-xs font-semibold text-slate-700">Sélectionner la classe :</span>
+ </div>
+ <select id="recapClassSelect" onchange="renderRecapClassCards()" class="bg-slate-50 border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+ <option value="ALL">Toutes les classes</option>
+ </select>
+ </div>
+
  <div id="recapCategoryList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4"></div>
 
  <div id="recapEmptyMessage" class="hidden text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-6">
  <i data-lucide="check-circle-2" class="w-12 h-12 text-emerald-400 mx-auto mb-3"></i>
  <h3 class="text-base font-semibold text-slate-700">Aucun élève concerné</h3>
- <p class="text-xs text-slate-500 mt-1">Aucun élève n'a enregistré d'événement dans cette catégorie.</p>
+ <p class="text-xs text-slate-500 mt-1">Aucun élève n'a enregistré d'événement dans cette sélection.</p>
  </div>
  </section>
 
@@ -754,6 +774,7 @@
  let selectedStudentId = null;
  let currentQuickFilter = 'all';
  let currentRecapCategory = 'retard';
+ let currentRecapViewMode = 'category'; // 'category' ou 'class'
  let currentHistoryFilter = 'all';
  let pendingToggleAction = null;
  let qrCodeObj = null;
@@ -839,23 +860,14 @@
  return null;
  }
 
- // Extraire la durée d'une retenue à partir du commentaire (format 00h00, 00h, 0h00, etc.)
  function getRetenueHours(ev) {
  if (!ev) return 1;
- 
-// Si une durée explicite est déjà enregistrée sous ev.duration
  if (ev.duration !== undefined && ev.duration !== null && !isNaN(parseFloat(ev.duration)) && parseFloat(ev.duration) > 0) {
  return parseFloat(ev.duration);
  }
- 
-// Analyse du champ motif / commentaire
  if (ev.motif) {
  let text = String(ev.motif);
- 
-// Retirer la date/heure au début du motif pour ne pas confondre avec l'heure de début (ex: "15/03/2026 17:00" ou "15/03/2026 17h00")
  text = text.replace(/^\s*\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}(?:\s*(?:à|a)?\s*\d{1,2}[:h]\d{2})?/i, '');
- 
-// Recherche d'un motif de durée au format 00h00 ou 00h (ex: 02h00, 01h30, 2h00, 01h)
  const match = text.match(/\b(\d{1,2})h(\d{2})?\b/i);
  if (match) {
  const h = parseInt(match[1], 10);
@@ -866,8 +878,7 @@
  }
  }
  }
- 
-return 1;
+ return 1;
  }
 
  function generateUUID() {
@@ -980,10 +991,12 @@ return 1;
  function populateClassFilter() {
  const select = document.getElementById('classFilter');
  const exportSelect = document.getElementById('exportClassSelect');
+ const recapSelect = document.getElementById('recapClassSelect');
  const classes = [...new Set(students.map(s => s.classe))].filter(Boolean).sort();
  
 select.innerHTML = '<option value="">Toutes les classes</option>';
  exportSelect.innerHTML = '<option value="ALL">Toutes les classes</option>';
+ if (recapSelect) recapSelect.innerHTML = '<option value="ALL">Toutes les classes</option>';
  
 classes.forEach(c => {
  const opt = document.createElement('option');
@@ -995,6 +1008,13 @@ classes.forEach(c => {
  opt2.value = c;
  opt2.textContent = c;
  exportSelect.appendChild(opt2);
+
+ if (recapSelect) {
+ const opt3 = document.createElement('option');
+ opt3.value = c;
+ opt3.textContent = c;
+ recapSelect.appendChild(opt3);
+ }
  });
  }
 
@@ -1283,6 +1303,28 @@ if (ev.type === 'retard') { badgeClass = "bg-amber-100 text-amber-800"; typeLabe
  lucide.createIcons();
  }
 
+ function setRecapViewMode(mode) {
+ currentRecapViewMode = mode;
+ const btnCat = document.getElementById('btnRecapViewCategory');
+ const btnClass = document.getElementById('btnRecapViewClass');
+ const catTabs = document.getElementById('recapCategoryTabs');
+ const classFilterContainer = document.getElementById('recapClassFilterContainer');
+
+ if (mode === 'category') {
+ btnCat.className = "px-3 py-1.5 rounded-lg bg-white text-indigo-900 shadow-2xs transition";
+ btnClass.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition";
+ catTabs.classList.remove('hidden');
+ classFilterContainer.classList.add('hidden');
+ renderRecapCategoryCards(currentRecapCategory);
+ } else {
+ btnClass.className = "px-3 py-1.5 rounded-lg bg-white text-indigo-900 shadow-2xs transition";
+ btnCat.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition";
+ catTabs.classList.add('hidden');
+ classFilterContainer.classList.remove('hidden');
+ renderRecapClassCards();
+ }
+ }
+
  function renderRecapCategoryCards(cat) {
  const container = document.getElementById('recapCategoryList');
  const emptyMsg = document.getElementById('recapEmptyMessage');
@@ -1352,6 +1394,89 @@ if (e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue') {
  <ul class="mt-3 space-y-1 max-h-32 overflow-y-auto pr-1">
  ${listHtml}
  </ul>
+ </div>
+ `;
+ container.appendChild(card);
+ });
+ }
+
+ function renderRecapClassCards() {
+ const container = document.getElementById('recapCategoryList');
+ const emptyMsg = document.getElementById('recapEmptyMessage');
+ const selectedClass = document.getElementById('recapClassSelect').value;
+ container.innerHTML = '';
+
+ const filteredStudents = students.filter(s => {
+ const matchesClass = selectedClass === 'ALL' || s.classe === selectedClass;
+ return matchesClass && (s.events || []).length > 0;
+ });
+
+ if (filteredStudents.length === 0) {
+ emptyMsg.classList.remove('hidden');
+ return;
+ } else {
+ emptyMsg.classList.add('hidden');
+ }
+
+ filteredStudents.forEach(student => {
+ const events = student.events || [];
+ const retards = events.filter(e => e.type === 'retard').length;
+ const absences = events.filter(e => e.type === 'absence').length;
+ const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + getRetenueHours(e), 0);
+ const emploiBloque = events.filter(e => e.type === 'emploi_bloque' || getStatutDetailFromMotif(e.motif) === 'emploi du temps bloqué').length;
+ const exclusions = events.filter(e => e.type === 'exclusion' || getStatutDetailFromMotif(e.motif) === 'Exclusion de cours').length;
+ const sanctions = events.filter(e => e.type === 'sanction').length;
+
+ const safeNom = sanitize(student.nom ? student.nom.toUpperCase() : '');
+ const safePrenom = sanitize(student.prenom);
+ const safeClasse = sanitize(student.classe);
+ const formattedRetenues = Number.isInteger(retenues) ? retenues : retenues.toFixed(1);
+
+ const card = document.createElement('div');
+ card.className = "bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs hover:shadow-md transition cursor-pointer flex flex-col justify-between";
+ card.onclick = () => openStudentDetail(student.id);
+
+ card.innerHTML = `
+ <div>
+ <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+ <div>
+ <h4 class="font-bold text-slate-800 text-sm">${safeNom} ${safePrenom}</h4>
+ <span class="text-xs text-slate-500 font-medium">${safeClasse}</span>
+ </div>
+ <span class="bg-indigo-50 text-indigo-700 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-indigo-200" title="Total d'événements">
+ ${events.length} evt(s)
+ </span>
+ </div>
+
+ <div class="mt-3">
+ <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Synthèse des Compteurs</p>
+ <div class="grid grid-cols-3 gap-2 text-center text-xs">
+ <div class="bg-amber-50 p-2 rounded-xl border border-amber-200/80">
+ <span class="block text-[10px] text-amber-800 font-semibold">Retards</span>
+ <span class="font-extrabold text-amber-700 text-sm">${retards}</span>
+ </div>
+ <div class="bg-rose-50 p-2 rounded-xl border border-rose-200/80">
+ <span class="block text-[10px] text-rose-800 font-semibold">Absences</span>
+ <span class="font-extrabold text-rose-700 text-sm">${absences}</span>
+ </div>
+ <div class="bg-purple-50 p-2 rounded-xl border border-purple-200/80">
+ <span class="block text-[10px] text-purple-800 font-semibold">Retenues</span>
+ <span class="font-extrabold text-purple-700 text-sm">${formattedRetenues}h</span>
+ </div>
+ <div class="bg-amber-50/70 p-2 rounded-xl border border-amber-200/60">
+ <span class="block text-[10px] text-amber-900 font-semibold">EDT Bloqué</span>
+ <span class="font-extrabold text-amber-800 text-sm">${emploiBloque}</span>
+ </div>
+ <div class="bg-rose-50/70 p-2 rounded-xl border border-rose-200/60">
+ <span class="block text-[10px] text-rose-900 font-semibold">Exclusions</span>
+ <span class="font-extrabold text-rose-800 text-sm">${exclusions}</span>
+ </div>
+ <div class="bg-red-50 p-2 rounded-xl border border-red-200/80">
+ <span class="block text-[10px] text-red-800 font-semibold">Sanctions</span>
+ <span class="font-extrabold text-red-700 text-sm">${sanctions}</span>
+ </div>
+ </div>
+ </div>
  </div>
  `;
  container.appendChild(card);
@@ -1699,8 +1824,9 @@ if (type === 'retenue') {
  document.getElementById('pageDetail').classList.add('hidden');
  document.getElementById('pageRecap').classList.remove('hidden');
 
+ populateClassFilter();
  updateRecapBadges();
- switchRecapTab(currentRecapCategory);
+ setRecapViewMode(currentRecapViewMode);
  }
 
  function updateRecapBadges() {
@@ -1799,7 +1925,6 @@ const tabs = document.querySelectorAll('.recap-tab');
  function parsePronoteText(text) {
  if (!text) return;
 
- // Effacer les anciens événements
  students.forEach(s => s.events = []);
 
  const lines = text.split(/\r?\n/);
