@@ -356,6 +356,35 @@
                 </div>
             </div>
 
+            <!-- Badges de présence en temps réel pour Portail et Permanence -->
+            <div id="realtime-post-badges" class="no-print flex flex-wrap items-center gap-2 text-xs">
+                <!-- Badge Portail -->
+                <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-900 px-3 py-1.5 rounded-xl shadow-sm">
+                    <div class="flex items-center gap-1.5 font-bold">
+                        <span class="p-1 bg-blue-600 text-white rounded-lg flex items-center justify-center w-5 h-5 text-[10px]">
+                            <i class="fa-solid fa-door-open"></i>
+                        </span>
+                        <span>Portail :</span>
+                    </div>
+                    <span id="realtime-portail-status" class="font-semibold text-blue-800 text-[11px] sm:text-xs">
+                        Aucun AED
+                    </span>
+                </div>
+
+                <!-- Badge Permanence -->
+                <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1.5 rounded-xl shadow-sm">
+                    <div class="flex items-center gap-1.5 font-bold">
+                        <span class="p-1 bg-amber-500 text-white rounded-lg flex items-center justify-center w-5 h-5 text-[10px]">
+                            <i class="fa-solid fa-book-open"></i>
+                        </span>
+                        <span>Permanence :</span>
+                    </div>
+                    <span id="realtime-permanence-status" class="font-semibold text-amber-800 text-[11px] sm:text-xs">
+                        Aucun AED
+                    </span>
+                </div>
+            </div>
+
             <!-- Alert CPE Container -->
             <div id="cpe-alerts-bar" class="hidden flex flex-col gap-1.5"></div>
 
@@ -841,23 +870,71 @@
             setInterval(updateRealtimeIndicator, 10000);
         };
 
-        /* Gestion de la Ligne Rouge de Temps Réel */
+        /* Gestion de la Ligne Rouge de Temps Réel + Mise à jour des Badges Portail & Permanence */
         function updateRealtimeIndicator() {
             const indicator = document.getElementById('realtime-line-indicator');
             const label = document.getElementById('realtime-time-label');
             const matrixTable = document.getElementById('schedule-matrix-table');
-            if (!indicator || !matrixTable) return;
+            const portailBadge = document.getElementById('realtime-portail-status');
+            const permanenceBadge = document.getElementById('realtime-permanence-status');
 
             const now = new Date();
             const realTodayName = getCurrentDayName();
+            const hrs = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const currentTimeStr = `${hrs}:${mins}`;
+            const currentMinutes = (now.getHours() * 60) + now.getMinutes();
 
-            // Afficher seulement si nous regardons le planning de la journée courante
+            // Calcul en temps réel des AED affectés à Portail ou Permanence sur le jour sélectionné
+            const activeDayMissions = (appState.missions || []).filter(m => m.day === appState.currentDay);
+            const portailAeds = [];
+            const permanenceAeds = [];
+
+            activeDayMissions.forEach(m => {
+                const startM = timeToMinutes(m.startTime);
+                const endM = timeToMinutes(m.endTime);
+                
+                // Si l'heure courante se situe dans le créneau de la mission
+                if (currentMinutes >= startM && currentMinutes < endM) {
+                    const aedObj = (appState.aeds || []).find(a => a.id === m.aedId);
+                    if (aedObj) {
+                        if (m.type === 'Portail/permanence 2') {
+                            portailAeds.push(aedObj);
+                        } else if (m.type === 'Permanence') {
+                            permanenceAeds.push(aedObj);
+                        }
+                    }
+                }
+            });
+
+            // Mise à jour du badge Portail
+            if (portailBadge) {
+                if (portailAeds.length > 0) {
+                    const names = portailAeds.map(a => `<span class="font-bold underline decoration-2">${escapeHtml(a.name)}</span>`).join(', ');
+                    portailBadge.innerHTML = `<span class="bg-blue-600 text-white px-1.5 py-0.5 rounded font-extrabold mr-1 text-[10px]">${portailAeds.length}</span> ${names}`;
+                } else {
+                    portailBadge.textContent = "Aucun AED";
+                }
+            }
+
+            // Mise à jour du badge Permanence
+            if (permanenceBadge) {
+                if (permanenceAeds.length > 0) {
+                    const names = permanenceAeds.map(a => `<span class="font-bold underline decoration-2">${escapeHtml(a.name)}</span>`).join(', ');
+                    permanenceBadge.innerHTML = `<span class="bg-amber-500 text-white px-1.5 py-0.5 rounded font-extrabold mr-1 text-[10px]">${permanenceAeds.length}</span> ${names}`;
+                } else {
+                    permanenceBadge.textContent = "Aucun AED";
+                }
+            }
+
+            if (!indicator || !matrixTable) return;
+
+            // Afficher le marqueur horaire uniquement sur le jour courant réel
             if (appState.currentDay !== realTodayName) {
                 indicator.classList.add('hidden');
                 return;
             }
 
-            const currentMinutes = (now.getHours() * 60) + now.getMinutes();
             const startDayMinutes = 8 * 60; // 08:00 (480 min)
             const endDayMinutes = (17 * 60) + 35; // 17:35 (1055 min)
 
@@ -880,9 +957,7 @@
 
                 indicator.style.top = `${topPos}px`;
                 if (label) {
-                    const hrs = String(now.getHours()).padStart(2, '0');
-                    const mins = String(now.getMinutes()).padStart(2, '0');
-                    label.textContent = `${hrs}:${mins}`;
+                    label.textContent = currentTimeStr;
                 }
                 indicator.classList.remove('hidden');
             }
