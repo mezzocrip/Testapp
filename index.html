@@ -26,6 +26,21 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* Désactivation du rebond au défilement en mode mobile */
+        html, body, #desktop-matrix-wrapper, .custom-scrollbar {
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Style pour la mise en évidence d'une ligne d'heure cliquée */
+        tr.highlighted-row {
+            background-color: #fef08a !important; /* Jaune/Ambre clair */
+            transition: background-color 0.2s ease;
+        }
+        tr.highlighted-row td {
+            background-color: #fef08a !important;
+        }
+
         /* Scrollbar moderne */
         .custom-scrollbar::-webkit-scrollbar {
             height: 6px;
@@ -662,6 +677,13 @@
             missions: []
         };
 
+        function toggleRowHighlight(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) {
+                row.classList.toggle('highlighted-row');
+            }
+        }
+
         function initCpeConstraints() {
             if (!appState.cpeConstraints || typeof appState.cpeConstraints.minMorning !== 'undefined') {
                 const oldMorning = (appState.cpeConstraints && appState.cpeConstraints.minMorning) || 4;
@@ -1021,10 +1043,11 @@
                 if (slot.type === 'recre') rowBgClass = 'bg-amber-50/70 border-y border-amber-200/60';
                 if (slot.type === 'pause') rowBgClass = 'bg-slate-100/60';
 
-                tbodyHTML += `<tr class="${rowBgClass} slot-row transition-colors">`;
+                const rowId = `slot-row-${slotIdx}`;
+                tbodyHTML += `<tr id="${rowId}" class="${rowBgClass} slot-row transition-colors">`;
 
                 tbodyHTML += `
-                    <td class="p-1.5 sm:p-2 font-semibold border-r border-b border-slate-200 sticky left-0 bg-white z-10 shadow-sm align-middle">
+                    <td class="p-1.5 sm:p-2 font-semibold border-r border-b border-slate-200 sticky left-0 bg-white z-10 shadow-sm align-middle cursor-pointer" onclick="toggleRowHighlight('${rowId}')">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2">
                             <span class="px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-extrabold ${
                                 slot.type === 'recre' ? 'bg-amber-200 text-amber-900 border border-amber-300' : (slot.type === 'pause' ? 'bg-slate-200 text-slate-700' : 'bg-indigo-100 text-indigo-800')
