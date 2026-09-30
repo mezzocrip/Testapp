@@ -57,18 +57,29 @@
             background: #94a3b8;
         }
 
-        /* Hauteur des lignes et ajustement vertical mobile (+60% de hauteur verticalement sur mobile) */
+        /* Hauteur des lignes et ajustement vertical mobile */
         .slot-row {
             height: 48px !important;
         }
+        .slot-row td {
+            height: 48px !important;
+        }
+
+        /* Ajustement dynamique à 95% pour laisser voir la ligne de séparation */
+        .mission-block {
+            height: calc(100% - 2px) !important;
+            margin: 1px 0;
+            box-sizing: border-box;
+        }
+
         @media (max-width: 639px) {
-            .slot-row {
-                height: 45px !important; /* Agrandissement vertical de ~60% par rapport aux 28px initiaux */
+            .slot-row, .slot-row td {
+                height: 45px !important;
             }
             .mission-block {
-                padding: 3px 4px !important;
+                padding: 2px 3px !important;
                 font-size: 10px !important;
-                line-height: 1.2 !important;
+                line-height: 1.1 !important;
             }
         }
 
@@ -151,7 +162,7 @@
                 box-sizing: border-box !important;
             }
 
-            .slot-row {
+            .slot-row, .slot-row td {
                 height: 38px !important;
             }
 
@@ -162,7 +173,7 @@
                 box-shadow: none !important;
                 border-width: 1px !important;
                 border-radius: 4px !important;
-                height: 100% !important;
+                height: calc(100% - 2px) !important;
             }
 
             .print-page-break {
@@ -1080,9 +1091,9 @@
                         const styleInfo = MISSION_TYPES[mission.type] || MISSION_TYPES['Permanence'];
 
                         tbodyHTML += `
-                            <td rowspan="${rowSpan}" class="p-0.5 border-r border-b border-slate-200 align-top">
+                            <td rowspan="${rowSpan}" class="p-0 border-r border-b border-slate-200 align-top h-full">
                                 <div ${!isPrint ? `onclick="event.stopPropagation(); openMissionModal('${aed.id}', '${mission.id}')"` : ''} 
-                                    class="mission-block w-full h-full p-1 sm:p-2 rounded sm:rounded-xl ${styleInfo.bg} ${styleInfo.text} ${styleInfo.border} shadow-sm border cursor-pointer transition-all hover:brightness-105 flex flex-col justify-between overflow-hidden box-border">
+                                    class="mission-block w-full p-1 sm:p-1.5 rounded sm:rounded-xl ${styleInfo.bg} ${styleInfo.text} ${styleInfo.border} shadow-sm border cursor-pointer transition-all hover:brightness-105 flex flex-col justify-between overflow-hidden box-border">
                                     
                                     <div class="flex flex-col gap-0">
                                         <div class="flex items-center justify-between">
