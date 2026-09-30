@@ -26,9 +26,8 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Désactivation du rebond au défilement en mode mobile */
+        /* Rebond iOS / Android réactivé avec défilement fluide */
         html, body, #desktop-matrix-wrapper, .custom-scrollbar {
-            overscroll-behavior: none;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -58,13 +57,16 @@
             background: #94a3b8;
         }
 
-        /* Hauteur fixe adaptée pour s'ajuster en totalité de M1 à S4 sans défilement vertical sur mobile */
+        /* Ajustement dynamique de la hauteur pour tenir jusqu'à la barre du bas sans défilement vertical */
         .slot-row {
-            height: 48px !important;
+            height: 48px;
         }
         @media (max-width: 639px) {
+            #desktop-matrix-wrapper {
+                max-height: calc(100vh - 165px - env(safe-area-inset-bottom, 0px)) !important;
+            }
             .slot-row {
-                height: 28px !important;
+                height: max(28px, calc((100vh - 230px - env(safe-area-inset-bottom, 0px)) / 12)) !important;
             }
             .mission-block {
                 padding: 1px 2px !important;
@@ -198,7 +200,7 @@
         }
     </style>
 </head>
-<body class="h-full text-slate-800 flex flex-col min-h-screen bg-slate-100/70 pb-20 sm:pb-0">
+<body class="h-full text-slate-800 flex flex-col min-h-screen bg-slate-100/70 pb-16 sm:pb-0">
 
     <!-- Top Header -->
     <header class="bg-indigo-700 text-white shadow-lg no-print sticky top-0 z-40 pt-safe">
@@ -290,7 +292,7 @@
     </nav>
 
     <!-- Main Content Area -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-6 lg:p-8 flex flex-col gap-2 sm:gap-6">
+    <main class="flex-1 max-w-7xl w-full mx-auto p-1.5 sm:p-6 lg:p-8 flex flex-col gap-1.5 sm:gap-6">
 
         <!-- Toast Notifications -->
         <div id="toast" class="hidden fixed bottom-16 sm:bottom-6 right-3 sm:right-6 z-50 bg-slate-900/95 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur transition-all border border-slate-700/50">
@@ -299,12 +301,12 @@
         </div>
 
         <!-- Section 1: Main Grid Schedule -->
-        <section id="section-grid" class="flex flex-col gap-2 sm:gap-4">
+        <section id="section-grid" class="flex flex-col gap-1.5 sm:gap-4">
             
             <!-- Controls Bar: Days Selector + Print Mode + CPE Constraints -->
-            <div class="bg-white p-2 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-200/80 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2 sm:gap-4 no-print">
+            <div class="bg-white p-1.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-200/80 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-1.5 sm:gap-4 no-print">
                 <!-- Days Selector Scrollable horizontal on mobile -->
-                <div class="flex items-center justify-between sm:justify-start gap-1.5 overflow-x-auto no-scrollbar">
+                <div class="flex items-center justify-between sm:justify-start gap-1 overflow-x-auto no-scrollbar">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden sm:inline">Jour:</span>
                     <div class="flex gap-1 w-full sm:w-auto" id="day-tabs"></div>
                 </div>
@@ -323,7 +325,7 @@
                     </div>
 
                     <!-- Regles CPE Minimale AED -->
-                    <div class="flex items-center justify-between sm:justify-start gap-2 bg-slate-50 border border-slate-200/80 px-2.5 py-1 sm:py-2 rounded-xl text-xs">
+                    <div class="flex items-center justify-between sm:justify-start gap-2 bg-slate-50 border border-slate-200/80 px-2 py-1 sm:py-2 rounded-xl text-xs">
                         <span class="font-bold text-slate-700 flex items-center gap-1 text-[10px] sm:text-xs">
                             <i class="fa-solid fa-shield-halved text-indigo-600"></i> Seuil CPE :
                         </span>
@@ -350,7 +352,7 @@
             </div>
 
             <!-- Mobile View Switcher (Desktop Table vs Mobile Agenda) -->
-            <div class="sm:hidden flex items-center justify-between px-1 text-[11px] text-slate-500">
+            <div class="sm:hidden flex items-center justify-between px-1 text-[10px] text-slate-500">
                 <span class="font-bold text-slate-700" id="mobile-view-title">Vue Grille (Complete)</span>
                 <button onclick="toggleMobileDisplayMode()" id="toggle-display-btn" class="text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100 flex items-center gap-1">
                     <i class="fa-solid fa-list-check"></i> Mode Liste
@@ -358,7 +360,7 @@
             </div>
 
             <!-- Alert CPE Container -->
-            <div id="cpe-alerts-bar" class="hidden flex flex-col gap-1.5"></div>
+            <div id="cpe-alerts-bar" class="hidden flex flex-col gap-1"></div>
 
             <!-- Screen Schedule Matrix Container -->
             <div id="screen-schedule-container" class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col print-full-width">
@@ -368,7 +370,7 @@
                 </div>
 
                 <!-- Desktop / Mobile Matrix View (Vue complète optimisée verticalement sans défilement sur mobile) -->
-                <div id="desktop-matrix-wrapper" class="overflow-x-auto overflow-y-hidden sm:overflow-y-auto max-h-[82vh] custom-scrollbar max-w-full">
+                <div id="desktop-matrix-wrapper" class="overflow-x-auto overflow-y-auto max-h-[82vh] custom-scrollbar max-w-full">
                     <table class="w-full border-collapse text-left text-xs sm:text-sm" id="schedule-matrix-table">
                         <thead>
                             <tr class="bg-slate-100/80 text-slate-700 border-b border-slate-200" id="matrix-header-row"></tr>
@@ -1014,7 +1016,7 @@
 
             // En-tête avec positionnement sticky et dimensions ultra compactes sur mobile
             let headerHTML = `
-                <th class="p-1 sm:p-3 w-20 sm:w-44 sticky-corner-th font-bold text-slate-700 uppercase tracking-wider text-[9px] sm:text-xs border-r border-b border-slate-300 shadow-sm">
+                <th class="p-1 sm:p-3 w-16 sm:w-44 sticky-corner-th font-bold text-slate-700 uppercase tracking-wider text-[9px] sm:text-xs border-r border-b border-slate-300 shadow-sm">
                     Créneaux / AED
                 </th>
             `;
@@ -1025,10 +1027,10 @@
                 if (dayP.split && dayP.start2) presenceText += ` / ${dayP.start2}-${dayP.end2}`;
 
                 headerHTML += `
-                    <th class="p-1 sm:p-2 min-w-[90px] sm:min-w-[180px] font-bold border-r border-b border-slate-300 text-center sticky-header-th shadow-sm">
+                    <th class="p-1 sm:p-2 min-w-[85px] sm:min-w-[180px] font-bold border-r border-b border-slate-300 text-center sticky-header-th shadow-sm">
                         <div class="flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap">
                             <span class="w-2 h-2 sm:w-3 sm:h-3 rounded-full inline-block shadow-sm" style="background-color: ${aed.color}"></span>
-                            <span class="text-slate-900 font-extrabold text-[11px] sm:text-sm tracking-tight truncate max-w-[80px] sm:max-w-none">${escapeHtml(aed.name)}</span>
+                            <span class="text-slate-900 font-extrabold text-[10px] sm:text-sm tracking-tight truncate max-w-[75px] sm:max-w-none">${escapeHtml(aed.name)}</span>
                         </div>
                         <div class="text-[8px] sm:text-[10px] px-1 py-0.2 rounded-full bg-indigo-50 text-indigo-700 font-medium inline-block whitespace-nowrap">
                             <i class="fa-regular fa-clock mr-0.5"></i>${presenceText}
@@ -1083,19 +1085,19 @@
                         tbodyHTML += `
                             <td rowspan="${rowSpan}" class="p-0.5 border-r border-b border-slate-200 align-top">
                                 <div ${!isPrint ? `onclick="event.stopPropagation(); openMissionModal('${aed.id}', '${mission.id}')"` : ''} 
-                                    class="mission-block w-full h-full p-1 sm:p-2 rounded sm:rounded-xl ${styleInfo.bg} ${styleInfo.text} ${styleInfo.border} shadow-sm border cursor-pointer transition-all hover:brightness-105 flex flex-col justify-between overflow-hidden box-border">
+                                    class="mission-block w-full h-full p-0.5 sm:p-2 rounded sm:rounded-xl ${styleInfo.bg} ${styleInfo.text} ${styleInfo.border} shadow-sm border cursor-pointer transition-all hover:brightness-105 flex flex-col justify-between overflow-hidden box-border">
                                     
                                     <div class="flex flex-col gap-0">
                                         <div class="flex items-center justify-between">
-                                            <span class="font-extrabold text-[9px] sm:text-xs tracking-tight flex items-center gap-1 uppercase leading-tight truncate">
+                                            <span class="font-extrabold text-[8px] sm:text-xs tracking-tight flex items-center gap-1 uppercase leading-tight truncate">
                                                 <i class="fa-solid ${styleInfo.icon} text-[8px] sm:text-xs opacity-90 hidden sm:inline"></i>
                                                 ${escapeHtml(styleInfo.name)}
                                             </span>
                                         </div>
                                         
-                                        <div class="text-[8px] sm:text-[11px] font-semibold opacity-95 flex items-center gap-0.5 whitespace-nowrap">
+                                        <div class="text-[7px] sm:text-[11px] font-semibold opacity-95 flex items-center gap-0.5 whitespace-nowrap">
                                             <i class="fa-regular fa-clock text-[7px] sm:text-[10px] hidden sm:inline"></i> ${mission.startTime} - ${mission.endTime}
-                                            ${rowSpan > 1 ? `<span class="ml-0.5 bg-black/20 px-1 py-0.2 rounded text-[7px] sm:text-[9px] font-bold">${rowSpan}h</span>` : ''}
+                                            ${rowSpan > 1 ? `<span class="ml-0.5 bg-black/20 px-0.5 py-0.2 rounded text-[6px] sm:text-[9px] font-bold">${rowSpan}h</span>` : ''}
                                         </div>
                                     </div>
 
