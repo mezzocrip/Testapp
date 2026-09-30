@@ -198,13 +198,6 @@
                 width: 110px !important;
                 min-width: 110px !important;
             }
-
-            .mobile-only-view {
-                display: none !important;
-            }
-            .desktop-only-view {
-                display: table !important;
-            }
         }
     </style>
 </head>
@@ -359,14 +352,6 @@
                 </div>
             </div>
 
-            <!-- Mobile View Switcher (Desktop Table vs Mobile Agenda) -->
-            <div class="sm:hidden flex items-center justify-between px-1 text-[11px] text-slate-500">
-                <span class="font-bold text-slate-700" id="mobile-view-title">Vue Grille (Complete)</span>
-                <button onclick="toggleMobileDisplayMode()" id="toggle-display-btn" class="text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100 flex items-center gap-1">
-                    <i class="fa-solid fa-list-check"></i> Mode Liste
-                </button>
-            </div>
-
             <!-- Alert CPE Container -->
             <div id="cpe-alerts-bar" class="hidden flex flex-col gap-1.5"></div>
 
@@ -377,7 +362,7 @@
                     <p id="print-day-title" class="text-base font-semibold text-indigo-700">Jour : Lundi</p>
                 </div>
 
-                <!-- Desktop / Mobile Matrix View (Vue complète optimisée verticalement sans défilement sur mobile) -->
+                <!-- Desktop / Mobile Matrix View -->
                 <div id="desktop-matrix-wrapper" class="overflow-x-auto overflow-y-auto max-h-[82vh] custom-scrollbar max-w-full">
                     <table class="w-full border-collapse text-left text-xs sm:text-sm" id="schedule-matrix-table">
                         <thead>
@@ -386,9 +371,6 @@
                         <tbody class="divide-y divide-slate-100" id="matrix-body"></tbody>
                     </table>
                 </div>
-
-                <!-- Mobile Card Agenda View (Alternative) -->
-                <div id="mobile-cards-wrapper" class="hidden p-2 flex-col gap-3"></div>
 
                 <div id="no-aed-warning" class="hidden p-6 sm:p-12 text-center flex flex-col items-center justify-center gap-2">
                     <div class="w-10 h-10 sm:w-14 sm:h-14 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center text-lg sm:text-xl">
@@ -683,7 +665,6 @@
         const CONTRACT_HOURS = { '100': 40, '75': 30, '50': 20 };
 
         let isInitialLoad = true;
-        let isMobileGridView = true; // Mode Grille activé par défaut sur mobile
 
         let appState = {
             currentDay: getCurrentDayName(),
@@ -740,6 +721,48 @@
                 }
             } catch (e) {
                 console.error("Erreur de sauvegarde de l'état :", e);
+            }
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `planning_viescolaire_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Données exportées en JSON.");
+        }
+
+        function importData(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                try {
+                    const parsedData = JSON.parse(e.target.result);
+                    if (parsedData && parsedData.aeds) {
+                        appState = parsedData;
+                        initCpeConstraints();
+                        saveState();
+                        renderAll();
+                        showToast("Données importées avec succès.");
+                    } else {
+                        alert("Fichier de données invalide.");
+                    }
+                } catch (err) {
+                    alert("Erreur lors de l'importation du fichier JSON.");
+                }
+            };
+            if (event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0]);
+            }
+        }
+
+        function resetData() {
+            if (confirm("Êtes-vous sûr de vouloir réinitialiser toutes les données ?")) {
+                seedDefaultData();
+                renderAll();
+                showToast("Réinitialisation effectuée.");
             }
         }
 
@@ -1107,9 +1130,9 @@
                                             <i class="fa-regular fa-clock text-[7px] sm:text-[10px] hidden sm:inline"></i> ${mission.startTime} - ${mission.endTime}
                                             ${rowSpan > 1 ? `<span class="ml-0.5 bg-black/20 px-1 py-0.2 rounded text-[7px] sm:text-[9px] font-bold">${rowSpan}h</span>` : ''}
                                         </div>
-                                    </div>
 
-                                    ${mission.notes ? `<div class="text-[7px] sm:text-[10px] italic opacity-90 border-t border-white/20 pt-0.5 truncate hidden sm:block">${escapeHtml(mission.notes)}</div>` : ''}
+                                        ${mission.notes ? `<div class="text-[7px] sm:text-[10px] italic opacity-90 truncate leading-tight">${escapeHtml(mission.notes)}</div>` : ''}
+                                    </div>
                                 </div>
                             </td>
                         `;
@@ -1117,7 +1140,7 @@
                         tbodyHTML += `
                             <td class="p-0 border-r border-b border-slate-200 align-top">
                                 ${!isPrint ? `
-                                <div onclick="openMissionModal('${aed.id}', null, ${slotIdx})" class="w-full h-full cursor-pointer hover:bg-indigo-50/50 group flex items-center justify-center p-0.5">
+                                <div onclick="openMissionModal('${aed.id}', null,${slotIdx})" class="w-full h-full cursor-pointer hover:bg-indigo-50/50 group flex items-center justify-center p-0.5">
                                     <div class="h-full w-full rounded border border-dashed border-slate-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-slate-400 text-[9px] font-medium bg-white/60">
                                         <i class="fa-solid fa-plus text-[8px]"></i>
                                     </div>
@@ -1140,90 +1163,6 @@
             `;
         }
 
-        // Render Agenda cards (Alternative)
-        function renderMobileCardsView(targetDay) {
-            const container = document.getElementById('mobile-cards-wrapper');
-            if (!container) return;
-
-            const activeAedsForDay = (appState.aeds || []).filter(aed => 
-                aed.presence && aed.presence[targetDay] && aed.presence[targetDay].active
-            );
-
-            if (activeAedsForDay.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-
-            const dayMissions = (appState.missions || []).filter(m => m.day === targetDay);
-
-            container.innerHTML = activeAedsForDay.map(aed => {
-                const aedMissions = dayMissions.filter(m => m.aedId === aed.id);
-                const dayP = aed.presence[targetDay];
-                let presenceText = `${dayP.start1 || ''}-${dayP.end1 || ''}`;
-                if (dayP.split && dayP.start2) presenceText += ` / ${dayP.start2}-${dayP.end2}`;
-
-                let missionsHTML = '';
-                if (aedMissions.length === 0) {
-                    missionsHTML = `
-                        <div class="p-2 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-xs text-slate-400 flex items-center justify-between">
-                            <span>Aucun poste affecté</span>
-                            <button onclick="openMissionModal('${aed.id}', null, 0)" class="text-indigo-600 font-bold hover:underline text-xs">+ Ajouter</button>
-                        </div>
-                    `;
-                } else {
-                    missionsHTML = aedMissions.sort((a,b) => a.startSlotIndex - b.startSlotIndex).map(m => {
-                        const styleInfo = MISSION_TYPES[m.type] || MISSION_TYPES['Permanence'];
-                        const slotLabel = SLOTS[m.startSlotIndex] ? SLOTS[m.startSlotIndex].label : 'Slot';
-                        return `
-                            <div onclick="openMissionModal('${aed.id}', '${m.id}')" class="p-2 rounded-xl ${styleInfo.bg} ${styleInfo.text} shadow-sm flex items-center justify-between cursor-pointer active:scale-[0.98] transition">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-6 h-6 rounded-lg bg-black/20 flex items-center justify-center font-bold text-[11px]">
-                                        ${slotLabel}
-                                    </span>
-                                    <div>
-                                        <div class="font-extrabold text-[11px] uppercase flex items-center gap-1">
-                                            <i class="fa-solid ${styleInfo.icon} text-[9px]"></i> ${escapeHtml(styleInfo.name)}
-                                        </div>
-                                        <div class="text-[10px] opacity-90 font-medium">
-                                            ${m.startTime} - ${m.endTime} ${m.notes ? `• ${escapeHtml(m.notes)}` : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                                <i class="fa-solid fa-pen text-[10px] opacity-70"></i>
-                            </div>
-                        `;
-                    }).join('');
-                }
-
-                return `
-                    <div class="bg-white rounded-xl border border-slate-200 p-3 flex flex-col gap-2.5 shadow-sm">
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full inline-block" style="background-color: ${aed.color}"></span>
-                                <span class="font-extrabold text-slate-800 text-xs sm:text-sm">${escapeHtml(aed.name)}</span>
-                            </div>
-                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
-                                <i class="fa-regular fa-clock mr-0.5"></i>${presenceText}
-                            </span>
-                        </div>
-
-                        <div class="flex flex-col gap-1.5">
-                            ${missionsHTML}
-                        </div>
-
-                        <button onclick="openMissionModal('${aed.id}', null, 0)" class="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-lg transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-plus text-[9px]"></i> Affecter un créneau
-                        </button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function toggleMobileDisplayMode() {
-            isMobileGridView = !isMobileGridView;
-            renderMatrix();
-        }
-
         function renderMatrix() {
             renderCPEValues();
             const headerRow = document.getElementById('matrix-header-row');
@@ -1232,9 +1171,6 @@
             const alertsBar = document.getElementById('cpe-alerts-bar');
             
             const desktopWrapper = document.getElementById('desktop-matrix-wrapper');
-            const mobileWrapper = document.getElementById('mobile-cards-wrapper');
-            const toggleBtn = document.getElementById('toggle-display-btn');
-            const mobileTitle = document.getElementById('mobile-view-title');
 
             const activeAeds = (appState.aeds || []).filter(aed => 
                 aed.presence && aed.presence[appState.currentDay] && aed.presence[appState.currentDay].active
@@ -1243,33 +1179,13 @@
             if (activeAeds.length === 0) {
                 headerRow.innerHTML = '';
                 tbody.innerHTML = '';
-                if(mobileWrapper) mobileWrapper.innerHTML = '';
                 warningBox.classList.remove('hidden');
                 alertsBar.classList.add('hidden');
                 return;
             }
             warningBox.classList.add('hidden');
 
-            // Affichage de la Grille par défaut
-            const isSmallScreen = window.innerWidth < 640;
-            if (isSmallScreen && !isMobileGridView) {
-                if (desktopWrapper) desktopWrapper.classList.add('hidden');
-                if (mobileWrapper) {
-                    mobileWrapper.classList.remove('hidden');
-                    mobileWrapper.classList.add('flex');
-                }
-                if (toggleBtn) toggleBtn.innerHTML = `<i class="fa-solid fa-table-cells"></i> Mode Grille`;
-                if (mobileTitle) mobileTitle.textContent = "Aperçu Liste";
-                renderMobileCardsView(appState.currentDay);
-            } else {
-                if (desktopWrapper) desktopWrapper.classList.remove('hidden');
-                if (mobileWrapper) {
-                    mobileWrapper.classList.add('hidden');
-                    mobileWrapper.classList.remove('flex');
-                }
-                if (toggleBtn) toggleBtn.innerHTML = `<i class="fa-solid fa-list-check"></i> Mode Liste`;
-                if (mobileTitle) mobileTitle.textContent = "Vue Grille (Complete)";
-            }
+            if (desktopWrapper) desktopWrapper.classList.remove('hidden');
 
             let morningCount = 0;
             let eveningCount = 0;
@@ -1716,95 +1632,73 @@
 
             if (!appState.aeds || appState.aeds.length === 0) {
                 headerRow.innerHTML = '';
-                tbody.innerHTML = '<tr><td class="p-4 text-center text-slate-400">Aucune donnée disponible</td></tr>';
-                alertsContainer.innerHTML = '';
+                tbody.innerHTML = '<tr><td class="p-4 text-center text-slate-400">Aucune donnée disponible.</td></tr>';
+                alertsContainer.innerHTML = '<div class="p-3 bg-slate-50 text-slate-500 rounded-xl">Veuillez d\'abord ajouter des AEDs.</div>';
                 return;
             }
 
-            let headerHTML = `<th class="p-3 bg-slate-200/70 font-bold">Postes / Missions</th>`;
-            appState.aeds.forEach(aed => {
-                headerHTML += `<th class="p-3 font-bold text-center border-l border-slate-200">${escapeHtml(aed.name)}</th>`;
+            const missionKeys = Object.keys(MISSION_TYPES);
+            
+            let thHTML = '<th class="p-2 sm:p-3 border-r border-slate-200">AED</th>';
+            missionKeys.forEach(mKey => {
+                thHTML += `<th class="p-2 text-center border-r border-slate-200 truncate max-w-[80px]" title="${mKey}">${mKey}</th>`;
             });
-            headerRow.innerHTML = headerHTML;
-
-            const postSums = {};
-            Object.keys(MISSION_TYPES).forEach(type => {
-                postSums[type] = {};
-                appState.aeds.forEach(aed => postSums[type][aed.id] = 0);
-            });
-
-            (appState.missions || []).forEach(m => {
-                if (postSums[m.type] && postSums[m.type][m.aedId] !== undefined) {
-                    const startM = timeToMinutes(m.startTime);
-                    const endM = timeToMinutes(m.endTime);
-                    if (endM > startM) {
-                        postSums[m.type][m.aedId] += (endM - startM);
-                    }
-                }
-            });
+            thHTML += '<th class="p-2 text-center font-bold">Total</th>';
+            headerRow.innerHTML = thHTML;
 
             let tbodyHTML = '';
-            Object.keys(MISSION_TYPES).forEach(typeKey => {
-                const typeObj = MISSION_TYPES[typeKey];
-                tbodyHTML += `<tr class="hover:bg-slate-50">
-                    <td class="p-2.5 font-bold text-slate-800 flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full ${typeObj.bg}"></span>
-                        ${escapeHtml(typeObj.name)}
-                    </td>`;
+            appState.aeds.forEach(aed => {
+                const aedMissions = (appState.missions || []).filter(m => m.aedId === aed.id);
+                let totalSlots = 0;
 
-                appState.aeds.forEach(aed => {
-                    const minutes = postSums[typeKey][aed.id] || 0;
-                    const hours = (minutes / 60).toFixed(1);
-                    tbodyHTML += `<td class="p-2.5 text-center border-l border-slate-100 font-medium ${minutes > 0 ? 'text-indigo-900 font-bold' : 'text-slate-400'}">
-                        ${minutes > 0 ? `${hours}h` : '-'}
-                    </td>`;
+                tbodyHTML += `<tr class="hover:bg-slate-50 border-b border-slate-100">`;
+                tbodyHTML += `
+                    <td class="p-2 sm:p-3 font-bold border-r border-slate-200 flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${aed.color}"></span>
+                        <span class="truncate">${escapeHtml(aed.name)}</span>
+                    </td>
+                `;
+
+                missionKeys.forEach(mKey => {
+                    const count = aedMissions.filter(m => m.type === mKey).reduce((acc, m) => acc + ((m.endSlotIndex - m.startSlotIndex) + 1), 0);
+                    totalSlots += count;
+                    tbodyHTML += `
+                        <td class="p-2 text-center border-r border-slate-200 ${count > 0 ? 'font-bold text-slate-800 bg-indigo-50/30' : 'text-slate-400'}">
+                            ${count || '-'}
+                        </td>
+                    `;
                 });
 
+                tbodyHTML += `<td class="p-2 text-center font-extrabold text-indigo-700 bg-indigo-50/60">${totalSlots}h</td>`;
                 tbodyHTML += `</tr>`;
             });
 
             tbody.innerHTML = tbodyHTML;
-        }
 
-        function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `planning_vie_scolaire_${new Date().toISOString().slice(0, 10)}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (data && data.aeds && data.missions) {
-                        appState = data;
-                        initCpeConstraints();
-                        saveState();
-                        showToast("Données importées avec succès.");
-                    } else {
-                        alert("Le fichier JSON fourni n'a pas le bon format.");
-                    }
-                } catch (err) {
-                    alert("Erreur lors de la lecture du fichier JSON.");
+            // Diagnostic
+            let diagnostics = '';
+            appState.aeds.forEach(aed => {
+                const count = (appState.missions || []).filter(m => m.aedId === aed.id).length;
+                if (count === 0) {
+                    diagnostics += `
+                        <div class="p-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl font-medium">
+                            <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-600"></i>
+                            <strong>${escapeHtml(aed.name)}</strong> n'a encore aucun poste affecté cette semaine.
+                        </div>
+                    `;
                 }
-            };
-            reader.readAsText(file);
-        }
+            });
 
-        function resetData() {
-            if (confirm("Voulez-vous vraiment réinitialiser toutes les données aux valeurs par défaut ?")) {
-                localStorage.removeItem('aed_timetable_app_v5');
-                seedDefaultData();
-                showToast("Données réinitialisées.");
+            if (!diagnostics) {
+                diagnostics = `
+                    <div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                        <span>Répartition équilibrée. Tous les AED ont des postes assignés.</span>
+                    </div>
+                `;
             }
+
+            alertsContainer.innerHTML = diagnostics;
         }
     </script>
 </body>
