@@ -724,48 +724,6 @@
             }
         }
 
-        function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `planning_viescolaire_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            showToast("Données exportées en JSON.");
-        }
-
-        function importData(event) {
-            const fileReader = new FileReader();
-            fileReader.onload = function(e) {
-                try {
-                    const parsedData = JSON.parse(e.target.result);
-                    if (parsedData && parsedData.aeds) {
-                        appState = parsedData;
-                        initCpeConstraints();
-                        saveState();
-                        renderAll();
-                        showToast("Données importées avec succès.");
-                    } else {
-                        alert("Fichier de données invalide.");
-                    }
-                } catch (err) {
-                    alert("Erreur lors de l'importation du fichier JSON.");
-                }
-            };
-            if (event.target.files[0]) {
-                fileReader.readAsText(event.target.files[0]);
-            }
-        }
-
-        function resetData() {
-            if (confirm("Êtes-vous sûr de vouloir réinitialiser toutes les données ?")) {
-                seedDefaultData();
-                renderAll();
-                showToast("Réinitialisation effectuée.");
-            }
-        }
-
         function initFirebaseSync() {
             planningRef.on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -1118,7 +1076,7 @@
                                 <div ${!isPrint ? `onclick="event.stopPropagation(); openMissionModal('${aed.id}', '${mission.id}')"` : ''} 
                                     class="mission-block w-full p-1 sm:p-1.5 rounded sm:rounded-xl ${styleInfo.bg} ${styleInfo.text} ${styleInfo.border} shadow-sm border cursor-pointer transition-all hover:brightness-105 flex flex-col justify-between overflow-hidden box-border">
                                     
-                                    <div class="flex flex-col gap-0">
+                                    <div class="flex flex-col gap-0.5">
                                         <div class="flex items-center justify-between">
                                             <span class="font-extrabold text-[9px] sm:text-xs tracking-tight flex items-center gap-1 uppercase leading-tight truncate">
                                                 <i class="fa-solid ${styleInfo.icon} text-[8px] sm:text-xs opacity-90 hidden sm:inline"></i>
@@ -1131,7 +1089,7 @@
                                             ${rowSpan > 1 ? `<span class="ml-0.5 bg-black/20 px-1 py-0.2 rounded text-[7px] sm:text-[9px] font-bold">${rowSpan}h</span>` : ''}
                                         </div>
 
-                                        ${mission.notes ? `<div class="text-[7px] sm:text-[10px] italic opacity-90 truncate leading-tight">${escapeHtml(mission.notes)}</div>` : ''}
+                                        ${mission.notes ? `<div class="text-[8px] sm:text-[10px] font-bold italic opacity-95 leading-tight break-words pt-0.5 border-t border-white/20">${escapeHtml(mission.notes)}</div>` : ''}
                                     </div>
                                 </div>
                             </td>
@@ -1632,73 +1590,95 @@
 
             if (!appState.aeds || appState.aeds.length === 0) {
                 headerRow.innerHTML = '';
-                tbody.innerHTML = '<tr><td class="p-4 text-center text-slate-400">Aucune donnée disponible.</td></tr>';
-                alertsContainer.innerHTML = '<div class="p-3 bg-slate-50 text-slate-500 rounded-xl">Veuillez d\'abord ajouter des AEDs.</div>';
+                tbody.innerHTML = '<tr><td class="p-4 text-center text-slate-400">Aucune donnée disponible</td></tr>';
+                alertsContainer.innerHTML = '';
                 return;
             }
 
-            const missionKeys = Object.keys(MISSION_TYPES);
-            
-            let thHTML = '<th class="p-2 sm:p-3 border-r border-slate-200">AED</th>';
-            missionKeys.forEach(mKey => {
-                thHTML += `<th class="p-2 text-center border-r border-slate-200 truncate max-w-[80px]" title="${mKey}">${mKey}</th>`;
+            let headerHTML = `<th class="p-3 bg-slate-200/70 font-bold">Postes / Missions</th>`;
+            appState.aeds.forEach(aed => {
+                headerHTML += `<th class="p-3 font-bold text-center border-l border-slate-200">${escapeHtml(aed.name)}</th>`;
             });
-            thHTML += '<th class="p-2 text-center font-bold">Total</th>';
-            headerRow.innerHTML = thHTML;
+            headerRow.innerHTML = headerHTML;
+
+            const postSums = {};
+            Object.keys(MISSION_TYPES).forEach(type => {
+                postSums[type] = {};
+                appState.aeds.forEach(aed => postSums[type][aed.id] = 0);
+            });
+
+            (appState.missions || []).forEach(m => {
+                if (postSums[m.type] && postSums[m.type][m.aedId] !== undefined) {
+                    const startM = timeToMinutes(m.startTime);
+                    const endM = timeToMinutes(m.endTime);
+                    if (endM > startM) {
+                        postSums[m.type][m.aedId] += (endM - startM);
+                    }
+                }
+            });
 
             let tbodyHTML = '';
-            appState.aeds.forEach(aed => {
-                const aedMissions = (appState.missions || []).filter(m => m.aedId === aed.id);
-                let totalSlots = 0;
+            Object.keys(MISSION_TYPES).forEach(typeKey => {
+                const typeObj = MISSION_TYPES[typeKey];
+                tbodyHTML += `<tr class="hover:bg-slate-50">
+                    <td class="p-2.5 font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full ${typeObj.bg}"></span>
+                        ${escapeHtml(typeObj.name)}
+                    </td>`;
 
-                tbodyHTML += `<tr class="hover:bg-slate-50 border-b border-slate-100">`;
-                tbodyHTML += `
-                    <td class="p-2 sm:p-3 font-bold border-r border-slate-200 flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${aed.color}"></span>
-                        <span class="truncate">${escapeHtml(aed.name)}</span>
-                    </td>
-                `;
-
-                missionKeys.forEach(mKey => {
-                    const count = aedMissions.filter(m => m.type === mKey).reduce((acc, m) => acc + ((m.endSlotIndex - m.startSlotIndex) + 1), 0);
-                    totalSlots += count;
-                    tbodyHTML += `
-                        <td class="p-2 text-center border-r border-slate-200 ${count > 0 ? 'font-bold text-slate-800 bg-indigo-50/30' : 'text-slate-400'}">
-                            ${count || '-'}
-                        </td>
-                    `;
+                appState.aeds.forEach(aed => {
+                    const minutes = postSums[typeKey][aed.id] || 0;
+                    const hours = (minutes / 60).toFixed(1);
+                    tbodyHTML += `<td class="p-2.5 text-center border-l border-slate-100 font-medium ${minutes > 0 ? 'text-indigo-900 font-bold' : 'text-slate-400'}">
+                        ${minutes > 0 ? `${hours}h` : '-'}
+                    </td>`;
                 });
 
-                tbodyHTML += `<td class="p-2 text-center font-extrabold text-indigo-700 bg-indigo-50/60">${totalSlots}h</td>`;
                 tbodyHTML += `</tr>`;
             });
 
             tbody.innerHTML = tbodyHTML;
+        }
 
-            // Diagnostic
-            let diagnostics = '';
-            appState.aeds.forEach(aed => {
-                const count = (appState.missions || []).filter(m => m.aedId === aed.id).length;
-                if (count === 0) {
-                    diagnostics += `
-                        <div class="p-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl font-medium">
-                            <i class="fa-solid fa-triangle-exclamation mr-1 text-amber-600"></i>
-                            <strong>${escapeHtml(aed.name)}</strong> n'a encore aucun poste affecté cette semaine.
-                        </div>
-                    `;
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `planning_vie_scolaire_${new Date().toISOString().slice(0, 10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data && data.aeds && data.missions) {
+                        appState = data;
+                        initCpeConstraints();
+                        saveState();
+                        showToast("Données importées avec succès.");
+                    } else {
+                        alert("Le fichier JSON fourni n'a pas le bon format.");
+                    }
+                } catch (err) {
+                    alert("Erreur lors de la lecture du fichier JSON.");
                 }
-            });
+            };
+            reader.readAsText(file);
+        }
 
-            if (!diagnostics) {
-                diagnostics = `
-                    <div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-medium flex items-center gap-2">
-                        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
-                        <span>Répartition équilibrée. Tous les AED ont des postes assignés.</span>
-                    </div>
-                `;
+        function resetData() {
+            if (confirm("Voulez-vous vraiment réinitialiser toutes les données aux valeurs par défaut ?")) {
+                localStorage.removeItem('aed_timetable_app_v5');
+                seedDefaultData();
+                showToast("Données réinitialisées.");
             }
-
-            alertsContainer.innerHTML = diagnostics;
         }
     </script>
 </body>
