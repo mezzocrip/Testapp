@@ -115,15 +115,15 @@
             background-color: #e2e8f0;
         }
 
-        /* Optimization pour l'impression */
+        /* Optimization pour l'impression A4 Paysage pleine page sans superposition */
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 5mm;
+                margin: 3mm;
             }
             html, body {
-                height: auto !important;
-                min-height: 0 !important;
+                height: 100% !important;
+                min-height: 100% !important;
                 background: white !important;
                 color: black !important;
                 -webkit-print-color-adjust: exact !important;
@@ -136,8 +136,7 @@
             
             /* Ajustements de conteneur d'impression */
             #screen-schedule-container, 
-            .print-full-width,
-            #print-multi-container {
+            .print-full-width {
                 width: 100% !important;
                 max-width: 100% !important;
                 margin: 0 !important;
@@ -147,54 +146,41 @@
                 overflow: visible !important;
             }
 
-            #desktop-matrix-wrapper {
+            .overflow-x-auto, #desktop-matrix-wrapper {
                 overflow: visible !important;
                 max-height: none !important;
-                position: relative !important;
-            }
-
-            .overflow-x-auto, .overflow-y-auto {
-                overflow: visible !important;
             }
 
             table {
                 width: 100% !important;
+                height: 92vh !important;
                 table-layout: fixed !important;
-                font-size: 8px !important;
+                font-size: 11px !important;
                 border-collapse: collapse !important;
             }
 
             th, td {
-                padding: 1px 2px !important;
+                padding: 2px 3px !important;
                 box-sizing: border-box !important;
                 word-wrap: break-word !important;
                 overflow: hidden !important;
             }
 
-            /* L'en-tête et les cellules s'ajustent pour tenir sur une seule page sans déborder */
-            th.sticky-corner-th, td.sticky-corner-th {
-                width: 75px !important;
-                min-width: 75px !important;
-                max-width: 75px !important;
-                position: static !important;
-            }
-
-            th.sticky-header-th {
-                position: static !important;
-            }
-
             .slot-row, .slot-row td {
-                height: 28px !important;
+                height: auto !important;
             }
 
             .mission-block {
-                font-size: 7.5px !important;
-                line-height: 1.05 !important;
-                padding: 1px 2px !important;
+                font-size: 10px !important;
+                line-height: 1.15 !important;
+                padding: 3px 4px !important;
                 box-shadow: none !important;
                 border-width: 1px !important;
-                border-radius: 2px !important;
-                height: calc(100% - 1px) !important;
+                border-radius: 4px !important;
+                height: 98% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
             }
 
             .print-page-break {
@@ -203,21 +189,21 @@
             }
 
             .print-single-page {
-                height: auto !important;
-                max-height: none !important;
-                overflow: visible !important;
+                height: 98vh !important;
+                max-height: 98vh !important;
+                overflow: hidden !important;
                 box-sizing: border-box;
                 page-break-inside: avoid !important;
             }
 
-            /* Étendre la ligne rouge du temps réel sur toute la largeur à l'impression si elle est visible */
-            #realtime-line-indicator {
-                width: 100% !important;
-                right: 0 !important;
+            th.min-w-\[120px\], td.min-w-\[120px\],
+            th.sm\:min-w-\[180px\], td.sm\:min-w-\[180px\] {
+                min-width: 0 !important;
             }
 
-            #realtime-line-indicator > div:last-child {
-                width: 100% !important;
+            th.w-28, td.w-28, th.sm\:w-44, td.sm\:w-44 {
+                width: 90px !important;
+                min-width: 90px !important;
             }
         }
     </style>
@@ -373,7 +359,7 @@
                 </div>
             </div>
 
-            <!-- Badges de présence en temps réel pour Portail et Permanence -->
+            <!-- Badges de présence pour Portail et Permanence -->
             <div id="realtime-post-badges" class="no-print flex flex-wrap items-center gap-2 text-xs">
                 <!-- Badge Portail -->
                 <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-900 px-3 py-1.5 rounded-xl shadow-sm">
@@ -407,23 +393,13 @@
 
             <!-- Screen Schedule Matrix Container -->
             <div id="screen-schedule-container" class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col print-full-width">
-                <div class="hidden print:block p-3 border-b-2 border-indigo-600 mb-2">
-                    <h2 class="text-xl font-bold text-slate-900">Collège - Planning des Postes Vie Scolaire</h2>
-                    <p id="print-day-title" class="text-base font-semibold text-indigo-700">Jour : Lundi</p>
+                <div class="hidden print:block p-2 border-b-2 border-indigo-600 mb-1">
+                    <h2 class="text-lg font-bold text-slate-900">Collège - Planning des Postes Vie Scolaire</h2>
+                    <p id="print-day-title" class="text-xs font-semibold text-indigo-700">Jour : Lundi</p>
                 </div>
 
                 <!-- Desktop / Mobile Matrix View -->
                 <div id="desktop-matrix-wrapper" class="overflow-x-auto overflow-y-auto max-h-[82vh] custom-scrollbar max-w-full relative">
-                    
-                    <!-- Realtime Indicator Line -->
-                    <div id="realtime-line-indicator" class="hidden absolute left-0 right-0 z-30 pointer-events-none transition-all duration-300 flex items-center">
-                        <div class="bg-red-600 text-white font-black text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-r-md shadow flex items-center gap-1 ml-0 transform -translate-y-1/2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
-                            <span id="realtime-time-label">--:--</span>
-                        </div>
-                        <div class="flex-1 h-[2.5px] bg-red-600 shadow-sm"></div>
-                    </div>
-
                     <table class="w-full border-collapse text-left text-xs sm:text-sm" id="schedule-matrix-table">
                         <thead>
                             <tr class="bg-slate-100/80 text-slate-700 border-b border-slate-200" id="matrix-header-row"></tr>
@@ -874,7 +850,7 @@
             renderMatrix();
             renderAEDCards();
             renderEquityDashboard();
-            updateRealtimeIndicator();
+            updateBadges();
         }
 
         window.onload = function() {
@@ -882,27 +858,16 @@
             populateMissionTypeDropdown();
             renderPresenceFormFields();
             initFirebaseSync();
-
-            // Actualisation automatique de la ligne rouge toutes les 10 secondes
-            setInterval(updateRealtimeIndicator, 10000);
         };
 
-        /* Gestion de la Ligne Rouge de Temps Réel + Mise à jour des Badges Portail & Permanence */
-        function updateRealtimeIndicator() {
-            const indicator = document.getElementById('realtime-line-indicator');
-            const label = document.getElementById('realtime-time-label');
-            const matrixTable = document.getElementById('schedule-matrix-table');
+        /* Mise à jour des Badges Portail & Permanence */
+        function updateBadges() {
             const portailBadge = document.getElementById('realtime-portail-status');
             const permanenceBadge = document.getElementById('realtime-permanence-status');
 
             const now = new Date();
-            const realTodayName = getCurrentDayName();
-            const hrs = String(now.getHours()).padStart(2, '0');
-            const mins = String(now.getMinutes()).padStart(2, '0');
-            const currentTimeStr = `${hrs}:${mins}`;
             const currentMinutes = (now.getHours() * 60) + now.getMinutes();
 
-            // Calcul en temps réel des AED affectés à Portail ou Permanence sur le jour sélectionné
             const activeDayMissions = (appState.missions || []).filter(m => m.day === appState.currentDay);
             const portailAeds = [];
             const permanenceAeds = [];
@@ -911,7 +876,6 @@
                 const startM = timeToMinutes(m.startTime);
                 const endM = timeToMinutes(m.endTime);
                 
-                // Si l'heure courante se situe dans le créneau de la mission
                 if (currentMinutes >= startM && currentMinutes < endM) {
                     const aedObj = (appState.aeds || []).find(a => a.id === m.aedId);
                     if (aedObj) {
@@ -924,7 +888,6 @@
                 }
             });
 
-            // Mise à jour du badge Portail
             if (portailBadge) {
                 if (portailAeds.length > 0) {
                     const names = portailAeds.map(a => `<span class="font-bold underline decoration-2">${escapeHtml(a.name)}</span>`).join(', ');
@@ -934,7 +897,6 @@
                 }
             }
 
-            // Mise à jour du badge Permanence
             if (permanenceBadge) {
                 if (permanenceAeds.length > 0) {
                     const names = permanenceAeds.map(a => `<span class="font-bold underline decoration-2">${escapeHtml(a.name)}</span>`).join(', ');
@@ -942,41 +904,6 @@
                 } else {
                     permanenceBadge.textContent = "Aucun AED";
                 }
-            }
-
-            if (!indicator || !matrixTable) return;
-
-            // Afficher le marqueur horaire uniquement sur le jour courant réel
-            if (appState.currentDay !== realTodayName) {
-                indicator.classList.add('hidden');
-                return;
-            }
-
-            const startDayMinutes = 8 * 60; // 08:00 (480 min)
-            const endDayMinutes = (17 * 60) + 35; // 17:35 (1055 min)
-
-            // Masquer la ligne si hors créneaux scolaires (avant 8h ou après 17h35)
-            if (currentMinutes < startDayMinutes || currentMinutes > endDayMinutes) {
-                indicator.classList.add('hidden');
-                return;
-            }
-
-            const totalSchoolDayMinutes = endDayMinutes - startDayMinutes;
-            const elapsed = currentMinutes - startDayMinutes;
-
-            const tbody = document.getElementById('matrix-body');
-            const thead = document.querySelector('#schedule-matrix-table thead');
-
-            if (tbody && thead) {
-                const headerHeight = thead.offsetHeight;
-                const tbodyHeight = tbody.offsetHeight;
-                const topPos = headerHeight + ((elapsed / totalSchoolDayMinutes) * tbodyHeight);
-
-                indicator.style.top = `${topPos}px`;
-                if (label) {
-                    label.textContent = currentTimeStr;
-                }
-                indicator.classList.remove('hidden');
             }
         }
 
@@ -1200,7 +1127,7 @@
                 tbodyHTML += `<tr id="${rowId}" class="${rowBgClass} slot-row transition-colors">`;
 
                 tbodyHTML += `
-                    <td class="p-0.5 sm:p-2 font-semibold border-r border-b border-slate-200 sticky left-0 bg-white z-10 shadow-sm align-middle cursor-pointer sticky-corner-th" onclick="toggleRowHighlight('${rowId}')">
+                    <td class="p-0.5 sm:p-2 font-semibold border-r border-b border-slate-200 sticky left-0 bg-white z-10 shadow-sm align-middle cursor-pointer" onclick="toggleRowHighlight('${rowId}')">
                         <div class="flex flex-row items-center gap-1 sm:gap-2 justify-between sm:justify-start">
                             <span class="px-1 sm:px-2 py-0.2 rounded text-[9px] sm:text-xs font-extrabold ${
                                 slot.type === 'recre' ? 'bg-amber-200 text-amber-900 border border-amber-300' : (slot.type === 'pause' ? 'bg-slate-200 text-slate-700' : 'bg-indigo-100 text-indigo-800')
@@ -1296,7 +1223,7 @@
                 tbody.innerHTML = '';
                 warningBox.classList.remove('hidden');
                 alertsBar.classList.add('hidden');
-                updateRealtimeIndicator();
+                updateBadges();
                 return;
             }
             warningBox.classList.add('hidden');
@@ -1346,8 +1273,7 @@
                 tbody.innerHTML = '';
             }
 
-            // Repositionnement de la ligne d'heure courante après rafraîchissement
-            setTimeout(updateRealtimeIndicator, 50);
+            updateBadges();
         }
 
         function triggerPrintSelected() {
@@ -1367,10 +1293,10 @@
                 DAYS.forEach((day, index) => {
                     const isLast = index === DAYS.length - 1;
                     fullHTML += `
-                        <div class="print-single-page ${!isLast ? 'print-page-break' : ''} bg-white p-2">
-                            <div class="border-b-2 border-indigo-600 pb-1 mb-2">
-                                <h2 class="text-xl font-bold text-slate-900">Collège - Planning des Postes Vie Scolaire</h2>
-                                <p class="text-sm font-semibold text-indigo-700">Jour : ${day}</p>
+                        <div class="print-single-page ${!isLast ? 'print-page-break' : ''} bg-white p-1">
+                            <div class="border-b-2 border-indigo-600 pb-1 mb-1">
+                                <h2 class="text-lg font-bold text-slate-900">Collège - Planning des Postes Vie Scolaire</h2>
+                                <p class="text-xs font-semibold text-indigo-700">Jour : ${day}</p>
                             </div>
                             ${generateDayScheduleHTML(day, true)}
                         </div>
@@ -1749,75 +1675,66 @@
 
             if (!headerRow || !tbody || !alertsContainer) return;
 
-            const missionTypesKeys = Object.keys(MISSION_TYPES);
-
-            // Construction de l'en-tête du tableau d'équité
-            let headerHTML = `<th class="p-2 sm:p-3 font-bold border-r border-b border-slate-200">AED</th>`;
-            missionTypesKeys.forEach(key => {
-                headerHTML += `<th class="p-1 sm:p-2 text-center border-r border-b border-slate-200 text-[10px] sm:text-xs truncate max-w-[70px]">${escapeHtml(key)}</th>`;
-            });
-            headerHTML += `<th class="p-2 sm:p-3 text-center border-b border-slate-200 font-bold">Total</th>`;
-            headerRow.innerHTML = headerHTML;
-
-            // Construction du corps du tableau
-            let bodyHTML = '';
-            (appState.aeds || []).forEach(aed => {
-                let totalHours = 0;
-                let cellsHTML = '';
-
-                missionTypesKeys.forEach(key => {
-                    const count = (appState.missions || []).filter(m => m.aedId === aed.id && m.type === key).length;
-                    totalHours += count;
-                    cellsHTML += `
-                        <td class="p-1 sm:p-2 text-center border-r border-b border-slate-100 ${count > 0 ? 'font-bold text-slate-800' : 'text-slate-300'}">
-                            ${count > 0 ? count : '-'}
-                        </td>
-                    `;
-                });
-
-                bodyHTML += `
-                    <tr>
-                        <td class="p-2 sm:p-3 font-semibold border-r border-b border-slate-100 flex items-center gap-1.5">
-                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${aed.color}"></span>
-                            ${escapeHtml(aed.name)}
-                        </td>
-                        ${cellsHTML}
-                        <td class="p-2 sm:p-3 text-center border-b border-slate-100 font-bold text-indigo-700 bg-indigo-50/30">
-                            ${totalHours}
-                        </td>
-                    </tr>
-                `;
-            });
-
-            tbody.innerHTML = bodyHTML;
-
-            // Diagnostic & Recommandations d'équité
-            let alertsHTML = '';
             if (!appState.aeds || appState.aeds.length === 0) {
-                alertsHTML = '<p class="text-slate-400 font-medium">Aucun AED configuré.</p>';
-            } else {
-                alertsHTML = `
-                    <div class="bg-indigo-50/70 border border-indigo-200 p-3 rounded-xl flex items-start gap-2 text-indigo-900">
-                        <i class="fa-solid fa-circle-info text-indigo-600 mt-0.5"></i>
-                        <div>
-                            <span class="font-bold block mb-0.5">Distribution Globale</span>
-                            <span>Le tableau ci-contre indique le nombre de créneaux assignés par poste sur la semaine pour chaque agent.</span>
-                        </div>
-                    </div>
-                `;
+                headerRow.innerHTML = '';
+                tbody.innerHTML = '<tr><td class="p-4 text-center text-slate-400">Aucune donnée disponible</td></tr>';
+                alertsContainer.innerHTML = '';
+                return;
             }
 
-            alertsContainer.innerHTML = alertsHTML;
+            let headerHTML = `<th class="p-3 bg-slate-200/70 font-bold">Postes / Missions</th>`;
+            appState.aeds.forEach(aed => {
+                headerHTML += `<th class="p-3 font-bold text-center border-l border-slate-200">${escapeHtml(aed.name)}</th>`;
+            });
+            headerRow.innerHTML = headerHTML;
+
+            const postSums = {};
+            Object.keys(MISSION_TYPES).forEach(type => {
+                postSums[type] = {};
+                appState.aeds.forEach(aed => postSums[type][aed.id] = 0);
+            });
+
+            (appState.missions || []).forEach(m => {
+                if (postSums[m.type] && postSums[m.type][m.aedId] !== undefined) {
+                    const startM = timeToMinutes(m.startTime);
+                    const endM = timeToMinutes(m.endTime);
+                    if (endM > startM) {
+                        postSums[m.type][m.aedId] += (endM - startM);
+                    }
+                }
+            });
+
+            let tbodyHTML = '';
+            Object.keys(MISSION_TYPES).forEach(typeKey => {
+                const typeObj = MISSION_TYPES[typeKey];
+                tbodyHTML += `<tr class="hover:bg-slate-50">
+                    <td class="p-2.5 font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full ${typeObj.bg}"></span>
+                        ${escapeHtml(typeObj.name)}
+                    </td>`;
+
+                appState.aeds.forEach(aed => {
+                    const minutes = postSums[typeKey][aed.id] || 0;
+                    const hours = (minutes / 60).toFixed(1);
+                    tbodyHTML += `<td class="p-2.5 text-center border-l border-slate-100 font-medium ${minutes > 0 ? 'text-indigo-900 font-bold' : 'text-slate-400'}">
+                        ${minutes > 0 ? `${hours}h` : '-'}
+                    </td>`;
+                });
+
+                tbodyHTML += `</tr>`;
+            });
+
+            tbody.innerHTML = tbodyHTML;
         }
 
         function exportData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-            const dlAnchor = document.createElement('a');
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", `planning_aed_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(dlAnchor);
-            dlAnchor.click();
-            dlAnchor.remove();
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `planning_vie_scolaire_${new Date().toISOString().slice(0, 10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
         }
 
         function importData(event) {
@@ -1827,15 +1744,14 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const imported = JSON.parse(e.target.result);
-                    if (imported && imported.aeds && imported.missions) {
-                        appState = imported;
+                    const data = JSON.parse(e.target.result);
+                    if (data && data.aeds && data.missions) {
+                        appState = data;
                         initCpeConstraints();
                         saveState();
-                        renderAll();
                         showToast("Données importées avec succès.");
                     } else {
-                        alert("Le fichier JSON n'est pas au bon format.");
+                        alert("Le fichier JSON fourni n'a pas le bon format.");
                     }
                 } catch (err) {
                     alert("Erreur lors de la lecture du fichier JSON.");
@@ -1845,10 +1761,10 @@
         }
 
         function resetData() {
-            if (confirm("Attention : Cette action va réinitialiser tout le planning aux données par défaut. Continuer ?")) {
+            if (confirm("Voulez-vous vraiment réinitialiser toutes les données aux valeurs par défaut ?")) {
+                localStorage.removeItem('aed_timetable_app_v5');
                 seedDefaultData();
-                renderAll();
-                showToast("Planning réinitialisé.");
+                showToast("Données réinitialisées.");
             }
         }
     </script>
