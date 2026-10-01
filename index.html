@@ -59,22 +59,22 @@
 
         /* Hauteur des lignes et ajustement vertical mobile */
         .slot-row {
-            height: 48px;
+            height: 48px !important;
         }
         .slot-row td {
-            height: 48px;
+            height: 48px !important;
         }
 
-        /* Ajustement dynamique pour laisser voir la ligne de séparation */
+        /* Ajustement dynamique à 95% pour laisser voir la ligne de séparation */
         .mission-block {
-            height: calc(100% - 2px);
+            height: calc(100% - 2px) !important;
             margin: 1px 0;
             box-sizing: border-box;
         }
 
         @media (max-width: 639px) {
             .slot-row, .slot-row td {
-                height: 45px;
+                height: 45px !important;
             }
             .mission-block {
                 padding: 2px 3px !important;
@@ -119,7 +119,7 @@
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 4mm;
+                margin: 5mm;
             }
             html, body {
                 height: auto !important;
@@ -136,7 +136,8 @@
             
             /* Ajustements de conteneur d'impression */
             #screen-schedule-container, 
-            .print-full-width {
+            .print-full-width,
+            #print-multi-container {
                 width: 100% !important;
                 max-width: 100% !important;
                 margin: 0 !important;
@@ -147,64 +148,53 @@
             }
 
             #desktop-matrix-wrapper {
-                max-height: none !important;
                 overflow: visible !important;
+                max-height: none !important;
+                position: relative !important;
             }
 
-            .overflow-x-auto {
+            .overflow-x-auto, .overflow-y-auto {
                 overflow: visible !important;
             }
 
             table {
                 width: 100% !important;
                 table-layout: fixed !important;
+                font-size: 8px !important;
                 border-collapse: collapse !important;
-                font-size: 8.5pt !important;
             }
 
             th, td {
-                padding: 2px 3px !important;
+                padding: 1px 2px !important;
                 box-sizing: border-box !important;
-                vertical-align: middle !important;
-                border: 1px solid #cbd5e1 !important;
+                word-wrap: break-word !important;
+                overflow: hidden !important;
             }
 
-            /* Desactivation des contraintes de hauteur fixe pour éviter les chevauchements à l'impression */
+            /* L'en-tête et les cellules s'ajustent pour tenir sur une seule page sans déborder */
+            th.sticky-corner-th, td.sticky-corner-th {
+                width: 75px !important;
+                min-width: 75px !important;
+                max-width: 75px !important;
+                position: static !important;
+            }
+
+            th.sticky-header-th {
+                position: static !important;
+            }
+
             .slot-row, .slot-row td {
-                height: auto !important;
-                min-height: 32px !important;
-            }
-
-            /* Ligne du temps (1ère colonne) s'étend bien jusqu'au bout */
-            th.sticky-corner-th,
-            td.sticky {
-                position: static !important;
-                width: 110px !important;
-                min-width: 110px !important;
-                max-width: 110px !important;
-                background-color: #f8fafc !important;
-                box-shadow: none !important;
-            }
-
-            .sticky-header-th {
-                position: static !important;
-                background-color: #f1f5f9 !important;
-                box-shadow: none !important;
+                height: 28px !important;
             }
 
             .mission-block {
-                font-size: 8pt !important;
-                line-height: 1.15 !important;
-                padding: 3px 4px !important;
+                font-size: 7.5px !important;
+                line-height: 1.05 !important;
+                padding: 1px 2px !important;
                 box-shadow: none !important;
                 border-width: 1px !important;
-                border-radius: 3px !important;
-                height: 100% !important;
-                min-height: auto !important;
-                margin: 0 !important;
-                box-sizing: border-box !important;
-                word-wrap: break-word !important;
-                white-space: normal !important;
+                border-radius: 2px !important;
+                height: calc(100% - 1px) !important;
             }
 
             .print-page-break {
@@ -220,13 +210,14 @@
                 page-break-inside: avoid !important;
             }
 
-            th.min-w-\[90px\], td.min-w-\[90px\],
-            th.sm\:min-w-\[180px\], td.sm\:min-w-\[180px\] {
-                min-width: 0 !important;
+            /* Étendre la ligne rouge du temps réel sur toute la largeur à l'impression si elle est visible */
+            #realtime-line-indicator {
+                width: 100% !important;
+                right: 0 !important;
             }
 
-            #realtime-line-indicator {
-                display: none !important;
+            #realtime-line-indicator > div:last-child {
+                width: 100% !important;
             }
         }
     </style>
@@ -1209,7 +1200,7 @@
                 tbodyHTML += `<tr id="${rowId}" class="${rowBgClass} slot-row transition-colors">`;
 
                 tbodyHTML += `
-                    <td class="p-0.5 sm:p-2 font-semibold border-r border-b border-slate-200 sticky left-0 bg-white z-10 shadow-sm align-middle cursor-pointer" onclick="toggleRowHighlight('${rowId}')">
+                    <td class="p-0.5 sm:p-2 font-semibold border-r border-b border-slate-200 sticky left-0 bg-white z-10 shadow-sm align-middle cursor-pointer sticky-corner-th" onclick="toggleRowHighlight('${rowId}')">
                         <div class="flex flex-row items-center gap-1 sm:gap-2 justify-between sm:justify-start">
                             <span class="px-1 sm:px-2 py-0.2 rounded text-[9px] sm:text-xs font-extrabold ${
                                 slot.type === 'recre' ? 'bg-amber-200 text-amber-900 border border-amber-300' : (slot.type === 'pause' ? 'bg-slate-200 text-slate-700' : 'bg-indigo-100 text-indigo-800')
@@ -1758,66 +1749,75 @@
 
             if (!headerRow || !tbody || !alertsContainer) return;
 
-            if (!appState.aeds || appState.aeds.length === 0) {
-                headerRow.innerHTML = '';
-                tbody.innerHTML = '<tr><td class="p-4 text-center text-slate-400">Aucune donnée disponible</td></tr>';
-                alertsContainer.innerHTML = '';
-                return;
-            }
+            const missionTypesKeys = Object.keys(MISSION_TYPES);
 
-            let headerHTML = `<th class="p-3 bg-slate-200/70 font-bold">Postes / Missions</th>`;
-            appState.aeds.forEach(aed => {
-                headerHTML += `<th class="p-3 font-bold text-center border-l border-slate-200">${escapeHtml(aed.name)}</th>`;
+            // Construction de l'en-tête du tableau d'équité
+            let headerHTML = `<th class="p-2 sm:p-3 font-bold border-r border-b border-slate-200">AED</th>`;
+            missionTypesKeys.forEach(key => {
+                headerHTML += `<th class="p-1 sm:p-2 text-center border-r border-b border-slate-200 text-[10px] sm:text-xs truncate max-w-[70px]">${escapeHtml(key)}</th>`;
             });
+            headerHTML += `<th class="p-2 sm:p-3 text-center border-b border-slate-200 font-bold">Total</th>`;
             headerRow.innerHTML = headerHTML;
 
-            const postSums = {};
-            Object.keys(MISSION_TYPES).forEach(type => {
-                postSums[type] = {};
-                appState.aeds.forEach(aed => postSums[type][aed.id] = 0);
-            });
+            // Construction du corps du tableau
+            let bodyHTML = '';
+            (appState.aeds || []).forEach(aed => {
+                let totalHours = 0;
+                let cellsHTML = '';
 
-            (appState.missions || []).forEach(m => {
-                if (postSums[m.type] && postSums[m.type][m.aedId] !== undefined) {
-                    const startM = timeToMinutes(m.startTime);
-                    const endM = timeToMinutes(m.endTime);
-                    if (endM > startM) {
-                        postSums[m.type][m.aedId] += (endM - startM);
-                    }
-                }
-            });
-
-            let tbodyHTML = '';
-            Object.keys(MISSION_TYPES).forEach(typeKey => {
-                const typeObj = MISSION_TYPES[typeKey];
-                tbodyHTML += `<tr class="hover:bg-slate-50">
-                    <td class="p-2.5 font-bold text-slate-800 flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full ${typeObj.bg}"></span>
-                        ${escapeHtml(typeObj.name)}
-                    </td>`;
-
-                appState.aeds.forEach(aed => {
-                    const minutes = postSums[typeKey][aed.id] || 0;
-                    const hours = (minutes / 60).toFixed(1);
-                    tbodyHTML += `<td class="p-2.5 text-center border-l border-slate-100 font-medium ${minutes > 0 ? 'text-indigo-900 font-bold' : 'text-slate-400'}">
-                        ${minutes > 0 ? `${hours}h` : '-'}
-                    </td>`;
+                missionTypesKeys.forEach(key => {
+                    const count = (appState.missions || []).filter(m => m.aedId === aed.id && m.type === key).length;
+                    totalHours += count;
+                    cellsHTML += `
+                        <td class="p-1 sm:p-2 text-center border-r border-b border-slate-100 ${count > 0 ? 'font-bold text-slate-800' : 'text-slate-300'}">
+                            ${count > 0 ? count : '-'}
+                        </td>
+                    `;
                 });
 
-                tbodyHTML += `</tr>`;
+                bodyHTML += `
+                    <tr>
+                        <td class="p-2 sm:p-3 font-semibold border-r border-b border-slate-100 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${aed.color}"></span>
+                            ${escapeHtml(aed.name)}
+                        </td>
+                        ${cellsHTML}
+                        <td class="p-2 sm:p-3 text-center border-b border-slate-100 font-bold text-indigo-700 bg-indigo-50/30">
+                            ${totalHours}
+                        </td>
+                    </tr>
+                `;
             });
 
-            tbody.innerHTML = tbodyHTML;
+            tbody.innerHTML = bodyHTML;
+
+            // Diagnostic & Recommandations d'équité
+            let alertsHTML = '';
+            if (!appState.aeds || appState.aeds.length === 0) {
+                alertsHTML = '<p class="text-slate-400 font-medium">Aucun AED configuré.</p>';
+            } else {
+                alertsHTML = `
+                    <div class="bg-indigo-50/70 border border-indigo-200 p-3 rounded-xl flex items-start gap-2 text-indigo-900">
+                        <i class="fa-solid fa-circle-info text-indigo-600 mt-0.5"></i>
+                        <div>
+                            <span class="font-bold block mb-0.5">Distribution Globale</span>
+                            <span>Le tableau ci-contre indique le nombre de créneaux assignés par poste sur la semaine pour chaque agent.</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            alertsContainer.innerHTML = alertsHTML;
         }
 
         function exportData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `planning_vie_scolaire_${new Date().toISOString().slice(0, 10)}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `planning_aed_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
         }
 
         function importData(event) {
@@ -1827,14 +1827,15 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const data = JSON.parse(e.target.result);
-                    if (data && data.aeds && data.missions) {
-                        appState = data;
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && imported.aeds && imported.missions) {
+                        appState = imported;
                         initCpeConstraints();
                         saveState();
+                        renderAll();
                         showToast("Données importées avec succès.");
                     } else {
-                        alert("Le fichier JSON fourni n'a pas le bon format.");
+                        alert("Le fichier JSON n'est pas au bon format.");
                     }
                 } catch (err) {
                     alert("Erreur lors de la lecture du fichier JSON.");
@@ -1844,10 +1845,10 @@
         }
 
         function resetData() {
-            if (confirm("Voulez-vous vraiment réinitialiser toutes les données aux valeurs par défaut ?")) {
-                localStorage.removeItem('aed_timetable_app_v5');
+            if (confirm("Attention : Cette action va réinitialiser tout le planning aux données par défaut. Continuer ?")) {
                 seedDefaultData();
-                showToast("Données réinitialisées.");
+                renderAll();
+                showToast("Planning réinitialisé.");
             }
         }
     </script>
