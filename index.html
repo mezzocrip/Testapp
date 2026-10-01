@@ -1442,12 +1442,14 @@
  }
 
  function triggerPrintCustom(aedName, dateStr, timeStr, hourStr, students) {
- const originalTitle = document.title;
- const dateFileStr = new Date().toISOString().slice(0, 10);
- const sanitizedAed = (aedName || 'AED').replace(/[^a-zA-Z0-9_\-]/g, '_');
- document.title = `Permanence_${sanitizedAed}_${dateFileStr}`;
-
  const requiredTitle = `PERMANENCE DE ${(aedName || 'AED').toUpperCase()} à ${hourStr}`;
+ const originalDocumentTitle = document.title;
+
+ const dateForFilename = dateStr.toLowerCase().replace(/[^a-z0-9]/g, '_');
+ const timeForFilename = timeStr.replace(':', 'h');
+ const safeAedName = (aedName || 'AED').replace(/[^a-zA-Z0-9]/g, '_');
+
+ document.title = `Permanence_${safeAedName}_${dateForFilename}_${timeForFilename}`;
 
  document.getElementById('print-title-header').textContent = requiredTitle;
  document.getElementById('print-date').textContent = dateStr;
@@ -1490,7 +1492,7 @@
 
  setTimeout(() => {
  window.print();
- document.title = originalTitle;
+ document.title = originalDocumentTitle;
  }, 150);
  }
 
