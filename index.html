@@ -104,6 +104,10 @@
  <i data-lucide="siren" class="w-4 h-4"></i>
  <span>PDF Alerte CPE</span>
  </button>
+ <button onclick="exportUnjustifiedAbsencesPDF()" class="inline-flex items-center gap-1.5 bg-red-700 hover:bg-red-600 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow-xs" title="Export PDF Absences Injustifiées par feuille">
+ <i data-lucide="user-x" class="w-4 h-4"></i>
+ <span>PDF Abs. Injustifiées</span>
+ </button>
  <button onclick="openAddStudentModal()" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow-sm">
  <i data-lucide="user-plus" class="w-4 h-4"></i>
  <span>Nouvel Élève</span>
@@ -117,6 +121,9 @@
  </div>
 
  <div class="flex md:hidden items-center gap-2">
+ <button onclick="exportUnjustifiedAbsencesPDF()" class="p-2 bg-red-700 active:bg-red-800 text-white rounded-xl shadow-xs" title="PDF Abs. Injustifiées">
+ <i data-lucide="user-x" class="w-5 h-5"></i>
+ </button>
  <button onclick="exportCpeAlertPDF()" class="p-2 bg-rose-600 active:bg-rose-700 text-white rounded-xl shadow-xs" title="PDF Alerte CPE">
  <i data-lucide="siren" class="w-5 h-5"></i>
  </button>
@@ -137,13 +144,13 @@
  <i data-lucide="list-checks" class="w-5 h-5 text-amber-500"></i>
  <span class="text-[10px] font-semibold">Récap</span>
  </button>
+ <button onclick="exportUnjustifiedAbsencesPDF()" class="flex flex-col items-center gap-1 text-slate-600 active:text-red-700">
+ <i data-lucide="user-x" class="w-5 h-5 text-red-700"></i>
+ <span class="text-[10px] font-semibold">Abs. Injust.</span>
+ </button>
  <button onclick="exportCpeAlertPDF()" class="flex flex-col items-center gap-1 text-slate-600 active:text-rose-600">
  <i data-lucide="siren" class="w-5 h-5 text-rose-600"></i>
  <span class="text-[10px] font-semibold">PDF CPE</span>
- </button>
- <button onclick="triggerAbsenceImport()" class="flex flex-col items-center gap-1 text-slate-600 active:text-indigo-600">
- <i data-lucide="file-check-2" class="w-5 h-5 text-amber-600"></i>
- <span class="text-[10px] font-semibold">Import Pronote</span>
  </button>
  <button onclick="openExportClassModal()" class="flex flex-col items-center gap-1 text-slate-600 active:text-indigo-600">
  <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i>
@@ -169,6 +176,11 @@
  <select id="classFilter" onchange="filterStudents()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
  <option value="">Toutes les classes</option>
  </select>
+
+ <button onclick="exportUnjustifiedAbsencesPDF()" class="inline-flex items-center gap-1.5 bg-red-700 hover:bg-red-800 text-white text-xs font-semibold px-3 py-2.5 rounded-xl transition shadow-2xs">
+ <i data-lucide="user-x" class="w-4 h-4"></i>
+ <span>PDF Abs. Injustifiées</span>
+ </button>
 
  <button onclick="exportCpeAlertPDF()" class="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3 py-2.5 rounded-xl transition shadow-2xs">
  <i data-lucide="siren" class="w-4 h-4"></i>
@@ -280,9 +292,13 @@
  </button>
 
  <div class="flex items-center gap-2">
+ <button onclick="exportSingleStudentUnjustifiedAbsencesPDF()" class="inline-flex items-center gap-1.5 bg-red-700 hover:bg-red-800 text-white font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition text-xs sm:text-sm" title="Exporter uniquement les absences injustifiées de cet élève">
+ <i data-lucide="user-x" class="w-4 h-4"></i>
+ <span class="hidden sm:inline">PDF Abs.</span> Injustifiées
+ </button>
  <button onclick="exportStudentPDF()" class="inline-flex items-center gap-1.5 bg-rose-600 active:bg-rose-700 text-white font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition text-xs sm:text-sm">
  <i data-lucide="file-text" class="w-4 h-4"></i>
- <span class="hidden sm:inline">Exporter</span> PDF
+ <span class="hidden sm:inline">Exporter</span> PDF Fiche
  </button>
  <button onclick="confirmDeleteStudent()" class="inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-semibold px-3.5 py-2 rounded-xl transition text-xs sm:text-sm">
  <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -485,6 +501,11 @@
  </button>
  </div>
 
+ <button onclick="exportUnjustifiedAbsencesPDF()" class="inline-flex items-center justify-center gap-1.5 bg-red-700 hover:bg-red-800 text-white font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition text-xs sm:text-sm">
+ <i data-lucide="user-x" class="w-4 h-4"></i>
+ <span>PDF Abs. Injust.</span>
+ </button>
+
  <button onclick="exportCpeAlertPDF()" class="inline-flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition text-xs sm:text-sm">
  <i data-lucide="siren" class="w-4 h-4"></i>
  <span>Export CPE</span>
@@ -674,6 +695,7 @@
  <option value="summary">Synthèse globale par élève (Compteurs & Badges)</option>
  <option value="details">Historique détaillé des événements</option>
  <option value="both">Les deux (Synthèse + Historique)</option>
+ <option value="unjustified">Absences injustifiées seulement (1 feuille par élève)</option>
  </select>
  </div>
 
@@ -2731,12 +2753,182 @@ let hDetail = ev.type.toUpperCase();
  doc.save(`Alerte_CPE_VieScolaire_${new Date().toISOString().slice(0,10)}.pdf`);
  }
 
+ // FONCTION POUR ENREGISTRER/IMPRIMER LES ABSENCES INJUSTIFIÉES AVEC UNE FEUILLE PAR ÉLÈVE
+ function exportUnjustifiedAbsencesPDF(targetClassName = null) {
+ const selectedClass = targetClassName || document.getElementById('classFilter').value || document.getElementById('recapClassSelect').value || 'ALL';
+ 
+ const targetStudents = students.filter(s => {
+ const matchesClass = (selectedClass === 'ALL' || selectedClass === '') ? true : s.classe === selectedClass;
+ if (!matchesClass) return false;
+
+ const unjEvents = (s.events || []).filter(e => {
+ const isAbs = e.type === 'absence' || e.type === 'abs_injustifiee' || (e.pronoteType && e.pronoteType.toLowerCase().includes('absence injustifiée'));
+ const hasOui = /\boui\b/i.test(e.motif || '');
+ const isJust = e.justified === 'Oui' || hasOui;
+ return isAbs && !isJust;
+ });
+
+ return unjEvents.length > 0;
+ });
+
+ if (targetStudents.length === 0) {
+ alert("Aucun élève n'enregistre d'absences injustifiées pour la sélection choisie.");
+ return;
+ }
+
+ targetStudents.sort((a,b) => (a.classe || '').localeCompare(b.classe || '') || (a.nom || '').localeCompare(b.nom || ''));
+
+ const { jsPDF } = window.jspdf;
+ const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+ targetStudents.forEach((s, index) => {
+ if (index > 0) {
+ doc.addPage();
+ }
+
+ const unjEvents = (s.events || []).filter(e => {
+ const isAbs = e.type === 'absence' || e.type === 'abs_injustifiee' || (e.pronoteType && e.pronoteType.toLowerCase().includes('absence injustifiée'));
+ const hasOui = /\boui\b/i.test(e.motif || '');
+ const isJust = e.justified === 'Oui' || hasOui;
+ return isAbs && !isJust;
+ });
+
+ // TITRE TRÈS GROS EN HAUT DE CHAQUE FEUILLE
+ doc.setFont('Helvetica', 'bold');
+ doc.setFontSize(22);
+ doc.setTextColor(185, 28, 28); // Rouge foncé
+ doc.text(`${s.nom.toUpperCase()} ${s.prenom}`, 14, 20);
+
+ doc.setFontSize(16);
+ doc.setTextColor(30, 41, 59);
+ doc.text(`CLASSE : ${s.classe || 'Non renseignée'}`, 14, 28);
+
+ // SOUS-TITRE ET INFORMATIONS ÉLÈVE
+ doc.setFontSize(10);
+ doc.setFont('Helvetica', 'normal');
+ doc.setTextColor(71, 85, 105);
+ doc.text(`Régime : ${s.regime || '--'}  |  Professeur Principal : ${s.profPrincipal || 'Non renseigné'}`, 14, 35);
+ doc.text(`Document généré le : ${new Date().toLocaleDateString('fr-FR')}  |  Nombre d'absences injustifiées : ${unjEvents.length}`, 14, 40);
+
+ doc.setLineWidth(0.5);
+ doc.setDrawColor(220, 38, 38);
+ doc.line(14, 43, 196, 43);
+
+ // TABLEAU DES ABSENCES INJUSTIFIÉES
+ const tableBody = unjEvents.map(e => {
+ const dateStr = extractDateFromText(e.motif) || e.date;
+ const parsed = new Date(dateStr);
+ const formattedDate = !isNaN(parsed.getTime()) ? parsed.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : (e.date || '--');
+
+ return [
+ formattedDate,
+ "ABSENCE INJUSTIFIÉE",
+ e.motif || 'Aucun motif renseigné'
+ ];
+ });
+
+ doc.autoTable({
+ startY: 48,
+ head: [['Date & Heure', 'Statut', 'Motif / Remarque PRONOTE']],
+ body: tableBody,
+ theme: 'striped',
+ headStyles: { fillColor: [185, 28, 28], textColor: [255, 255, 255], fontStyle: 'bold' },
+ styles: { fontSize: 9, cellPadding: 3 },
+ columnStyles: {
+ 0: { cellWidth: 42 },
+ 1: { cellWidth: 45, fontStyle: 'bold' },
+ 2: { cellWidth: 'auto' }
+ }
+ });
+ });
+
+ const filename = targetClassName 
+ ? `Absences_Injustifiees_${targetClassName}_${new Date().toISOString().slice(0,10)}.pdf`
+ : `Absences_Injustifiees_Classe_${new Date().toISOString().slice(0,10)}.pdf`;
+
+ doc.save(filename);
+ }
+
+ function exportSingleStudentUnjustifiedAbsencesPDF() {
+ if (!selectedStudentId) return;
+ const student = students.find(s => s.id === selectedStudentId);
+ if (!student) return;
+
+ const unjEvents = (student.events || []).filter(e => {
+ const isAbs = e.type === 'absence' || e.type === 'abs_injustifiee' || (e.pronoteType && e.pronoteType.toLowerCase().includes('absence injustifiée'));
+ const hasOui = /\boui\b/i.test(e.motif || '');
+ const isJust = e.justified === 'Oui' || hasOui;
+ return isAbs && !isJust;
+ });
+
+ if (unjEvents.length === 0) {
+ alert(`${student.prenom} ${student.nom} n'a aucune absence injustifiée enregistrée.`);
+ return;
+ }
+
+ const { jsPDF } = window.jspdf;
+ const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+ // TRÈS GROS TITRE
+ doc.setFont('Helvetica', 'bold');
+ doc.setFontSize(22);
+ doc.setTextColor(185, 28, 28);
+ doc.text(`${student.nom.toUpperCase()} ${student.prenom}`, 14, 20);
+
+ doc.setFontSize(16);
+ doc.setTextColor(30, 41, 59);
+ doc.text(`CLASSE : ${student.classe || 'Non renseignée'}`, 14, 28);
+
+ doc.setFontSize(10);
+ doc.setFont('Helvetica', 'normal');
+ doc.setTextColor(71, 85, 105);
+ doc.text(`Régime : ${student.regime || '--'}  |  Professeur Principal : ${student.profPrincipal || 'Non renseigné'}`, 14, 35);
+ doc.text(`Document généré le : ${new Date().toLocaleDateString('fr-FR')}  |  Nombre d'absences injustifiées : ${unjEvents.length}`, 14, 40);
+
+ doc.setLineWidth(0.5);
+ doc.setDrawColor(220, 38, 38);
+ doc.line(14, 43, 196, 43);
+
+ const tableBody = unjEvents.map(e => {
+ const dateStr = extractDateFromText(e.motif) || e.date;
+ const parsed = new Date(dateStr);
+ const formattedDate = !isNaN(parsed.getTime()) ? parsed.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : (e.date || '--');
+
+ return [
+ formattedDate,
+ "ABSENCE INJUSTIFIÉE",
+ e.motif || 'Aucun motif renseigné'
+ ];
+ });
+
+ doc.autoTable({
+ startY: 48,
+ head: [['Date & Heure', 'Statut', 'Motif / Remarque PRONOTE']],
+ body: tableBody,
+ theme: 'striped',
+ headStyles: { fillColor: [185, 28, 28], textColor: [255, 255, 255], fontStyle: 'bold' },
+ styles: { fontSize: 9, cellPadding: 3 },
+ columnStyles: {
+ 0: { cellWidth: 42 },
+ 1: { cellWidth: 45, fontStyle: 'bold' },
+ 2: { cellWidth: 'auto' }
+ }
+ });
+
+ doc.save(`Absences_Injustifiees_${student.nom.toUpperCase()}_${student.prenom}_${new Date().toISOString().slice(0,10)}.pdf`);
+ }
+
  async function handleExportClassPDF(e) {
  e.preventDefault();
  const selectedClass = document.getElementById('exportClassSelect').value;
  const exportType = document.getElementById('exportTypeSelect').value;
 
  closeModal('exportClassModal');
+
+ if (exportType === 'unjustified') {
+ exportUnjustifiedAbsencesPDF(selectedClass === 'ALL' ? null : selectedClass);
+ return;
+ }
 
  const { jsPDF } = window.jspdf;
  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
