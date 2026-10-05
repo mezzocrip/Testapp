@@ -191,6 +191,7 @@
  <i data-lucide="file-check-2" class="w-4 h-4 text-amber-600"></i>
  <span>Importer Vie Scolaire / PRONOTE</span>
  </button>
+ <input type="file" id="absenceFileInput" accept=".pdf, .xlsx, .xls, .csv, .txt" class="hidden" onchange="importAbsenceDataFile(event)">
 
  <button onclick="openClearVieScolaireModal()" class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-800 text-xs font-semibold px-3 py-2.5 rounded-xl border border-rose-200 transition shadow-2xs" title="Effacer l'importation Vie Scolaire">
  <i data-lucide="trash" class="w-4 h-4 text-rose-600"></i>
@@ -243,11 +244,10 @@
 
  <div class="h-4 w-px bg-slate-200 mx-1"></div>
 
- <button onclick="triggerAbsenceImport()" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 text-amber-900 font-semibold px-3 py-2 rounded-xl border border-amber-300/80 transition shadow-2xs" title="Importer le fichier Vie Scolaire / PRONOTE">
+ <button onclick="triggerAbsenceImport()" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 text-amber-900 font-semibold px-3 py-2 rounded-xl border border-amber-300 transition shadow-2xs" title="Importer Vie Scolaire / PRONOTE">
  <i data-lucide="file-check-2" class="w-4 h-4 text-amber-600"></i>
- <span>Import PRONOTE / Vie Scolaire</span>
+ <span>Import PRONOTE</span>
  </button>
- <input type="file" id="absenceFileInput" accept=".pdf, .xlsx, .xls, .csv, .txt" class="hidden" onchange="importAbsenceDataFile(event)">
  </div>
 
  <div class="flex items-center justify-between gap-2 border-t border-slate-100 pt-3 overflow-x-auto no-scrollbar">
