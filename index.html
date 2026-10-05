@@ -1,1300 +1,1985 @@
+<open_file name="PLANNING.html">
 <!DOCTYPE html>
-<html lang="fr" class="h-full bg-slate-950 text-slate-100 select-none">
+<html lang="fr" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
-    <title>Tournoi de Football - Gestion des Sessions & Terrains</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Emploi du Temps AED</title>
     <link rel="apple-touch-icon" href="./Logo.PNG">
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS for Excel (.xlsx / .csv) parsing -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- FontAwesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Inter -->
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        pitch: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            800: '#166534',
-                            900: '#14532d',
-                        },
-                        accent: {
-                            50: '#f97316',
-                            600: '#ea580c',
-                            700: '#c2410c',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
         * {
+            font-family: 'Inter', sans-serif;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            -webkit-user-select: none;
-            user-select: none;
         }
 
-        input, textarea {
-            -webkit-user-select: text;
-            user-select: text;
+        /* Défilement fluide et rebond natif iOS/Android réactivé */
+        html, body, #desktop-matrix-wrapper, .custom-scrollbar {
+            -webkit-overflow-scrolling: touch;
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        /* Style pour la mise en évidence d'une ligne d'heure cliquée */
+        tr.highlighted-row {
+            background-color: #fef08a !important; /* Jaune/Ambre clair */
+            transition: background-color 0.2s ease;
         }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
+        tr.highlighted-row td {
+            background-color: #fef08a !important;
+        }
+
+        /* Scrollbar moderne */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
             border-radius: 4px;
         }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(34, 197, 94, 0.5);
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
             border-radius: 4px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(34, 197, 94, 0.8);
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
-        .touch-btn {
-            min-height: 48px;
-            min-width: 48px;
+        /* Hauteur des lignes et ajustement vertical mobile */
+        .slot-row {
+            height: 48px !important;
         }
-        .touch-btn-sm {
-            min-height: 40px;
-            min-width: 40px;
+        .slot-row td {
+            height: 48px !important;
         }
 
-        /* Styles spécifiques pour l'impression iOS / AirPrint */
-        @media print {
-            body {
-                background-color: white !important;
-                color: black !important;
-                padding-bottom: 0 !important;
+        /* Ajustement dynamique à 95% pour laisser voir la ligne de séparation */
+        .mission-block {
+            height: calc(100% - 2px) !important;
+            margin: 1px 0;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 639px) {
+            .slot-row, .slot-row td {
+                height: 45px !important;
             }
+            .mission-block {
+                padding: 2px 3px !important;
+                font-size: 10px !important;
+                line-height: 1.1 !important;
+            }
+        }
 
-            header, 
-            main > section:not(#leaderboard-section), 
-            #toast, 
-            #reset-modal,
+        /* Safe Area Padding pour Mobile (iOS/Android) */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 1rem);
+        }
+        .pt-safe {
+            padding-top: env(safe-area-inset-top, 0rem);
+        }
+
+        /* Hide scrollbars for slick mobile horizontal sliders */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* En-tête collant lors du scroll vertical */
+        .sticky-header-th {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background-color: #f1f5f9;
+        }
+        .sticky-corner-th {
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 30;
+            background-color: #e2e8f0;
+        }
+
+        /* Optimization pour l'impression A4 Paysage pleine page sans superposition */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 3mm;
+            }
+            html, body {
+                height: 100% !important;
+                min-height: 100% !important;
+                background: white !important;
+                color: black !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                overflow: visible !important;
+            }
             .no-print {
                 display: none !important;
             }
-
-            #leaderboard-section {
-                background: white !important;
-                border: none !important;
-                box-shadow: none !important;
-                padding: 0 !important;
+            
+            /* Ajustements de conteneur d'impression */
+            #screen-schedule-container, 
+            .print-full-width {
+                width: 100% !important;
+                max-width: 100% !important;
                 margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                overflow: visible !important;
             }
 
-            #leaderboard-section h2 {
-                color: black !important;
-                font-size: 24pt !important;
-            }
-
-            #leaderboard-section p {
-                color: #4b5563 !important;
+            .overflow-x-auto, #desktop-matrix-wrapper {
+                overflow: visible !important;
+                max-height: none !important;
             }
 
             table {
                 width: 100% !important;
+                height: 92vh !important;
+                table-layout: fixed !important;
+                font-size: 11px !important;
                 border-collapse: collapse !important;
-                margin-top: 20px !important;
             }
 
-            th {
-                background-color: #f3f4f6 !important;
-                color: #111827 !important;
-                border-bottom: 2px solid #e5e7eb !important;
-                padding: 10px !important;
+            th, td {
+                padding: 2px 3px !important;
+                box-sizing: border-box !important;
+                word-wrap: break-word !important;
+                overflow: hidden !important;
             }
 
-            td {
-                color: #1f2937 !important;
-                border-bottom: 1px solid #e5e7eb !important;
-                padding: 10px !important;
+            .slot-row, .slot-row td {
+                height: auto !important;
             }
 
-            td span {
-                color: #1f2937 !important;
+            .mission-block {
+                font-size: 10px !important;
+                line-height: 1.15 !important;
+                padding: 3px 4px !important;
+                box-shadow: none !important;
+                border-width: 1px !important;
+                border-radius: 4px !important;
+                height: 98% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+            }
+
+            .print-page-break {
+                page-break-after: always !important;
+                break-after: page !important;
+            }
+
+            .print-single-page {
+                height: 98vh !important;
+                max-height: 98vh !important;
+                overflow: hidden !important;
+                box-sizing: border-box;
+                page-break-inside: avoid !important;
+            }
+
+            th.min-w-\[120px\], td.min-w-\[120px\],
+            th.sm\:min-w-\[180px\], td.sm\:min-w-\[180px\] {
+                min-width: 0 !important;
+            }
+
+            th.w-28, td.w-28, th.sm\:w-44, td.sm\:w-44 {
+                width: 90px !important;
+                min-width: 90px !important;
             }
         }
     </style>
 </head>
-<body class="font-sans min-h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden pb-12">
+<body class="h-full text-slate-800 flex flex-col min-h-screen bg-slate-100/70 pb-20 sm:pb-0">
 
-    <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
-        <div class="max-w-[1600px] mx-auto px-6 py-4 flex flex-col xl:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-pitch-600 flex items-center justify-center text-white shadow-lg shadow-pitch-600/30">
-                    <i class="fa-solid fa-futbol text-2xl"></i>
+    <!-- Top Header -->
+    <header class="bg-indigo-700 text-white shadow-lg no-print sticky top-0 z-40 pt-safe">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex flex-col gap-3 py-2 sm:py-3">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center space-x-2.5 sm:space-x-3">
+                    <div class="p-1.5 sm:p-2 bg-indigo-800/80 rounded-xl shadow-inner flex-shrink-0">
+                        <i class="fa-solid fa-users-gear text-lg sm:text-2xl text-indigo-200"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <h1 class="text-sm sm:text-xl font-extrabold tracking-tight">Vie Scolaire</h1>
+                            <span id="sync-status" class="text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 font-semibold flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Direct
+                            </span>
+                        </div>
+                        <p class="text-[10px] sm:text-xs text-indigo-200 font-medium">Planning AED & Postes</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-3">
-                        Tournoi Foot <span class="text-xs font-semibold px-2.5 py-1 bg-pitch-600/20 text-pitch-400 border border-pitch-500/30 rounded-lg">Gestionnaire de Session</span>
-                    </h1>
-                    <p class="text-xs text-slate-400 font-medium flex items-center gap-2">
-                        <span>Gestionnaire Scolaire &bull; 2 Terrains (A & B)</span> &bull; 
-                        <span id="save-status-badge" class="text-emerald-400 font-semibold flex items-center gap-1">
-                            <i class="fa-solid fa-floppy-disk"></i> Sauvegarde locale active
-                        </span>
-                    </p>
-                </div>
-            </div>
-            
-            <div class="flex flex-wrap items-center justify-center gap-3">
-                <div class="flex items-center gap-2 bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800">
-                    <i class="fa-solid fa-users text-pitch-500 text-sm"></i>
-                    <span class="text-xs text-slate-400 font-medium">Élèves:</span>
-                    <span id="total-players-count" class="text-sm font-bold text-white">0</span>
-                </div>
-                <div class="flex items-center gap-2 bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800">
-                    <i class="fa-solid fa-user-clock text-amber-400 text-sm"></i>
-                    <span class="text-xs text-slate-400 font-medium">Réserve:</span>
-                    <span id="unassigned-players-count" class="text-sm font-bold text-amber-400">0</span>
-                </div>
-                <div class="flex items-center gap-2 bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800">
-                    <i class="fa-solid fa-shield-halved text-blue-400 text-sm"></i>
-                    <span class="text-xs text-slate-400 font-medium">Équipes:</span>
-                    <span id="total-teams-count" class="text-sm font-bold text-blue-400">10</span>
-                </div>
-                
-                <!-- BLOC SÉANCES JOUÉES AVEC BOUTON DE RÉINITIALISATION -->
-                <div class="flex items-center gap-2 bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800">
-                    <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
-                    <span class="text-xs text-slate-400 font-medium">Séances Jouées:</span>
-                    <span id="total-sessions-played" class="text-sm font-bold text-amber-400">0</span>
-                    <button onclick="reinitialiserSeancesJouees()" title="Réinitialiser le nombre de séances jouées" class="ml-1 text-slate-500 hover:text-amber-400 active:scale-95 transition">
-                        <i class="fa-solid fa-rotate-left text-xs"></i>
+
+                <!-- Desktop Navigation Tabs -->
+                <div class="hidden md:flex bg-indigo-800/70 p-1 rounded-xl gap-1">
+                    <button id="nav-grid-btn" onclick="switchMainTab('grid')" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 bg-white text-indigo-800 shadow whitespace-nowrap">
+                        <i class="fa-solid fa-table-cells mr-1.5"></i>Grille du Jour
+                    </button>
+                    <button id="nav-aed-btn" onclick="switchMainTab('aed')" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-indigo-100 hover:text-white hover:bg-indigo-600/50 transition-all duration-200 whitespace-nowrap">
+                        <i class="fa-solid fa-address-card mr-1.5"></i>Gestion AED
+                    </button>
+                    <button id="nav-equity-btn" onclick="switchMainTab('equity')" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-indigo-100 hover:text-white hover:bg-indigo-600/50 transition-all duration-200 whitespace-nowrap">
+                        <i class="fa-solid fa-scale-balanced mr-1.5"></i>Équilibre Postes
                     </button>
                 </div>
 
-                <div class="h-6 w-px bg-slate-800 hidden md:block"></div>
-
-                <div class="flex items-center gap-2">
-                    <button onclick="exporterSauvegardeJSON()" title="Exporter toutes les données" class="touch-btn-sm bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-200 text-xs font-bold px-3.5 rounded-xl border border-slate-700 transition flex items-center gap-2">
-                        <i class="fa-solid fa-download text-pitch-400"></i>
-                        <span class="hidden sm:inline">Exporter JSON</span>
+                <!-- Actions Bar -->
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <button onclick="openAEDModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl font-bold shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-plus text-xs"></i>
+                        <span class="hidden sm:inline">+ Nouvel AED</span>
+                        <span class="sm:hidden">AED</span>
                     </button>
-                    
-                    <label title="Importer un fichier JSON sauvegardé" class="touch-btn-sm bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-200 text-xs font-bold px-3.5 rounded-xl border border-slate-700 transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-upload text-amber-400"></i>
-                        <span class="hidden sm:inline">Importer JSON</span>
-                        <input type="file" id="jsonImportFile" accept=".json" class="hidden" onchange="importerSauvegardeJSON(event)">
-                    </label>
 
-                    <button onclick="demanderResetComplet()" title="Réinitialiser toutes les données" class="touch-btn-sm bg-red-950/60 hover:bg-red-900 text-red-300 text-xs font-bold px-3 rounded-xl border border-red-800/60 transition flex items-center justify-center">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
+                    <!-- Dropdown Options -->
+                    <div class="relative group">
+                        <button class="bg-indigo-800/80 hover:bg-indigo-600 text-white p-1.5 sm:p-2 rounded-xl text-xs sm:text-sm transition" title="Options">
+                            <i class="fa-solid fa-ellipsis-vertical px-1"></i>
+                        </button>
+                        <div class="absolute right-0 mt-1 w-56 bg-white rounded-2xl shadow-2xl py-2 z-50 hidden group-hover:block border border-slate-100 text-slate-700 text-sm">
+                            <button onclick="exportData()" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 font-medium">
+                                <i class="fa-solid fa-file-export text-indigo-600"></i> Exporter (JSON)
+                            </button>
+                            <label class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer font-medium">
+                                <i class="fa-solid fa-file-import text-indigo-600"></i> Importer (JSON)
+                                <input type="file" id="import-file" onchange="importData(event)" class="hidden" accept=".json">
+                            </label>
+                            <hr class="my-1 border-slate-100">
+                            <button onclick="triggerPrint('current')" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-medium">
+                                <i class="fa-solid fa-print text-indigo-600"></i> Imprimer Jour
+                            </button>
+                            <button onclick="triggerPrint('all')" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-medium">
+                                <i class="fa-solid fa-print text-emerald-600"></i> Imprimer Semaine
+                            </button>
+                            <hr class="my-1 border-slate-100">
+                            <button onclick="resetData()" class="w-full text-left px-4 py-2 hover:bg-red-50 flex items-center gap-2 text-red-600 font-medium">
+                                <i class="fa-solid fa-trash-can"></i> Réinitialiser
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="flex-1 max-w-[1600px] w-full mx-auto px-6 py-6 space-y-8">
+    <!-- Bottom Mobile Navigation Bar -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 shadow-lg z-40 pb-safe no-print">
+        <div class="grid grid-cols-3 h-12">
+            <button id="mobile-nav-grid-btn" onclick="switchMainTab('grid')" class="flex flex-col items-center justify-center gap-0.5 text-indigo-600 font-bold transition">
+                <i class="fa-solid fa-table-cells text-base"></i>
+                <span class="text-[9px]">Grille</span>
+            </button>
+            <button id="mobile-nav-aed-btn" onclick="switchMainTab('aed')" class="flex flex-col items-center justify-center gap-0.5 text-slate-500 font-medium transition">
+                <i class="fa-solid fa-address-card text-base"></i>
+                <span class="text-[9px]">AEDs</span>
+            </button>
+            <button id="mobile-nav-equity-btn" onclick="switchMainTab('equity')" class="flex flex-col items-center justify-center gap-0.5 text-slate-500 font-medium transition">
+                <i class="fa-solid fa-scale-balanced text-base"></i>
+                <span class="text-[9px]">Équité</span>
+            </button>
+        </div>
+    </nav>
 
-        <!-- Étape 1 : Réserve Élèves -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-            <div class="flex items-center gap-2 text-pitch-500 font-bold text-xs uppercase tracking-wider mb-2">
-                <span class="w-7 h-7 rounded-lg bg-pitch-500/10 flex items-center justify-center text-sm font-extrabold border border-pitch-500/20">1</span>
-                Étape 1 &bull; Réserve Élèves
-            </div>
-            <h2 class="text-2xl font-bold text-white mb-1">Importation Excel / CSV</h2>
-            <p class="text-slate-400 text-sm mb-6">
-                Chargez la liste des élèves. Les noms sont insérés dans la réserve globale sans affectation automatique.
-            </p>
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-6 lg:p-8 flex flex-col gap-2 sm:gap-6">
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <label for="excelFile" class="md:col-span-2 touch-btn flex items-center justify-center gap-3 px-6 py-4 rounded-xl border-2 border-dashed border-slate-700 bg-slate-950/60 hover:bg-slate-800 hover:border-pitch-500 transition cursor-pointer text-slate-300">
-                    <i class="fa-solid fa-file-excel text-2xl text-pitch-500"></i>
-                    <span id="file-label-text" class="text-sm font-semibold truncate">Choisir un fichier Excel (.xlsx) ou CSV</span>
-                    <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(event)" />
-                </label>
+        <!-- Toast Notifications -->
+        <div id="toast" class="hidden fixed bottom-16 sm:bottom-6 right-3 sm:right-6 z-50 bg-slate-900/95 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur transition-all border border-slate-700/50">
+            <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+            <span id="toast-message" class="text-xs sm:text-sm font-semibold">Notification</span>
+        </div>
 
-                <button onclick="importerExcel()" class="touch-btn bg-pitch-600 hover:bg-pitch-500 active:bg-pitch-700 text-white font-bold px-8 rounded-xl shadow-lg shadow-pitch-600/30 transition flex items-center justify-center gap-3 text-base">
-                    <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
-                    <span>Importer les noms</span>
-                </button>
-            </div>
-        </section>
+        <!-- Section 1: Main Grid Schedule -->
+        <section id="section-grid" class="flex flex-col gap-2 sm:gap-4">
+            
+            <!-- Controls Bar: Days Selector + Print Mode + CPE Constraints -->
+            <div class="bg-white p-2 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-200/80 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2 sm:gap-4 no-print">
+                <!-- Days Selector Scrollable horizontal on mobile -->
+                <div class="flex items-center justify-between sm:justify-start gap-1.5 overflow-x-auto no-scrollbar">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden sm:inline">Jour:</span>
+                    <div class="flex gap-1 w-full sm:w-auto" id="day-tabs"></div>
+                </div>
 
-        <!-- Étape 2 : Session de Jeu & Terrains A/B -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-800">
-                <div>
-                    <div class="flex items-center gap-2 text-accent-500 font-bold text-xs uppercase tracking-wider mb-2">
-                        <span class="w-7 h-7 rounded-lg bg-accent-500/10 flex items-center justify-center text-sm font-extrabold border border-accent-500/20">2</span>
-                        Étape 2 &bull; Session de Jeu & Terrains (A & B)
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <!-- Option d'impression dédiée -->
+                    <div class="hidden sm:flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-xl">
+                        <span class="text-xs font-bold text-indigo-900"><i class="fa-solid fa-print text-indigo-600 mr-1"></i> Mode :</span>
+                        <select id="print-mode-select" class="text-xs bg-white border border-indigo-200 rounded-lg px-2 py-1 font-semibold text-slate-700 focus:outline-none">
+                            <option value="current">Jour uniquement</option>
+                            <option value="all">Semaine complète</option>
+                        </select>
+                        <button onclick="triggerPrintSelected()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2.5 py-1 rounded-lg font-bold transition">
+                            Imprimer
+                        </button>
                     </div>
-                    <h2 class="text-2xl font-bold text-white">Gestion du Championnat (10 Équipes)</h2>
-                    <p class="text-slate-400 text-sm">Chaque session permet aux 10 équipes de s'affronter toutes une fois (45 matchs au total).</p>
-                </div>
 
-                <div class="flex flex-wrap items-center gap-3">
-                    <button id="btn-start-session" onclick="demarrerNouvelleSession()" class="touch-btn bg-gradient-to-r from-pitch-600 to-pitch-500 hover:from-pitch-500 hover:to-pitch-600 active:scale-[0.98] text-white font-bold px-5 rounded-xl shadow-xl shadow-pitch-600/30 transition flex items-center gap-2 text-sm">
-                        <i class="fa-solid fa-rotate-right text-lg"></i>
-                        <span>Démarrer une nouvelle session</span>
-                    </button>
-
-                    <button id="btn-next-round" onclick="lancerProchainTourAleatoire()" class="touch-btn bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-bold px-5 rounded-xl shadow-lg shadow-amber-600/30 transition flex items-center gap-2 text-sm">
-                        <i class="fa-solid fa-shuffle text-lg"></i>
-                        <span>Lancer le prochain tour aléatoire</span>
-                    </button>
-
-                    <!-- BOUTON D'ANNULATION DE SESSION EN COURS -->
-                    <button id="btn-cancel-session" onclick="annulerSessionEnCours()" class="touch-btn bg-red-950/80 hover:bg-red-900 active:bg-red-950 text-red-200 font-bold px-4 rounded-xl border border-red-800/80 transition flex items-center gap-2 text-sm hidden">
-                        <i class="fa-solid fa-ban text-red-400 text-lg"></i>
-                        <span>Annuler la session</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Progression de la session -->
-            <div class="mt-6 bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-pitch-500/20 text-pitch-400 border border-pitch-500/30 flex items-center justify-center font-bold">
-                        <i class="fa-solid fa-chart-pie"></i>
-                    </div>
-                    <div>
-                        <div class="text-xs text-slate-400 font-semibold uppercase">Avancement de la session</div>
-                        <div id="session-progress-text" class="text-base font-extrabold text-white">0 / 45 matchs joués</div>
-                    </div>
-                </div>
-
-                <div class="flex-1 max-w-md bg-slate-900 h-4 rounded-full border border-slate-800 overflow-hidden relative">
-                    <div id="session-progress-bar" class="bg-gradient-to-r from-pitch-600 to-pitch-400 h-full w-0 transition-all duration-500"></div>
-                </div>
-
-                <div id="session-status-badge" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 self-start md:self-auto">
-                    Session non démarrée
-                </div>
-            </div>
-
-            <!-- Bannières d'alerte fin de session -->
-            <div id="session-ended-banner" class="mt-6 p-4 bg-emerald-950/80 border-2 border-emerald-500/50 rounded-xl flex items-center justify-between gap-4 hidden">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-flag-checkered text-3xl text-emerald-400"></i>
-                    <div>
-                        <h4 class="font-bold text-white text-base">Fin de séance / Session terminée !</h4>
-                        <p class="text-xs text-emerald-200">Toutes les 10 équipes se sont maintenant rencontrées. Veuillez cliquer sur "Démarrer une nouvelle session" pour rejouer.</p>
-                    </div>
-                </div>
-                <button onclick="demarrerNouvelleSession()" class="touch-btn-sm px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg transition shrink-0">
-                    Nouvelle Séance
-                </button>
-            </div>
-
-            <!-- Affichage des Terrains A et B -->
-            <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- TERRAIN A -->
-                <div class="bg-slate-950 border-2 border-pitch-500/60 rounded-2xl p-5 shadow-xl relative">
-                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
-                        <div class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-lg bg-pitch-600 text-white font-black flex items-center justify-center text-sm shadow">A</span>
-                            <h3 class="text-lg font-bold text-white">TERRAIN A</h3>
+                    <!-- Regles CPE Minimale AED -->
+                    <div class="flex items-center justify-between sm:justify-start gap-2 bg-slate-50 border border-slate-200/80 px-2.5 py-1 sm:py-2 rounded-xl text-xs">
+                        <span class="font-bold text-slate-700 flex items-center gap-1 text-[10px] sm:text-xs">
+                            <i class="fa-solid fa-shield-halved text-indigo-600"></i> Seuil CPE :
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1">
+                                <span class="text-[10px] sm:text-[11px] font-medium text-slate-500">Matin:</span>
+                                <div class="flex items-center bg-white border border-slate-300 rounded-lg shadow-sm">
+                                    <button onclick="changeCPEThreshold('minMorning', -1)" class="px-1.5 py-0.5 hover:bg-slate-100 font-bold text-slate-600 text-xs">-</button>
+                                    <span id="cpe-min-morning" class="px-1 font-extrabold text-indigo-700 text-xs">4</span>
+                                    <button onclick="changeCPEThreshold('minMorning', 1)" class="px-1.5 py-0.5 hover:bg-slate-100 font-bold text-slate-600 text-xs">+</button>
+                                </div>
+                            </div>
+                            <div id="cpe-evening-container" class="flex items-center gap-1">
+                                <span class="text-[10px] sm:text-[11px] font-medium text-slate-500">Soir:</span>
+                                <div class="flex items-center bg-white border border-slate-300 rounded-lg shadow-sm">
+                                    <button onclick="changeCPEThreshold('minEvening', -1)" class="px-1.5 py-0.5 hover:bg-slate-100 font-bold text-slate-600 text-xs">-</button>
+                                    <span id="cpe-min-evening" class="px-1.5 font-extrabold text-indigo-700 text-xs">4</span>
+                                    <button onclick="changeCPEThreshold('minEvening', 1)" class="px-1.5 py-0.5 hover:bg-slate-100 font-bold text-slate-600 text-xs">+</button>
+                                </div>
+                            </div>
                         </div>
-                        <span class="text-xs font-bold text-pitch-400 bg-pitch-950 px-2.5 py-1 rounded-md border border-pitch-800">Match Direct</span>
-                    </div>
-
-                    <div id="terrain-a-content" class="min-h-[160px] flex flex-col justify-center items-center py-4 text-center">
-                        <p class="text-slate-500 text-sm font-semibold">Aucun match en cours sur le Terrain A.</p>
-                        <p class="text-xs text-slate-600 mt-1">Lancez un tour aléatoire pour attribuer un match.</p>
                     </div>
                 </div>
+            </div>
 
-                <!-- TERRAIN B -->
-                <div class="bg-slate-950 border-2 border-blue-500/60 rounded-2xl p-5 shadow-xl relative">
-                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
-                        <div class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-lg bg-blue-600 text-white font-black flex items-center justify-center text-sm shadow">B</span>
-                            <h3 class="text-lg font-bold text-white">TERRAIN B</h3>
+            <!-- Section Pauses AED (AU DESSUS DE SEUIL CPE) -->
+            <div id="aed-breaks-bar" class="no-print bg-white p-3 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-sm flex flex-col gap-2.5">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="p-1.5 bg-amber-100 text-amber-700 rounded-lg text-xs flex items-center justify-center">
+                            <i class="fa-solid fa-mug-hot"></i>
+                        </span>
+                        <div>
+                            <h3 class="text-xs sm:text-sm font-bold text-slate-800">Pauses des AEDs</h3>
+                            <p class="text-[10px] sm:text-xs text-slate-500">Répartition des pauses du midi (11h30, 12h00, 12h30)</p>
                         </div>
-                        <span class="text-xs font-bold text-blue-400 bg-blue-950 px-2.5 py-1 rounded-md border border-blue-800">Match Direct</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Pause 11h30 -->
+                    <div class="bg-amber-50/50 border border-amber-200/70 p-2.5 rounded-xl flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold text-amber-900 flex items-center gap-1">
+                                <i class="fa-regular fa-clock text-amber-600"></i> 11h30
+                            </span>
+                            <div class="relative inline-block text-left">
+                                <button onclick="toggleBreakDropdown('11h30')" class="bg-amber-600 hover:bg-amber-700 text-white w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center shadow transition" title="Ajouter un AED à 11h30">
+                                    +
+                                </button>
+                                <div id="break-dropdown-11h30" class="hidden absolute right-0 mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-30 py-1 text-xs"></div>
+                            </div>
+                        </div>
+                        <div id="break-list-11h30" class="flex flex-wrap gap-1.5 min-h-[28px]"></div>
                     </div>
 
-                    <div id="terrain-b-content" class="min-h-[160px] flex flex-col justify-center items-center py-4 text-center">
-                        <p class="text-slate-500 text-sm font-semibold">Aucun match en cours sur le Terrain B.</p>
-                        <p class="text-xs text-slate-600 mt-1">Lancez un tour aléatoire pour attribuer un match.</p>
+                    <!-- Pause 12h00 -->
+                    <div class="bg-amber-50/50 border border-amber-200/70 p-2.5 rounded-xl flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold text-amber-900 flex items-center gap-1">
+                                <i class="fa-regular fa-clock text-amber-600"></i> 12h00
+                            </span>
+                            <div class="relative inline-block text-left">
+                                <button onclick="toggleBreakDropdown('12h00')" class="bg-amber-600 hover:bg-amber-700 text-white w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center shadow transition" title="Ajouter un AED à 12h00">
+                                    +
+                                </button>
+                                <div id="break-dropdown-12h00" class="hidden absolute right-0 mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-30 py-1 text-xs"></div>
+                            </div>
+                        </div>
+                        <div id="break-list-12h00" class="flex flex-wrap gap-1.5 min-h-[28px]"></div>
+                    </div>
+
+                    <!-- Pause 12h30 -->
+                    <div class="bg-amber-50/50 border border-amber-200/70 p-2.5 rounded-xl flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold text-amber-900 flex items-center gap-1">
+                                <i class="fa-regular fa-clock text-amber-600"></i> 12h30
+                            </span>
+                            <div class="relative inline-block text-left">
+                                <button onclick="toggleBreakDropdown('12h30')" class="bg-amber-600 hover:bg-amber-700 text-white w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center shadow transition" title="Ajouter un AED à 12h30">
+                                    +
+                                </button>
+                                <div id="break-dropdown-12h30" class="hidden absolute right-0 mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-30 py-1 text-xs"></div>
+                            </div>
+                        </div>
+                        <div id="break-list-12h30" class="flex flex-wrap gap-1.5 min-h-[28px]"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Équipes en attente / Repos -->
-            <div class="mt-6 pt-4 border-t border-slate-800">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-mug-hot text-amber-400"></i> Équipes au repos / En attente durant ce tour
-                </h3>
-                <div id="waiting-teams-container" class="flex flex-wrap gap-2">
-                    <span class="text-xs text-slate-500 italic">Aucune rotation en cours</span>
+            <!-- Badges de présence pour Portail et Permanence -->
+            <div id="realtime-post-badges" class="no-print flex flex-wrap items-center gap-2 text-xs">
+                <!-- Badge Portail -->
+                <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-900 px-3 py-1.5 rounded-xl shadow-sm">
+                    <div class="flex items-center gap-1.5 font-bold">
+                        <span class="p-1 bg-blue-600 text-white rounded-lg flex items-center justify-center w-5 h-5 text-[10px]">
+                            <i class="fa-solid fa-door-open"></i>
+                        </span>
+                        <span>Portail :</span>
+                    </div>
+                    <span id="realtime-portail-status" class="font-semibold text-blue-800 text-[11px] sm:text-xs">
+                        Aucun AED
+                    </span>
+                </div>
+
+                <!-- Badge Permanence -->
+                <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1.5 rounded-xl shadow-sm">
+                    <div class="flex items-center gap-1.5 font-bold">
+                        <span class="p-1 bg-amber-500 text-white rounded-lg flex items-center justify-center w-5 h-5 text-[10px]">
+                            <i class="fa-solid fa-book-open"></i>
+                        </span>
+                        <span>Permanence :</span>
+                    </div>
+                    <span id="realtime-permanence-status" class="font-semibold text-amber-800 text-[11px] sm:text-xs">
+                        Aucun AED
+                    </span>
                 </div>
             </div>
+
+            <!-- Alert CPE Container -->
+            <div id="cpe-alerts-bar" class="hidden flex flex-col gap-1.5"></div>
+
+            <!-- Screen Schedule Matrix Container -->
+            <div id="screen-schedule-container" class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col print-full-width">
+                <div class="hidden print:block p-2 border-b-2 border-indigo-600 mb-1">
+                    <h2 class="text-lg font-bold text-slate-900">Collège - Planning des Postes Vie Scolaire</h2>
+                    <p id="print-day-title" class="text-xs font-semibold text-indigo-700">Jour : Lundi</p>
+                </div>
+
+                <!-- Desktop / Mobile Matrix View -->
+                <div id="desktop-matrix-wrapper" class="overflow-x-auto overflow-y-auto max-h-[82vh] custom-scrollbar max-w-full relative">
+                    <table class="w-full border-collapse text-left text-xs sm:text-sm" id="schedule-matrix-table">
+                        <thead>
+                            <tr class="bg-slate-100/80 text-slate-700 border-b border-slate-200" id="matrix-header-row"></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100" id="matrix-body"></tbody>
+                    </table>
+                </div>
+
+                <div id="no-aed-warning" class="hidden p-6 sm:p-12 text-center flex flex-col items-center justify-center gap-2">
+                    <div class="w-10 h-10 sm:w-14 sm:h-14 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center text-lg sm:text-xl">
+                        <i class="fa-solid fa-user-slash"></i>
+                    </div>
+                    <h3 class="text-sm sm:text-lg font-bold text-slate-800">Aucun AED présent ce jour-là</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 max-w-md">Personne n'a de créneau de travail planifié pour cette journée.</p>
+                </div>
+            </div>
+
+            <!-- Zone dynamique réservée à l'impression multi-pages -->
+            <div id="print-multi-container" class="hidden print:block"></div>
+
         </section>
 
-        <!-- Étape 3 : Saisie Directe des Résultats -->
-        <section id="points-section" class="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl hidden">
-            <div class="flex items-center gap-2 text-pitch-500 font-bold text-xs uppercase tracking-wider mb-2">
-                <span class="w-7 h-7 rounded-lg bg-pitch-500/10 flex items-center justify-center text-sm font-extrabold border border-pitch-500/20">3</span>
-                Étape 3 &bull; Validation des Résultats
-            </div>
-            <h2 class="text-2xl font-bold text-white mb-1">Attribution des Points des Matchs En Cours</h2>
-            <p class="text-slate-400 text-sm mb-6">Validez le score ou le résultat de chaque terrain pour comptabiliser les points.</p>
-
-            <div id="points-controls" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Populé dynamiquement -->
-            </div>
-        </section>
-
-        <!-- Étape 4 : Composition Tactique -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+        <!-- Section 2: AED Management & Contracts -->
+        <section id="section-aed" class="hidden flex flex-col gap-4 sm:gap-6 no-print">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <div class="flex items-center gap-2 text-pitch-500 font-bold text-xs uppercase tracking-wider mb-2">
-                        <span class="w-7 h-7 rounded-lg bg-pitch-500/10 flex items-center justify-center text-sm font-extrabold border border-pitch-500/20">4</span>
-                        Étape 4 &bull; Composition Tactique
-                    </div>
-                    <h2 class="text-2xl font-bold text-white">Gestion des 10 Équipes</h2>
-                    <p class="text-slate-400 text-sm">Tapez le nom d'un élève dans le champ d'une équipe pour l'ajouter.</p>
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-800">Équipe Vie Scolaire & Contrats</h2>
+                    <p class="text-xs sm:text-sm text-slate-500">Gérez le personnel, le statut étudiant et suivez le quota horaire.</p>
                 </div>
-
-                <button onclick="ajouterNouvelleEquipe()" class="touch-btn bg-slate-800 hover:bg-pitch-600 text-slate-200 hover:text-white font-bold px-5 rounded-xl border border-slate-700 hover:border-pitch-500 transition shadow-md flex items-center justify-center gap-2 text-sm">
-                    <i class="fa-solid fa-plus text-pitch-500 text-base"></i>
-                    <span>Ajouter une équipe vide</span>
+                <button onclick="openAEDModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm px-4 py-2.5 rounded-xl font-bold shadow transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Ajouter un AED
                 </button>
             </div>
 
-            <div id="all-teams" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
-                <!-- Populé dynamiquement -->
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5" id="aed-cards-container"></div>
         </section>
 
-        <!-- Étape 5 : Classement Général -->
-        <section id="leaderboard-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+        <!-- Section 3: Equity Dashboard -->
+        <section id="section-equity" class="hidden flex flex-col gap-4 sm:gap-6 no-print">
+            <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                 <div>
-                    <div class="flex items-center gap-2 text-accent-500 font-bold text-xs uppercase tracking-wider mb-2 no-print">
-                        <span class="w-7 h-7 rounded-lg bg-accent-500/10 flex items-center justify-center text-sm font-extrabold border border-accent-500/20">5</span>
-                        Étape 5 &bull; Palmarès
+                    <div class="flex items-center gap-2 text-indigo-600 font-bold uppercase text-[11px] tracking-wider mb-1">
+                        <i class="fa-solid fa-scale-balanced"></i> Module d'Équité
                     </div>
-                    <h2 class="text-2xl font-bold text-white">Classement Général des Équipes</h2>
-                    <p class="text-slate-400 text-sm">Cumul automatique des points obtenus au fil des séances.</p>
-                </div>
-                
-                <div class="flex flex-wrap sm:flex-nowrap items-stretch sm:items-center gap-3 w-full sm:w-auto no-print">
-                    <button onclick="imprimerClassement()" class="touch-btn-sm bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold px-4 rounded-xl border border-blue-500 transition flex items-center justify-center gap-2 text-xs shrink-0 shadow-lg shadow-blue-600/30" title="Imprimer le classement avec AirPrint / Safari iOS">
-                        <i class="fa-solid fa-print"></i>
-                        <span>Imprimer Classement (iOS)</span>
-                    </button>
-
-                    <button onclick="reinitialiserTotalPoints()" class="touch-btn-sm bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-300 font-semibold px-4 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 text-xs shrink-0" title="Remettre le compteur de points de toutes les équipes à zero">
-                        <i class="fa-solid fa-rotate text-red-400"></i>
-                        <span>Réinit. Total Points</span>
-                    </button>
-
-                    <div class="relative w-full sm:w-72">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                        <input type="text" id="leaderboard-filter" oninput="renderLeaderboard()" placeholder="Filtrer une équipe..." class="w-full h-12 bg-slate-950 text-slate-200 text-sm rounded-xl pl-11 pr-4 border border-slate-800 focus:outline-none focus:border-pitch-500">
-                    </div>
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-800">Équilibre & Répartition des Postes</h2>
+                    <p class="text-xs sm:text-sm text-slate-500">Analyse globale et cumulée des affectations.</p>
                 </div>
             </div>
 
-            <div class="overflow-x-auto mt-6">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead>
-                        <tr class="border-b border-slate-800 text-slate-400 font-bold text-xs uppercase tracking-wider bg-slate-950/60">
-                            <th class="py-4 px-6 rounded-l-xl">Rang</th>
-                            <th class="py-4 px-6">Équipe</th>
-                            <th class="py-4 px-6">Séances Jouées</th>
-                            <th class="py-4 px-6">Matchs Joués (Session)</th>
-                            <th class="py-4 px-6">Effectif</th>
-                            <th class="py-4 px-6 text-right rounded-r-xl">Total Points</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboard-body" class="divide-y divide-slate-800/60">
-                        <tr>
-                            <td colspan="6" class="py-12 text-center text-slate-500 font-medium">Aucune équipe à afficher pour le moment.</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                <!-- Task Breakdown Table -->
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 flex flex-col gap-4">
+                    <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-indigo-600"></i> Cumul Hebdomadaire par Poste
+                    </h3>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-xs text-left border-collapse" id="equity-table">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200" id="equity-table-header"></tr>
+                            </thead>
+                            <tbody id="equity-table-body" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Equity Analysis Diagnostics -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 flex flex-col gap-4">
+                    <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                        <i class="fa-solid fa-shield-heart text-emerald-600"></i> Diagnostics
+                    </h3>
+                    <div id="equity-alerts-container" class="flex flex-col gap-3 text-xs"></div>
+                </div>
             </div>
         </section>
 
     </main>
 
-    <!-- Modal confirmation for reset -->
-    <div id="reset-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div class="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 flex items-center justify-center text-xl">
-                <i class="fa-solid fa-triangle-exclamation"></i>
+    <!-- Modal: AED Edit / Add -->
+    <div id="aed-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto no-print">
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden transform transition-all">
+            <div class="bg-slate-50 px-5 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 id="aed-modal-title" class="font-bold text-slate-800 text-base sm:text-lg">Ajouter un AED</h3>
+                <button onclick="closeAEDModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl bg-slate-200/50">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
             </div>
-            <h3 class="text-xl font-bold text-white">Réinitialiser tout le tournoi ?</h3>
-            <p class="text-sm text-slate-400">Cette action va supprimer l'intégralité des élèves, des équipes, des points et des sessions. Voulez-vous continuer ?</p>
-            <div class="flex items-center justify-end gap-3 pt-2">
-                <button onclick="fermerResetModal()" class="touch-btn-sm px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs">Annuler</button>
-                <button onclick="effectuerResetComplet()" class="touch-btn-sm px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-red-600/30">Oui, tout effacer</button>
-            </div>
+            
+            <form id="aed-form" onsubmit="saveAED(event)" class="p-4 sm:p-6 flex flex-col gap-4 sm:gap-5 overflow-y-auto custom-scrollbar flex-1">
+                <input type="hidden" id="aed-id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Nom / Prénom</label>
+                        <input type="text" id="aed-name" required placeholder="ex: Thomas DUBOIS" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Base Contrat</label>
+                        <select id="aed-contract" onchange="updateContractHoursPreview()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold bg-white">
+                            <option value="100">100% - Temps Plein</option>
+                            <option value="75">75% - Temps Partiel</option>
+                            <option value="50">50% - Mi-temps</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Student Checkbox & Custom Contract Hours -->
+                <div class="bg-amber-50/70 border border-amber-200/80 p-3.5 sm:p-4 rounded-xl flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="aed-is-student" onchange="toggleStudentStatus()" class="w-4 h-4 text-amber-600 rounded focus:ring-amber-500">
+                            <label for="aed-is-student" class="text-xs font-bold text-amber-900 cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-graduation-cap text-amber-600"></i> Statut Étudiant (Crédit d'Heures)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="student-hours-container" class="hidden flex flex-row items-center justify-between gap-3 pt-2 border-t border-amber-200/60">
+                        <span class="text-xs text-amber-800 font-medium">Quota hebdo spécifique :</span>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="aed-custom-hours" step="0.5" min="1" max="50" class="w-20 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs font-bold text-slate-800 text-center">
+                            <span class="text-xs font-bold text-amber-900">heures/sem.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Couleur d'identification</label>
+                    <div class="flex items-center gap-3">
+                        <input type="color" id="aed-color" value="#4f46e5" class="h-10 w-16 p-1 rounded-xl border border-slate-300 cursor-pointer">
+                        <span class="text-xs text-slate-500 font-medium">Identifies les blocs sur le planning.</span>
+                    </div>
+                </div>
+
+                <!-- Daily Presence Hours Section -->
+                <div class="bg-indigo-50/50 p-3.5 sm:p-4 rounded-xl border border-indigo-100 flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase text-indigo-900 tracking-wide flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock text-indigo-600"></i> Horaires de Présence
+                        </span>
+                        <span class="text-[10px] text-indigo-600 italic">Créneaux quotidiens</span>
+                    </div>
+
+                    <div class="space-y-2.5" id="presence-days-container"></div>
+                </div>
+
+                <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100 mt-auto">
+                    <button type="button" onclick="closeAEDModal()" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100">
+                        Annuler
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md">
+                        Enregistrer
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Toast Notification Banner -->
-    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 max-w-md bg-slate-900 text-white border border-slate-700 px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
-        <i id="toast-icon" class="fa-solid fa-circle-info text-pitch-500 text-xl"></i>
-        <span id="toast-message" class="text-sm font-semibold">Notification</span>
+    <!-- Modal: Post Assignment -->
+    <div id="mission-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 no-print">
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all max-h-[90vh] flex flex-col">
+            <div class="bg-slate-50 px-5 py-4 border-b border-slate-100 flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-base sm:text-lg">Affectation de Poste</h3>
+                    <p id="mission-modal-subtitle" class="text-xs text-slate-500 font-medium">Lundi • AED</p>
+                </div>
+                <button onclick="closeMissionModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl bg-slate-200/50">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <form id="mission-form" onsubmit="saveMission(event)" class="p-4 sm:p-6 flex flex-col gap-4 overflow-y-auto">
+                <input type="hidden" id="mission-day">
+                <input type="hidden" id="mission-aed-id">
+                <input type="hidden" id="mission-id">
+
+                <div class="bg-indigo-50/60 p-3.5 rounded-xl border border-indigo-100 flex flex-col gap-2.5">
+                    <label class="text-xs font-bold uppercase text-indigo-900 tracking-wide flex items-center gap-1.5">
+                        <i class="fa-solid fa-layer-group text-indigo-600"></i> Plage de créneaux
+                    </label>
+                    
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                            <span class="text-[11px] text-slate-600 mb-1 block font-medium">Début</span>
+                            <select id="mission-start-slot" onchange="handleSlotRangeChange()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white font-semibold"></select>
+                        </div>
+                        <div>
+                            <span class="text-[11px] text-slate-600 mb-1 block font-medium">Fin</span>
+                            <select id="mission-end-slot" onchange="handleSlotRangeChange()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white font-semibold"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1.5">Choix du Poste / Mission</label>
+                    <select id="mission-type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm font-bold bg-white"></select>
+                </div>
+
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 flex flex-col gap-2.5">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-slate-700">Horaires exacts du poste</label>
+                        <button type="button" onclick="resetSlotTimes()" class="text-xs text-indigo-600 font-bold hover:underline">
+                            Réinitialiser
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                            <span class="text-[10px] text-slate-500 mb-1 block font-medium">Début</span>
+                            <input type="time" id="mission-start-time" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300 text-xs sm:text-sm font-bold">
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 mb-1 block font-medium">Fin</span>
+                            <input type="time" id="mission-end-time" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300 text-xs sm:text-sm font-bold">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Notes / Instructions</label>
+                    <input type="text" id="mission-notes" placeholder="ex: Consignes, badges..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm">
+                </div>
+
+                <div class="flex items-center justify-between mt-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="deleteMission()" id="btn-delete-mission" class="px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i> Effacer
+                    </button>
+                    
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeMissionModal()" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100">
+                            Annuler
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md">
+                            Enregistrer
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
-        const STORAGE_KEY = 'FOOTBALL_TOURNAMENT_APP_DATA_V4';
-
-        let players = [];              // { id, name, teamId }
-        let teams = [];                // { id, name, sessionsPlayed, points, matchesPlayedInSession }
-        let totalSessionsPlayed = 0;   // Nombre total de séances jouées
-
-        // Session State
-        let sessionActive = false;
-        let sessionMatches = [];       // Liste de tous les matchs { teamA, teamB, played: false }
-        let currentRotation = {
-            terrainA: null,            // { teamA, teamB }
-            terrainB: null,            // { teamA, teamB }
-            playedA: false,
-            playedB: false
+        // Configuration Firebase Realtime Database
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfnE-RT9a03CpyZMo756umIZDkt0284Qs",
+            authDomain: "planning-c1d76.firebaseapp.com",
+            databaseURL: "https://planning-c1d76-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "planning-c1d76",
+            storageBucket: "planning-c1d76.firebasestorage.app",
+            messagingSenderId: "935188634725",
+            appId: "1:935188634725:web:85d8bf6af61d6e6eca3a8c"
         };
 
-        // Initialisation par défaut de 10 équipes
-        function initDefaultTeams() {
-            if (teams.length === 0) {
-                for (let i = 1; i <= 10; i++) {
-                    teams.push({
-                        id: i,
-                        name: `Équipe ${i}`,
-                        sessionsPlayed: 0,
-                        points: 0,
-                        matchesPlayedInSession: 0
-                    });
-                }
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const planningRef = database.ref('jules-ferry/planning_v1');
+
+        const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+
+        function getCurrentDayName() {
+            const daysMap = { 1: 'Lundi', 2: 'Mardi', 3: 'Mercredi', 4: 'Jeudi', 5: 'Vendredi' };
+            const currentDayIndex = new Date().getDay();
+            return daysMap[currentDayIndex] || 'Lundi';
+        }
+
+        const SLOTS = [
+            { id: 'M1', label: 'M1', start: '08:00', end: '09:00', type: 'cours' },
+            { id: 'M2', label: 'M2', start: '09:00', end: '10:10', type: 'cours' },
+            { id: 'RECRE_M', label: 'Récré M', start: '10:10', end: '10:25', type: 'recre' },
+            { id: 'M3', label: 'M3', start: '10:25', end: '11:20', type: 'cours' },
+            { id: 'M4', label: 'M4', start: '11:20', end: '12:15', type: 'cours' },
+            { id: 'MERIDIENNE', label: 'Méridienne', start: '12:15', end: '13:25', type: 'pause' },
+            { id: 'S1', label: 'S1', start: '13:25', end: '14:25', type: 'cours' },
+            { id: 'S2', label: 'S2', start: '14:25', end: '15:25', type: 'cours' },
+            { id: 'RECRE_S', label: 'Récré S', start: '15:25', end: '15:40', type: 'recre' },
+            { id: 'S3', label: 'S3', start: '15:40', end: '16:35', type: 'cours' },
+            { id: 'S4', label: 'S4', start: '16:35', end: '17:35', type: 'cours' }
+        ];
+
+        const MISSION_TYPES = {
+            'Portail/permanence 2': { name: 'Portail/permanence 2', bg: 'bg-blue-600', text: 'text-white', border: 'border-blue-700', icon: 'fa-door-open' },
+            'Permanence': { name: 'Permanence', bg: 'bg-amber-500', text: 'text-white', border: 'border-amber-600', icon: 'fa-book-open' },
+            'A1': { name: 'A1', bg: 'bg-indigo-600', text: 'text-white', border: 'border-indigo-700', icon: 'fa-building' },
+            'B1': { name: 'B1', bg: 'bg-purple-600', text: 'text-white', border: 'border-purple-700', icon: 'fa-layer-group' },
+            'B2': { name: 'B2', bg: 'bg-violet-600', text: 'text-white', border: 'border-violet-700', icon: 'fa-cubes' },
+            'DP': { name: 'DP', bg: 'bg-orange-500', text: 'text-white', border: 'border-orange-600', icon: 'fa-utensils' },
+            'TOILETTES': { name: 'TOILETTES', bg: 'bg-rose-600', text: 'text-white', border: 'border-rose-700', icon: 'fa-restroom' },
+            'ESPLANADE': { name: 'ESPLANADE', bg: 'bg-emerald-600', text: 'text-white', border: 'border-emerald-700', icon: 'fa-tree' },
+            'COUR DIRECTION': { name: 'COUR DIRECTION', bg: 'bg-teal-600', text: 'text-white', border: 'border-teal-700', icon: 'fa-shield-halved' },
+            'COUR EPS': { name: 'COUR EPS', bg: 'bg-sky-600', text: 'text-white', border: 'border-sky-700', icon: 'fa-volleyball' },
+            'COUR CENTRALE': { name: 'COUR CENTRALE', bg: 'bg-cyan-600', text: 'text-white', border: 'border-cyan-700', icon: 'fa-shapes' },
+            'BUREAU': { name: 'BUREAU', bg: 'bg-slate-700', text: 'text-white', border: 'border-slate-800', icon: 'fa-laptop-code' },
+            'VOLANT A': { name: 'VOLANT A', bg: 'bg-fuchsia-600', text: 'text-white', border: 'border-fuchsia-700', icon: 'fa-person-walking-arrow-right' },
+            'VOLANT B': { name: 'VOLANT B', bg: 'bg-pink-600', text: 'text-white', border: 'border-pink-700', icon: 'fa-person-walking-arrow-loop-left' },
+            'RENFORT VIE SCOLAIRE': { name: 'RENFORT VIE SCOLAIRE', bg: 'bg-red-600', text: 'text-white', border: 'border-red-700', icon: 'fa-user-shield' },
+            'SUIVI': { name: 'SUIVI', bg: 'bg-lime-600', text: 'text-white', border: 'border-lime-700', icon: 'fa-clipboard-check' }
+        };
+
+        const CONTRACT_HOURS = { '100': 40, '75': 30, '50': 20 };
+
+        let isInitialLoad = true;
+
+        let appState = {
+            currentDay: getCurrentDayName(),
+            cpeConstraints: {},
+            aeds: [],
+            missions: [],
+            aedBreaks: {} // Structure: { [day]: { '11h30': [aedId, ...], '12h00': [...], '12h30': [...] } }
+        };
+
+        function toggleRowHighlight(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) {
+                row.classList.toggle('highlighted-row');
             }
         }
 
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function (event) {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
-                    event.preventDefault();
-                }
-            }
-            lastTouchEnd = now;
-        }, false);
-
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toast-message');
-            const toastIcon = document.getElementById('toast-icon');
-
-            toastMsg.textContent = message;
-
-            if (type === 'success') {
-                toastIcon.className = 'fa-solid fa-circle-check text-pitch-500 text-xl';
-            } else if (type === 'warning') {
-                toastIcon.className = 'fa-solid fa-triangle-exclamation text-accent-500 text-xl';
-            } else if (type === 'error') {
-                toastIcon.className = 'fa-solid fa-circle-exclamation text-red-500 text-xl';
+        function initCpeConstraints() {
+            if (!appState.cpeConstraints || typeof appState.cpeConstraints.minMorning !== 'undefined') {
+                const oldMorning = (appState.cpeConstraints && appState.cpeConstraints.minMorning) || 4;
+                const oldEvening = (appState.cpeConstraints && appState.cpeConstraints.minEvening) || 4;
+                appState.cpeConstraints = {};
+                DAYS.forEach(day => {
+                    appState.cpeConstraints[day] = {
+                        minMorning: oldMorning,
+                        minEvening: day === 'Mercredi' ? 0 : oldEvening
+                    };
+                });
             } else {
-                toastIcon.className = 'fa-solid fa-circle-info text-blue-400 text-xl';
-            }
-
-            toast.classList.remove('translate-y-24', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-24', 'opacity-0');
-            }, 3200);
-        }
-
-        function imprimerClassement() {
-            window.print();
-        }
-
-        // --- GESTION DE LA SESSION ET DES RENCONTRES ---
-        function reinitialiserSeancesJouees() {
-            totalSessionsPlayed = 0;
-            teams.forEach(t => t.sessionsPlayed = 0);
-            sauvegarderAutomatiquement();
-            renderAll();
-            showToast("Nombre de séances jouées réinitialisé à 0.", "info");
-        }
-
-        // Algorithme Round-Robin pour 10 équipes = 45 matchs
-        function demarrerNouvelleSession() {
-            if (teams.length < 2) {
-                showToast("Il faut au moins 2 équipes pour démarrer une session.", "warning");
-                return;
-            }
-
-            totalSessionsPlayed++;
-            teams.forEach(t => {
-                t.sessionsPlayed = (t.sessionsPlayed || 0) + 1;
-                t.matchesPlayedInSession = 0;
-            });
-
-            // Génération de tous les paires de matchs uniques (Round-Robin)
-            sessionMatches = [];
-            for (let i = 0; i < teams.length; i++) {
-                for (let j = i + 1; j < teams.length; j++) {
-                    sessionMatches.push({
-                        id: `${teams[i].id}-${teams[j].id}`,
-                        teamA: teams[i].id,
-                        teamB: teams[j].id,
-                        played: false
-                    });
-                }
-            }
-
-            // Mélange aléatoire des matchs
-            shuffleArray(sessionMatches);
-
-            sessionActive = true;
-            currentRotation = { terrainA: null, terrainB: null, playedA: false, playedB: false };
-
-            sauvegarderAutomatiquement();
-            renderAll();
-            showToast(`Nouvelle session démarrée ! (${sessionMatches.length} matchs à jouer)`, "success");
-
-            // Lancer le premier tour automatiquement
-            lancerProchainTourAleatoire();
-        }
-
-        function annulerSessionEnCours() {
-            if (!sessionActive) return;
-
-            if (confirm("Voulez-vous vraiment annuler la session en cours ? L'avancement des matchs de cette session sera réinitialisé.")) {
-                sessionActive = false;
-                sessionMatches = [];
-                currentRotation = { terrainA: null, terrainB: null, playedA: false, playedB: false };
-
-                sauvegarderAutomatiquement();
-                renderAll();
-                showToast("La session en cours a été annulée.", "info");
-            }
-        }
-
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
-
-        function lancerProchainTourAleatoire() {
-            if (!sessionActive) {
-                showToast("Veuillez d'abord démarrer une nouvelle session.", "warning");
-                return;
-            }
-
-            const unplayed = sessionMatches.filter(m => !m.played);
-            if (unplayed.length === 0) {
-                showToast("Fin de séance ! Tous les matchs de la session ont été joués.", "info");
-                return;
-            }
-
-            // Sélectionner jusqu'à 2 matchs n'impliquant pas les mêmes équipes
-            let matchA = null;
-            let matchB = null;
-
-            for (let i = 0; i < unplayed.length; i++) {
-                const m = unplayed[i];
-                if (!matchA) {
-                    matchA = m;
-                } else if (!matchB) {
-                    // Vérifier si les équipes du match B sont distinctes du match A
-                    if (m.teamA !== matchA.teamA && m.teamA !== matchA.teamB &&
-                        m.teamB !== matchA.teamA && m.teamB !== matchA.teamB) {
-                        matchB = m;
-                        break;
+                DAYS.forEach(day => {
+                    if (!appState.cpeConstraints[day]) {
+                        appState.cpeConstraints[day] = {
+                            minMorning: 4,
+                            minEvening: day === 'Mercredi' ? 0 : 4
+                        };
                     }
-                }
+                });
             }
+        }
 
-            currentRotation = {
-                terrainA: matchA,
-                terrainB: matchB,
-                playedA: false,
-                playedB: false
+        function initAedBreaks() {
+            if (!appState.aedBreaks) {
+                appState.aedBreaks = {};
+            }
+            DAYS.forEach(day => {
+                if (!appState.aedBreaks[day]) {
+                    appState.aedBreaks[day] = {
+                        '11h30': [],
+                        '12h00': [],
+                        '12h30': []
+                    };
+                } else {
+                    if (!appState.aedBreaks[day]['11h30']) appState.aedBreaks[day]['11h30'] = [];
+                    if (!appState.aedBreaks[day]['12h00']) appState.aedBreaks[day]['12h00'] = [];
+                    if (!appState.aedBreaks[day]['12h30']) appState.aedBreaks[day]['12h30'] = [];
+                }
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('aed_timetable_app_v5', JSON.stringify(appState));
+                if (planningRef) {
+                    planningRef.set(appState);
+                }
+            } catch (e) {
+                console.error("Erreur de sauvegarde de l'état :", e);
+            }
+        }
+
+        function initFirebaseSync() {
+            planningRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    const activeDay = isInitialLoad ? getCurrentDayName() : (appState.currentDay || getCurrentDayName());
+                    appState = data;
+                    appState.currentDay = activeDay;
+                    initCpeConstraints();
+                    initAedBreaks();
+                    if (!appState.aeds) appState.aeds = [];
+                    if (!appState.missions) appState.missions = [];
+                    localStorage.setItem('aed_timetable_app_v5', JSON.stringify(appState));
+                } else {
+                    seedDefaultData();
+                }
+                isInitialLoad = false;
+                renderAll();
+            }, (error) => {
+                console.warn("Échec de synchronisation Firebase, lecture du cache local :", error);
+                loadLocalFallback();
+                renderAll();
+            });
+        }
+
+        function loadLocalFallback() {
+            try {
+                const saved = localStorage.getItem('aed_timetable_app_v5');
+                if (saved) {
+                    const activeDay = isInitialLoad ? getCurrentDayName() : (appState.currentDay || getCurrentDayName());
+                    appState = JSON.parse(saved);
+                    appState.currentDay = activeDay;
+                    initCpeConstraints();
+                    initAedBreaks();
+                } else {
+                    seedDefaultData();
+                }
+            } catch (e) {
+                console.error("Erreur de lecture du cache local", e);
+                seedDefaultData();
+            }
+            isInitialLoad = false;
+        }
+
+        function seedDefaultData() {
+            const defaultPresence = {
+                'Lundi': { active: true, start1: '07:45', end1: '12:15', split: true, start2: '13:15', end2: '17:00' },
+                'Mardi': { active: true, start1: '07:45', end1: '12:15', split: true, start2: '13:15', end2: '17:00' },
+                'Mercredi': { active: true, start1: '07:45', end1: '12:30', split: false, start2: '', end2: '' },
+                'Jeudi': { active: true, start1: '07:45', end1: '12:15', split: true, start2: '13:15', end2: '17:00' },
+                'Vendredi': { active: true, start1: '07:45', end1: '12:15', split: true, start2: '13:15', end2: '17:00' }
             };
 
-            sauvegarderAutomatiquement();
-            renderTerrains();
-            showToast("Prochain tour tiré au sort !", "success");
-        }
+            const defaultPresencePartiel = {
+                'Lundi': { active: true, start1: '08:00', end1: '12:00', split: true, start2: '14:00', end2: '17:00' },
+                'Mardi': { active: true, start1: '08:00', end1: '12:00', split: true, start2: '14:00', end2: '17:00' },
+                'Mercredi': { active: false, start1: '', end1: '', split: false, start2: '', end2: '' },
+                'Jeudi': { active: true, start1: '08:00', end1: '12:00', split: true, start2: '14:00', end2: '17:00' },
+                'Vendredi': { active: false, start1: '', end1: '', split: false, start2: '', end2: '' }
+            };
 
-        function enregistrerResultatTerrain(terrain, winnerTeamId, loserTeamId, isDraw = false) {
-            const match = currentRotation[terrain === 'A' ? 'terrainA' : 'terrainB'];
-            if (!match || match.played) return;
+            appState.currentDay = getCurrentDayName();
+            appState.cpeConstraints = {
+                'Lundi': { minMorning: 4, minEvening: 4 },
+                'Mardi': { minMorning: 4, minEvening: 4 },
+                'Mercredi': { minMorning: 4, minEvening: 0 },
+                'Jeudi': { minMorning: 4, minEvening: 4 },
+                'Vendredi': { minMorning: 4, minEvening: 4 }
+            };
 
-            match.played = true;
-            const matchInSession = sessionMatches.find(m => m.id === match.id);
-            if (matchInSession) matchInSession.played = true;
-
-            const tA = teams.find(t => t.id === match.teamA);
-            const tB = teams.find(t => t.id === match.teamB);
-
-            if (tA) tA.matchesPlayedInSession = (tA.matchesPlayedInSession || 0) + 1;
-            if (tB) tB.matchesPlayedInSession = (tB.matchesPlayedInSession || 0) + 1;
-
-            if (isDraw) {
-                if (tA) tA.points = (tA.points || 0) + 1;
-                if (tB) tB.points = (tB.points || 0) + 1;
-                showToast(`Match Nul enregistré sur le Terrain ${terrain} (+1 pt chacun)`, "info");
-            } else {
-                const winner = teams.find(t => t.id === winnerTeamId);
-                if (winner) winner.points = (winner.points || 0) + 3;
-                showToast(`Victoire de ${winner ? winner.name : 'l\'équipe'} sur Terrain ${terrain} (+3 pts)`, "success");
-            }
-
-            if (terrain === 'A') currentRotation.playedA = true;
-            if (terrain === 'B') currentRotation.playedB = true;
-
-            // Vérification si la session complète est terminée
-            const remainingUnplayed = sessionMatches.filter(m => !m.played).length;
-            if (remainingUnplayed === 0) {
-                sessionActive = false;
-                showToast("🎉 Fin de séance ! Toutes les équipes se sont rencontrées !", "success");
-            }
-
-            sauvegarderAutomatiquement();
-            renderAll();
-        }
-
-        // --- PERSISTENCE LOCALSTORAGE & EXPORT ---
-        function sauvegarderAutomatiquement() {
-            try {
-                const payload = {
-                    version: 4,
-                    timestamp: new Date().toISOString(),
-                    players: players,
-                    teams: teams,
-                    totalSessionsPlayed: totalSessionsPlayed,
-                    sessionActive: sessionActive,
-                    sessionMatches: sessionMatches,
-                    currentRotation: currentRotation
+            appState.aedBreaks = {};
+            DAYS.forEach(day => {
+                appState.aedBreaks[day] = {
+                    '11h30': [],
+                    '12h00': [],
+                    '12h30': []
                 };
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-            } catch (e) {
-                console.error("Erreur de sauvegarde :", e);
-            }
+            });
+
+            appState.aeds = [
+                { id: 'aed-1', name: 'Sophie MARTIN', contract: 100, isStudent: false, customHours: 40, color: '#4f46e5', presence: JSON.parse(JSON.stringify(defaultPresence)) },
+                { id: 'aed-2', name: 'Lucas BERNARD', contract: 100, isStudent: true, customHours: 35, color: '#059669', presence: JSON.parse(JSON.stringify(defaultPresence)) },
+                { id: 'aed-3', name: 'Camille PETIT', contract: 50, isStudent: true, customHours: 18, color: '#d97706', presence: JSON.parse(JSON.stringify(defaultPresencePartiel)) },
+                { id: 'aed-4', name: 'Karim BENALI', contract: 100, isStudent: false, customHours: 40, color: '#2563eb', presence: JSON.parse(JSON.stringify(defaultPresence)) }
+            ];
+
+            appState.missions = [
+                { id: 'm-1', day: 'Lundi', aedId: 'aed-1', startSlotIndex: 0, endSlotIndex: 1, type: 'Permanence', startTime: '08:00', endTime: '10:10', notes: 'Permanence 1' },
+                { id: 'm-2', day: 'Lundi', aedId: 'aed-1', startSlotIndex: 2, endSlotIndex: 2, type: 'COUR CENTRALE', startTime: '10:10', endTime: '10:25', notes: 'Surveillance récréation' },
+                { id: 'm-3', day: 'Lundi', aedId: 'aed-2', startSlotIndex: 0, endSlotIndex: 1, type: 'Portail/permanence 2', startTime: '08:00', endTime: '10:10', notes: '' },
+                { id: 'm-4', day: 'Lundi', aedId: 'aed-2', startSlotIndex: 6, endSlotIndex: 10, type: 'A1', startTime: '13:25', endTime: '17:35', notes: 'S1 à S4 complet' },
+                { id: 'm-5', day: 'Lundi', aedId: 'aed-3', startSlotIndex: 5, endSlotIndex: 5, type: 'DP', startTime: '12:15', endTime: '13:25', notes: 'Demi-pension' }
+            ];
+            saveState();
         }
 
-        function chargerDepuisLocalStorage() {
-            try {
-                const dataRaw = localStorage.getItem(STORAGE_KEY);
-                if (dataRaw) {
-                    const parsed = JSON.parse(dataRaw);
-                    if (parsed && Array.isArray(parsed.players) && Array.isArray(parsed.teams)) {
-                        players = parsed.players;
-                        teams = parsed.teams;
-                        totalSessionsPlayed = parsed.totalSessionsPlayed || 0;
-                        sessionActive = !!parsed.sessionActive;
-                        sessionMatches = parsed.sessionMatches || [];
-                        currentRotation = parsed.currentRotation || { terrainA: null, terrainB: null };
-                        return true;
+        function renderAll() {
+            renderCPEValues();
+            renderDayTabs();
+            renderBreaksBar();
+            renderMatrix();
+            renderAEDCards();
+            renderEquityDashboard();
+            updateBadges();
+        }
+
+        window.onload = function() {
+            populateSlotDropdowns();
+            populateMissionTypeDropdown();
+            renderPresenceFormFields();
+            initFirebaseSync();
+
+            // Fermer les menus déroulants lors d'un clic à l'extérieur
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.relative')) {
+                    ['11h30', '12h00', '12h30'].forEach(timeSlot => {
+                        const dd = document.getElementById(`break-dropdown-${timeSlot}`);
+                        if (dd) dd.classList.add('hidden');
+                    });
+                }
+            });
+        };
+
+        /* Gestion des Pauses des AEDs */
+        function renderBreaksBar() {
+            initAedBreaks();
+            const dayBreaks = appState.aedBreaks[appState.currentDay] || { '11h30': [], '12h00': [], '12h30': [] };
+            
+            // Récupérer les AEDs présents le jour sélectionné
+            const activeAeds = (appState.aeds || []).filter(aed => 
+                aed.presence && aed.presence[appState.currentDay] && aed.presence[appState.currentDay].active
+            );
+
+            ['11h30', '12h00', '12h30'].forEach(timeSlot => {
+                const listEl = document.getElementById(`break-list-${timeSlot}`);
+                const dropdownEl = document.getElementById(`break-dropdown-${timeSlot}`);
+                if (!listEl || !dropdownEl) return;
+
+                const assignedAedIds = dayBreaks[timeSlot] || [];
+
+                // Affichage des badges AEDs en pause
+                if (assignedAedIds.length === 0) {
+                    listEl.innerHTML = `<span class="text-[10px] text-slate-400 italic font-medium py-1">Aucune pause</span>`;
+                } else {
+                    listEl.innerHTML = assignedAedIds.map(aedId => {
+                        const aed = (appState.aeds || []).find(a => a.id === aedId);
+                        if (!aed) return '';
+                        return `
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-bold shadow-sm text-white" style="background-color: ${aed.color}">
+                                <span>${escapeHtml(aed.name)}</span>
+                                <button onclick="removeAedFromBreak('${timeSlot}', '${aed.id}')" class="hover:text-red-200 text-[10px] ml-0.5 focus:outline-none" title="Supprimer la pause">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </span>
+                        `;
+                    }).join('');
+                }
+
+                // Génération des éléments du menu déroulant (AEDs non encore affectés à cet horaire)
+                const availableAeds = activeAeds.filter(aed => !assignedAedIds.includes(aed.id));
+                if (availableAeds.length === 0) {
+                    dropdownEl.innerHTML = `<div class="px-3 py-1.5 text-[11px] text-slate-400 font-medium">Aucun AED disponible</div>`;
+                } else {
+                    dropdownEl.innerHTML = availableAeds.map(aed => `
+                        <button onclick="addAedToBreak('${timeSlot}', '${aed.id}')" class="w-full text-left px-3 py-1.5 hover:bg-slate-100 font-medium flex items-center gap-2 text-slate-700">
+                            <span class="w-2.5 h-2.5 rounded-full inline-block" style="background-color: ${aed.color}"></span>
+                            <span class="truncate">${escapeHtml(aed.name)}</span>
+                        </button>
+                    `).join('');
+                }
+            });
+        }
+
+        function toggleBreakDropdown(timeSlot) {
+            ['11h30', '12h00', '12h30'].forEach(slot => {
+                const dd = document.getElementById(`break-dropdown-${slot}`);
+                if (dd) {
+                    if (slot === timeSlot) {
+                        dd.classList.toggle('hidden');
+                    } else {
+                        dd.classList.add('hidden');
                     }
                 }
-            } catch (e) {
-                console.error("Erreur de chargement :", e);
+            });
+        }
+
+        function addAedToBreak(timeSlot, aedId) {
+            initAedBreaks();
+            const dayBreaks = appState.aedBreaks[appState.currentDay];
+            if (!dayBreaks[timeSlot]) dayBreaks[timeSlot] = [];
+
+            if (!dayBreaks[timeSlot].includes(aedId)) {
+                dayBreaks[timeSlot].push(aedId);
+                saveState();
+                renderBreaksBar();
             }
+
+            const dropdownEl = document.getElementById(`break-dropdown-${timeSlot}`);
+            if (dropdownEl) dropdownEl.classList.add('hidden');
+        }
+
+        function removeAedFromBreak(timeSlot, aedId) {
+            initAedBreaks();
+            const dayBreaks = appState.aedBreaks[appState.currentDay];
+            if (dayBreaks[timeSlot]) {
+                dayBreaks[timeSlot] = dayBreaks[timeSlot].filter(id => id !== aedId);
+                saveState();
+                renderBreaksBar();
+            }
+        }
+
+        /* Mise à jour des Badges Portail & Permanence */
+        function updateBadges() {
+            const portailBadge = document.getElementById('realtime-portail-status');
+            const permanenceBadge = document.getElementById('realtime-permanence-status');
+
+            const now = new Date();
+            const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+
+            const activeDayMissions = (appState.missions || []).filter(m => m.day === appState.currentDay);
+            const portailAeds = [];
+            const permanenceAeds = [];
+
+            activeDayMissions.forEach(m => {
+                const startM = timeToMinutes(m.startTime);
+                const endM = timeToMinutes(m.endTime);
+                
+                if (currentMinutes >= startM && currentMinutes < endM) {
+                    const aedObj = (appState.aeds || []).find(a => a.id === m.aedId);
+                    if (aedObj) {
+                        if (m.type === 'Portail/permanence 2') {
+                            portailAeds.push(aedObj);
+                        } else if (m.type === 'Permanence') {
+                            permanenceAeds.push(aedObj);
+                        }
+                    }
+                }
+            });
+
+            if (portailBadge) {
+                if (portailAeds.length > 0) {
+                    const names = portailAeds.map(a => `<span class="font-bold underline decoration-2">${escapeHtml(a.name)}</span>`).join(', ');
+                    portailBadge.innerHTML = `<span class="bg-blue-600 text-white px-1.5 py-0.5 rounded font-extrabold mr-1 text-[10px]">${portailAeds.length}</span> ${names}`;
+                } else {
+                    portailBadge.textContent = "Aucun AED";
+                }
+            }
+
+            if (permanenceBadge) {
+                if (permanenceAeds.length > 0) {
+                    const names = permanenceAeds.map(a => `<span class="font-bold underline decoration-2">${escapeHtml(a.name)}</span>`).join(', ');
+                    permanenceBadge.innerHTML = `<span class="bg-amber-500 text-white px-1.5 py-0.5 rounded font-extrabold mr-1 text-[10px]">${permanenceAeds.length}</span> ${names}`;
+                } else {
+                    permanenceBadge.textContent = "Aucun AED";
+                }
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            if (toast && msgEl) {
+                msgEl.textContent = message;
+                toast.classList.remove('hidden');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 3000);
+            }
+        }
+
+        function renderCPEValues() {
+            initCpeConstraints();
+            const dayConstraints = appState.cpeConstraints[appState.currentDay] || { minMorning: 4, minEvening: 4 };
+            document.getElementById('cpe-min-morning').textContent = dayConstraints.minMorning;
+
+            const eveningContainer = document.getElementById('cpe-evening-container');
+            const eveningVal = document.getElementById('cpe-min-evening');
+
+            if (appState.currentDay === 'Mercredi') {
+                if (eveningContainer) eveningContainer.classList.add('hidden');
+            } else {
+                if (eveningContainer) eveningContainer.classList.remove('hidden');
+                if (eveningVal) eveningVal.textContent = dayConstraints.minEvening;
+            }
+        }
+
+        function changeCPEThreshold(type, val) {
+            initCpeConstraints();
+            const day = appState.currentDay;
+            if (!appState.cpeConstraints[day]) {
+                appState.cpeConstraints[day] = { minMorning: 4, minEvening: 4 };
+            }
+            appState.cpeConstraints[day][type] = Math.max(0, (appState.cpeConstraints[day][type] || 0) + val);
+            saveState();
+            renderCPEValues();
+            renderMatrix();
+        }
+
+        function switchMainTab(tab) {
+            const gridSec = document.getElementById('section-grid');
+            const aedSec = document.getElementById('section-aed');
+            const equitySec = document.getElementById('section-equity');
+
+            const gridBtn = document.getElementById('nav-grid-btn');
+            const aedBtn = document.getElementById('nav-aed-btn');
+            const equityBtn = document.getElementById('nav-equity-btn');
+
+            const mGridBtn = document.getElementById('mobile-nav-grid-btn');
+            const mAedBtn = document.getElementById('mobile-nav-aed-btn');
+            const mEquityBtn = document.getElementById('mobile-nav-equity-btn');
+
+            gridSec.classList.add('hidden');
+            aedSec.classList.add('hidden');
+            equitySec.classList.add('hidden');
+
+            const inactiveClass = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-indigo-100 hover:text-white hover:bg-indigo-600/50 transition-all duration-200 whitespace-nowrap";
+            const activeClass = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 bg-white text-indigo-800 shadow whitespace-nowrap";
+
+            gridBtn.className = inactiveClass;
+            aedBtn.className = inactiveClass;
+            equityBtn.className = inactiveClass;
+
+            const mInactive = "flex flex-col items-center justify-center gap-0.5 text-slate-500 font-medium transition";
+            const mActive = "flex flex-col items-center justify-center gap-0.5 text-indigo-600 font-bold transition";
+
+            mGridBtn.className = mInactive;
+            mAedBtn.className = mInactive;
+            mEquityBtn.className = mInactive;
+
+            if (tab === 'grid') {
+                gridSec.classList.remove('hidden');
+                gridBtn.className = activeClass;
+                mGridBtn.className = mActive;
+                renderMatrix();
+            } else if (tab === 'aed') {
+                aedSec.classList.remove('hidden');
+                aedBtn.className = activeClass;
+                mAedBtn.className = mActive;
+                renderAEDCards();
+            } else if (tab === 'equity') {
+                equitySec.classList.remove('hidden');
+                equityBtn.className = activeClass;
+                mEquityBtn.className = mActive;
+                renderEquityDashboard();
+            }
+        }
+
+        function renderDayTabs() {
+            const container = document.getElementById('day-tabs');
+            container.innerHTML = DAYS.map(day => {
+                const isActive = appState.currentDay === day;
+                return `
+                    <button onclick="selectDay('${day}')" class="flex-1 sm:flex-none px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-150 whitespace-nowrap ${
+                        isActive ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }">
+                        ${day}
+                    </button>
+                `;
+            }).join('');
+
+            document.getElementById('print-day-title').textContent = `Jour : ${appState.currentDay}`;
+        }
+
+        function selectDay(day) {
+            appState.currentDay = day;
+            renderDayTabs();
+            renderBreaksBar();
+            renderMatrix();
+        }
+
+        function populateSlotDropdowns() {
+            const startSelect = document.getElementById('mission-start-slot');
+            const endSelect = document.getElementById('mission-end-slot');
+
+            const optionsHTML = SLOTS.map((slot, index) => 
+                `<option value="${index}">${slot.label} (${slot.start} - ${slot.end})</option>`
+            ).join('');
+
+            startSelect.innerHTML = optionsHTML;
+            endSelect.innerHTML = optionsHTML;
+        }
+
+        function populateMissionTypeDropdown() {
+            const select = document.getElementById('mission-type');
+            select.innerHTML = Object.keys(MISSION_TYPES).map(key => 
+                `<option value="${key}">${MISSION_TYPES[key].name}</option>`
+            ).join('');
+        }
+
+        function getAEDTargetHours(aed) {
+            if (aed.isStudent && aed.customHours) {
+                return parseFloat(aed.customHours);
+            }
+            return CONTRACT_HOURS[aed.contract] || 40;
+        }
+
+        function calculateAEDPresenceHours(aed) {
+            if (!aed.presence) return 0;
+            let totalMinutes = 0;
+            DAYS.forEach(day => {
+                const p = aed.presence[day];
+                if (p && p.active) {
+                    if (p.start1 && p.end1) {
+                        const m1 = timeToMinutes(p.end1) - timeToMinutes(p.start1);
+                        if (m1 > 0) totalMinutes += m1;
+                    }
+                    if (p.split && p.start2 && p.end2) {
+                        const m2 = timeToMinutes(p.end2) - timeToMinutes(p.start2);
+                        if (m2 > 0) totalMinutes += m2;
+                    }
+                }
+            });
+            return totalMinutes / 60;
+        }
+
+        function isAEDPresentAtTime(aed, day, timeStr) {
+            if (!aed.presence || !aed.presence[day] || !aed.presence[day].active) return false;
+            const p = aed.presence[day];
+            const t = timeToMinutes(timeStr);
+            if (p.start1 && p.end1 && t >= timeToMinutes(p.start1) && t <= timeToMinutes(p.end1)) return true;
+            if (p.split && p.start2 && p.end2 && t >= timeToMinutes(p.start2) && t <= timeToMinutes(p.end2)) return true;
             return false;
         }
 
-        function exporterSauvegardeJSON() {
-            if (players.length === 0 && teams.length === 0) {
-                showToast("Aucune donnée à exporter.", "warning");
+        function timeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            const [h, m] = timeStr.split(':').map(Number);
+            return (h * 60) + m;
+        }
+
+        function generateDayScheduleHTML(targetDay, isPrint = false) {
+            const activeAedsForDay = (appState.aeds || []).filter(aed => 
+                aed.presence && aed.presence[targetDay] && aed.presence[targetDay].active
+            );
+
+            if (activeAedsForDay.length === 0) {
+                return '<div class="p-8 text-center text-slate-500 font-medium">Aucun AED de service ce jour-là.</div>';
+            }
+
+            // En-tête avec positionnement sticky
+            let headerHTML = `
+                <th class="p-1 sm:p-3 w-20 sm:w-44 sticky-corner-th font-bold text-slate-700 uppercase tracking-wider text-[9px] sm:text-xs border-r border-b border-slate-300 shadow-sm">
+                    Créneaux / AED
+                </th>
+            `;
+
+            activeAedsForDay.forEach(aed => {
+                const dayP = aed.presence[targetDay];
+                let presenceText = `${dayP.start1 || ''}-${dayP.end1 || ''}`;
+                if (dayP.split && dayP.start2) presenceText += ` / ${dayP.start2}-${dayP.end2}`;
+
+                headerHTML += `
+                    <th class="p-1 sm:p-2 min-w-[90px] sm:min-w-[180px] font-bold border-r border-b border-slate-300 text-center sticky-header-th shadow-sm">
+                        <div class="flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap">
+                            <span class="w-2 h-2 sm:w-3 sm:h-3 rounded-full inline-block shadow-sm" style="background-color: ${aed.color}"></span>
+                            <span class="text-slate-900 font-extrabold text-[11px] sm:text-sm tracking-tight truncate max-w-[80px] sm:max-w-none">${escapeHtml(aed.name)}</span>
+                        </div>
+                        <div class="text-[8px] sm:text-[10px] px-1 py-0.2 rounded-full bg-indigo-50 text-indigo-700 font-medium inline-block whitespace-nowrap">
+                            <i class="fa-regular fa-clock mr-0.5"></i>${presenceText}
+                        </div>
+                    </th>
+                `;
+            });
+
+            const dayMissions = (appState.missions || []).filter(m => m.day === targetDay);
+            let tbodyHTML = '';
+
+            const skipCell = {};
+            activeAedsForDay.forEach(a => skipCell[a.id] = 0);
+
+            SLOTS.forEach((slot, slotIdx) => {
+                let rowBgClass = 'hover:bg-slate-50/80';
+                if (slot.type === 'recre') rowBgClass = 'bg-amber-50/70 border-y border-amber-200/60';
+                if (slot.type === 'pause') rowBgClass = 'bg-slate-100/60';
+
+                const rowId = `slot-row-${slotIdx}`;
+                tbodyHTML += `<tr id="${rowId}" class="${rowBgClass} slot-row transition-colors">`;
+
+                tbodyHTML += `
+                    <td class="p-0.5 sm:p-2 font-semibold border-r border-b border-slate-200 sticky left-0 bg-white z-10 shadow-sm align-middle cursor-pointer" onclick="toggleRowHighlight('${rowId}')">
+                        <div class="flex flex-row items-center gap-1 sm:gap-2 justify-between sm:justify-start">
+                            <span class="px-1 sm:px-2 py-0.2 rounded text-[9px] sm:text-xs font-extrabold ${
+                                slot.type === 'recre' ? 'bg-amber-200 text-amber-900 border border-amber-300' : (slot.type === 'pause' ? 'bg-slate-200 text-slate-700' : 'bg-indigo-100 text-indigo-800')
+                            }">
+                                ${slot.label}
+                            </span>
+                            <span class="text-[8px] sm:text-xs text-slate-500 font-medium whitespace-nowrap hidden sm:inline">
+                                ${slot.start} - ${slot.end}
+                            </span>
+                        </div>
+                    </td>
+                `;
+
+                activeAedsForDay.forEach(aed => {
+                    if (skipCell[aed.id] > 0) {
+                        skipCell[aed.id]--;
+                        return;
+                    }
+
+                    const mission = dayMissions.find(m => m.aedId === aed.id && m.startSlotIndex === slotIdx);
+
+                    if (mission) {
+                        const rowSpan = (mission.endSlotIndex - mission.startSlotIndex) + 1;
+                        skipCell[aed.id] = rowSpan - 1;
+
+                        const styleInfo = MISSION_TYPES[mission.type] || MISSION_TYPES['Permanence'];
+
+                        tbodyHTML += `
+                            <td rowspan="${rowSpan}" class="p-0 border-r border-b border-slate-200 align-top h-full">
+                                <div ${!isPrint ? `onclick="event.stopPropagation(); openMissionModal('${aed.id}', '${mission.id}')"` : ''} 
+                                    class="mission-block w-full p-1 sm:p-1.5 rounded sm:rounded-xl ${styleInfo.bg} ${styleInfo.text} ${styleInfo.border} shadow-sm border cursor-pointer transition-all hover:brightness-105 flex flex-col justify-between overflow-hidden box-border">
+                                    
+                                    <div class="flex flex-col gap-0.5">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-extrabold text-[9px] sm:text-xs tracking-tight flex items-center gap-1 uppercase leading-tight truncate">
+                                                <i class="fa-solid ${styleInfo.icon} text-[8px] sm:text-xs opacity-90 hidden sm:inline"></i>
+                                                ${escapeHtml(styleInfo.name)}
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="text-[8px] sm:text-[11px] font-semibold opacity-95 flex items-center gap-0.5 whitespace-nowrap">
+                                            <i class="fa-regular fa-clock text-[7px] sm:text-[10px] hidden sm:inline"></i> ${mission.startTime} - ${mission.endTime}
+                                            ${rowSpan > 1 ? `<span class="ml-0.5 bg-black/20 px-1 py-0.2 rounded text-[7px] sm:text-[9px] font-bold">${rowSpan}h</span>` : ''}
+                                        </div>
+
+                                        ${mission.notes ? `<div class="text-[8px] sm:text-[10px] font-bold italic opacity-95 leading-tight break-words pt-0.5 border-t border-white/20">${escapeHtml(mission.notes)}</div>` : ''}
+                                    </div>
+                                </div>
+                            </td>
+                        `;
+                    } else {
+                        tbodyHTML += `
+                            <td class="p-0 border-r border-b border-slate-200 align-top">
+                                ${!isPrint ? `
+                                <div onclick="openMissionModal('${aed.id}', null,${slotIdx})" class="w-full h-full cursor-pointer hover:bg-indigo-50/50 group flex items-center justify-center p-0.5">
+                                    <div class="h-full w-full rounded border border-dashed border-slate-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-slate-400 text-[9px] font-medium bg-white/60">
+                                        <i class="fa-solid fa-plus text-[8px]"></i>
+                                    </div>
+                                </div>` : ''}
+                            </td>
+                        `;
+                    }
+                });
+
+                tbodyHTML += `</tr>`;
+            });
+
+            return `
+                <table class="w-full border-collapse text-left text-xs sm:text-sm">
+                    <thead>
+                        <tr class="bg-slate-100/80 text-slate-700 border-b border-slate-200">${headerHTML}</tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">${tbodyHTML}</tbody>
+                </table>
+            `;
+        }
+
+        function renderMatrix() {
+            renderCPEValues();
+            const headerRow = document.getElementById('matrix-header-row');
+            const tbody = document.getElementById('matrix-body');
+            const warningBox = document.getElementById('no-aed-warning');
+            const alertsBar = document.getElementById('cpe-alerts-bar');
+            
+            const desktopWrapper = document.getElementById('desktop-matrix-wrapper');
+
+            const activeAeds = (appState.aeds || []).filter(aed => 
+                aed.presence && aed.presence[appState.currentDay] && aed.presence[appState.currentDay].active
+            );
+
+            if (activeAeds.length === 0) {
+                headerRow.innerHTML = '';
+                tbody.innerHTML = '';
+                warningBox.classList.remove('hidden');
+                alertsBar.classList.add('hidden');
+                updateBadges();
+                return;
+            }
+            warningBox.classList.add('hidden');
+
+            if (desktopWrapper) desktopWrapper.classList.remove('hidden');
+
+            let morningCount = 0;
+            let eveningCount = 0;
+            (appState.aeds || []).forEach(aed => {
+                if (isAEDPresentAtTime(aed, appState.currentDay, '08:00')) morningCount++;
+                if (isAEDPresentAtTime(aed, appState.currentDay, '17:00')) eveningCount++;
+            });
+
+            initCpeConstraints();
+            const dayConstraints = appState.cpeConstraints[appState.currentDay] || { minMorning: 4, minEvening: 4 };
+
+            let alertsHTML = '';
+            if (dayConstraints.minMorning > 0 && morningCount < dayConstraints.minMorning) {
+                alertsHTML += `<div class="bg-rose-50 border-l-4 border-rose-500 p-2 sm:p-3 rounded-r-xl text-xs text-rose-800 flex items-center justify-between shadow-sm">
+                    <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i><strong>Alerte Matin (08h) [${appState.currentDay}] :</strong> ${morningCount}/${dayConstraints.minMorning} présent(s).</span>
+                </div>`;
+            }
+            
+            if (appState.currentDay !== 'Mercredi' && dayConstraints.minEvening > 0 && eveningCount < dayConstraints.minEvening) {
+                alertsHTML += `<div class="bg-rose-50 border-l-4 border-rose-500 p-2 sm:p-3 rounded-r-xl text-xs text-rose-800 flex items-center justify-between shadow-sm">
+                    <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i><strong>Alerte Soir (17h) [${appState.currentDay}] :</strong> ${eveningCount}/${dayConstraints.minEvening} présent(s).</span>
+                </div>`;
+            }
+
+            if (alertsHTML) {
+                alertsBar.innerHTML = alertsHTML;
+                alertsBar.classList.remove('hidden');
+            } else {
+                alertsBar.classList.add('hidden');
+            }
+
+            const html = generateDayScheduleHTML(appState.currentDay, false);
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            const tableElem = doc.querySelector('table');
+            if(tableElem) {
+                headerRow.innerHTML = doc.querySelector('thead tr').innerHTML;
+                tbody.innerHTML = doc.querySelector('tbody').innerHTML;
+            } else {
+                headerRow.innerHTML = '';
+                tbody.innerHTML = '';
+            }
+
+            updateBadges();
+        }
+
+        function triggerPrintSelected() {
+            const mode = document.getElementById('print-mode-select').value;
+            triggerPrint(mode);
+        }
+
+        function triggerPrint(mode) {
+            const multiContainer = document.getElementById('print-multi-container');
+            const screenContainer = document.getElementById('screen-schedule-container');
+
+            if (mode === 'all') {
+                screenContainer.classList.add('print:hidden');
+                multiContainer.classList.remove('hidden');
+                
+                let fullHTML = '';
+                DAYS.forEach((day, index) => {
+                    const isLast = index === DAYS.length - 1;
+                    fullHTML += `
+                        <div class="print-single-page ${!isLast ? 'print-page-break' : ''} bg-white p-1">
+                            <div class="border-b-2 border-indigo-600 pb-1 mb-1">
+                                <h2 class="text-lg font-bold text-slate-900">Collège - Planning des Postes Vie Scolaire</h2>
+                                <p class="text-xs font-semibold text-indigo-700">Jour : ${day}</p>
+                            </div>
+                            ${generateDayScheduleHTML(day, true)}
+                        </div>
+                    `;
+                });
+                multiContainer.innerHTML = fullHTML;
+            } else {
+                screenContainer.classList.remove('print:hidden');
+                multiContainer.classList.add('hidden');
+                multiContainer.innerHTML = '';
+            }
+
+            window.print();
+        }
+
+        function toggleStudentQuick(aedId) {
+            const aed = appState.aeds.find(a => a.id === aedId);
+            if(aed) {
+                aed.isStudent = !aed.isStudent;
+                if(aed.isStudent && !aed.customHours) {
+                    aed.customHours = CONTRACT_HOURS[aed.contract] || 40;
+                }
+                saveState();
+                renderAEDCards();
+                renderMatrix();
+                showToast(`Statut étudiant mis à jour (${aed.name}).`);
+            }
+        }
+
+        function renderAEDCards() {
+            const container = document.getElementById('aed-cards-container');
+            if (!container) return;
+
+            if (!appState.aeds || appState.aeds.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full p-8 bg-white rounded-2xl border border-slate-200 text-center text-slate-500">
+                        Aucun AED enregistré. Cliquez sur "+ Nouvel AED" pour démarrer.
+                    </div>
+                `;
                 return;
             }
 
-            const dataToExport = {
-                appName: "TournoiFoot",
-                exportDate: new Date().toISOString(),
-                players: players,
-                teams: teams,
-                totalSessionsPlayed: totalSessionsPlayed,
-                sessionActive: sessionActive,
-                sessionMatches: sessionMatches,
-                currentRotation: currentRotation
-            };
+            container.innerHTML = appState.aeds.map(aed => {
+                const targetHours = getAEDTargetHours(aed);
+                const presenceHours = calculateAEDPresenceHours(aed);
+                const diffPresence = presenceHours - targetHours;
 
-            const jsonStr = JSON.stringify(dataToExport, null, 2);
-            const blob = new Blob([jsonStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
+                let presenceStatus = '';
+                if (Math.abs(diffPresence) < 0.1) {
+                    presenceStatus = `<span class="text-emerald-600 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Conforme (${presenceHours}h)</span>`;
+                } else if (diffPresence < 0) {
+                    presenceStatus = `<span class="text-rose-600 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> Incomplet (${presenceHours}h / ${targetHours}h)</span>`;
+                } else {
+                    presenceStatus = `<span class="text-amber-600 font-bold flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> Surplus (+${diffPresence.toFixed(1)}h)</span>`;
+                }
 
-            const nowStr = new Date().toISOString().slice(0,10);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `sauvegarde_tournoi_foot_${nowStr}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition p-4 sm:p-5 flex flex-col justify-between gap-3 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 right-0 h-1.5" style="background-color: ${aed.color}"></div>
+                        
+                        <div class="flex flex-col gap-3">
+                            <div class="flex justify-between items-start gap-2 pt-1">
+                                <div>
+                                    <h3 class="font-extrabold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                                        ${escapeHtml(aed.name)}
+                                    </h3>
+                                    <span class="text-xs text-slate-500 font-medium">Contrat ${aed.contract}% (${targetHours}h prévues)</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="openAEDModal('${aed.id}')" class="p-2 text-slate-400 hover:text-indigo-600 rounded-xl hover:bg-slate-100 transition" title="Éditer">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button onclick="deleteAED('${aed.id}')" class="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-slate-100 transition" title="Supprimer">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
 
-            showToast("Sauvegarde JSON téléchargée !", "success");
+                            <div class="bg-indigo-50/60 border border-indigo-100 p-3 rounded-xl flex flex-col gap-1">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-600 font-semibold">Présence réelle :</span>
+                                    ${presenceStatus}
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-50 border border-slate-200/80 p-3 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-graduation-cap text-amber-600 text-sm"></i>
+                                    <div>
+                                        <span class="text-xs font-bold text-slate-700 block">Étudiant</span>
+                                        <span class="text-[10px] text-slate-500 font-medium">Quota: ${targetHours}h/sem.</span>
+                                    </div>
+                                </div>
+                                <button onclick="toggleStudentQuick('${aed.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition ${aed.isStudent ? 'bg-amber-500 text-white shadow' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                                    ${aed.isStudent ? 'OUI' : 'NON'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-100 pt-2.5 flex justify-between items-center text-xs text-slate-500 font-medium">
+                            <span>Postes programmés :</span>
+                            <span class="font-bold text-slate-800">${(appState.missions || []).filter(m => m.aedId === aed.id).length}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function importerSauvegardeJSON(event) {
+        function renderPresenceFormFields(aed = null) {
+            const container = document.getElementById('presence-days-container');
+            if (!container) return;
+
+            container.innerHTML = DAYS.map(day => {
+                const dayData = (aed && aed.presence && aed.presence[day]) ? aed.presence[day] : {
+                    active: true, start1: '07:45', end1: '17:00', split: false, start2: '', end2: ''
+                };
+
+                return `
+                    <div class="bg-white p-3 rounded-xl border border-slate-200/80 flex flex-col gap-2 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <label class="inline-flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="pres-active-${day}" ${dayData.active ? 'checked' : ''} class="w-4 h-4 text-indigo-600 rounded">
+                                <span class="text-xs font-bold text-slate-800">${day}</span>
+                            </label>
+
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs text-slate-600">
+                                <input type="checkbox" id="pres-split-${day}" ${dayData.split ? 'checked' : ''} onchange="toggleDaySplit('${day}')" class="w-3.5 h-3.5 text-indigo-600 rounded">
+                                <span class="text-[10px] font-medium">2nd créneau</span>
+                            </label>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                            <div class="flex items-center gap-1 text-[11px]">
+                                <span class="text-slate-500 font-medium w-14">C1:</span>
+                                <input type="time" id="pres-start1-${day}" value="${dayData.start1 || ''}" class="p-1 border rounded-lg text-xs font-medium w-full">
+                                <span>à</span>
+                                <input type="time" id="pres-end1-${day}" value="${dayData.end1 || ''}" class="p-1 border rounded-lg text-xs font-medium w-full">
+                            </div>
+
+                            <div id="slot2-container-${day}" class="${dayData.split ? 'flex' : 'hidden'} items-center gap-1 text-[11px]">
+                                <span class="text-slate-500 font-medium w-14">C2:</span>
+                                <input type="time" id="pres-start2-${day}" value="${dayData.start2 || ''}" class="p-1 border rounded-lg text-xs font-medium w-full">
+                                <span>à</span>
+                                <input type="time" id="pres-end2-${day}" value="${dayData.end2 || ''}" class="p-1 border rounded-lg text-xs font-medium w-full">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleDaySplit(day) {
+            const isChecked = document.getElementById(`pres-split-${day}`).checked;
+            const container = document.getElementById(`slot2-container-${day}`);
+            if (isChecked) {
+                container.classList.remove('hidden');
+                container.classList.add('flex');
+            } else {
+                container.classList.add('hidden');
+                container.classList.remove('flex');
+            }
+        }
+
+        function openAEDModal(aedId = null) {
+            const modal = document.getElementById('aed-modal');
+            const title = document.getElementById('aed-modal-title');
+            
+            if (aedId) {
+                const aed = appState.aeds.find(a => a.id === aedId);
+                if (!aed) return;
+                title.textContent = "Modifier l'AED";
+                document.getElementById('aed-id').value = aed.id;
+                document.getElementById('aed-name').value = aed.name;
+                document.getElementById('aed-contract').value = aed.contract;
+                document.getElementById('aed-is-student').checked = aed.isStudent;
+                document.getElementById('aed-custom-hours').value = aed.customHours || CONTRACT_HOURS[aed.contract];
+                document.getElementById('aed-color').value = aed.color || '#4f46e5';
+                
+                toggleStudentStatus();
+                renderPresenceFormFields(aed);
+            } else {
+                title.textContent = "Ajouter un AED";
+                document.getElementById('aed-id').value = '';
+                document.getElementById('aed-name').value = '';
+                document.getElementById('aed-contract').value = '100';
+                document.getElementById('aed-is-student').checked = false;
+                document.getElementById('aed-custom-hours').value = '40';
+                document.getElementById('aed-color').value = '#4f46e5';
+                
+                toggleStudentStatus();
+                renderPresenceFormFields(null);
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeAEDModal() {
+            document.getElementById('aed-modal').classList.add('hidden');
+        }
+
+        function toggleStudentStatus() {
+            const isStudent = document.getElementById('aed-is-student').checked;
+            const container = document.getElementById('student-hours-container');
+            if (isStudent) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function updateContractHoursPreview() {
+            const contract = document.getElementById('aed-contract').value;
+            if (!document.getElementById('aed-is-student').checked) {
+                document.getElementById('aed-custom-hours').value = CONTRACT_HOURS[contract] || 40;
+            }
+        }
+
+        function saveAED(e) {
+            e.preventDefault();
+            const id = document.getElementById('aed-id').value;
+            const name = document.getElementById('aed-name').value.trim();
+            const contract = parseInt(document.getElementById('aed-contract').value);
+            const isStudent = document.getElementById('aed-is-student').checked;
+            const customHours = parseFloat(document.getElementById('aed-custom-hours').value) || CONTRACT_HOURS[contract];
+            const color = document.getElementById('aed-color').value;
+
+            const presence = {};
+            DAYS.forEach(day => {
+                const split = document.getElementById(`pres-split-${day}`).checked;
+                presence[day] = {
+                    active: document.getElementById(`pres-active-${day}`).checked,
+                    start1: document.getElementById(`pres-start1-${day}`).value,
+                    end1: document.getElementById(`pres-end1-${day}`).value,
+                    split: split,
+                    start2: split ? document.getElementById(`pres-start2-${day}`).value : '',
+                    end2: split ? document.getElementById(`pres-end2-${day}`).value : ''
+                };
+            });
+
+            if (!appState.aeds) appState.aeds = [];
+
+            if (id) {
+                const index = appState.aeds.findIndex(a => a.id === id);
+                if (index !== -1) {
+                    appState.aeds[index] = { id, name, contract, isStudent, customHours, color, presence };
+                }
+            } else {
+                const newId = 'aed-' + Date.now();
+                appState.aeds.push({ id: newId, name, contract, isStudent, customHours, color, presence });
+            }
+
+            saveState();
+            closeAEDModal();
+            renderMatrix();
+            renderAEDCards();
+            renderEquityDashboard();
+            showToast("AED enregistré avec succès.");
+        }
+
+        function deleteAED(id) {
+            if (confirm("Voulez-vous vraiment supprimer cet AED et toutes ses affectations ?")) {
+                appState.aeds = (appState.aeds || []).filter(a => a.id !== id);
+                appState.missions = (appState.missions || []).filter(m => m.aedId !== id);
+                
+                // Nettoyer les pauses associées à cet AED
+                if (appState.aedBreaks) {
+                    DAYS.forEach(day => {
+                        if (appState.aedBreaks[day]) {
+                            ['11h30', '12h00', '12h30'].forEach(slot => {
+                                if (appState.aedBreaks[day][slot]) {
+                                    appState.aedBreaks[day][slot] = appState.aedBreaks[day][slot].filter(aId => aId !== id);
+                                }
+                            });
+                        }
+                    });
+                }
+
+                saveState();
+                renderBreaksBar();
+                renderMatrix();
+                renderAEDCards();
+                renderEquityDashboard();
+                showToast("AED supprimé.");
+            }
+        }
+
+        function openMissionModal(aedId, missionId = null, defaultSlotIndex = 0) {
+            const modal = document.getElementById('mission-modal');
+            const aed = (appState.aeds || []).find(a => a.id === aedId);
+            if (!aed) return;
+
+            document.getElementById('mission-day').value = appState.currentDay;
+            document.getElementById('mission-aed-id').value = aedId;
+            document.getElementById('mission-modal-subtitle').textContent = `${appState.currentDay} • ${aed.name}`;
+
+            const deleteBtn = document.getElementById('btn-delete-mission');
+
+            if (missionId) {
+                const mission = (appState.missions || []).find(m => m.id === missionId);
+                if (!mission) return;
+
+                document.getElementById('mission-id').value = mission.id;
+                document.getElementById('mission-start-slot').value = mission.startSlotIndex;
+                document.getElementById('mission-end-slot').value = mission.endSlotIndex;
+                document.getElementById('mission-type').value = mission.type;
+                document.getElementById('mission-start-time').value = mission.startTime;
+                document.getElementById('mission-end-time').value = mission.endTime;
+                document.getElementById('mission-notes').value = mission.notes || '';
+                deleteBtn.classList.remove('hidden');
+            } else {
+                document.getElementById('mission-id').value = '';
+                document.getElementById('mission-start-slot').value = defaultSlotIndex;
+                document.getElementById('mission-end-slot').value = defaultSlotIndex;
+                document.getElementById('mission-type').value = Object.keys(MISSION_TYPES)[0];
+                document.getElementById('mission-notes').value = '';
+                resetSlotTimes();
+                deleteBtn.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeMissionModal() {
+            document.getElementById('mission-modal').classList.add('hidden');
+        }
+
+        function handleSlotRangeChange() {
+            const startIdx = parseInt(document.getElementById('mission-start-slot').value);
+            let endIdx = parseInt(document.getElementById('mission-end-slot').value);
+
+            if (endIdx < startIdx) {
+                endIdx = startIdx;
+                document.getElementById('mission-end-slot').value = endIdx;
+            }
+
+            document.getElementById('mission-start-time').value = SLOTS[startIdx].start;
+            document.getElementById('mission-end-time').value = SLOTS[endIdx].end;
+        }
+
+        function resetSlotTimes() {
+            handleSlotRangeChange();
+        }
+
+        function saveMission(e) {
+            e.preventDefault();
+            const id = document.getElementById('mission-id').value;
+            const day = document.getElementById('mission-day').value;
+            const aedId = document.getElementById('mission-aed-id').value;
+            const startSlotIndex = parseInt(document.getElementById('mission-start-slot').value);
+            const endSlotIndex = parseInt(document.getElementById('mission-end-slot').value);
+            const type = document.getElementById('mission-type').value;
+            const startTime = document.getElementById('mission-start-time').value;
+            const endTime = document.getElementById('mission-end-time').value;
+            const notes = document.getElementById('mission-notes').value.trim();
+
+            if (!appState.missions) appState.missions = [];
+
+            if (id) {
+                const index = appState.missions.findIndex(m => m.id === id);
+                if (index !== -1) {
+                    appState.missions[index] = { id, day, aedId, startSlotIndex, endSlotIndex, type, startTime, endTime, notes };
+                }
+            } else {
+                const newId = 'm-' + Date.now();
+                appState.missions.push({ id: newId, day, aedId, startSlotIndex, endSlotIndex, type, startTime, endTime, notes });
+            }
+
+            saveState();
+            closeMissionModal();
+            renderMatrix();
+            renderEquityDashboard();
+            showToast("Affectation enregistrée.");
+        }
+
+        function deleteMission() {
+            const id = document.getElementById('mission-id').value;
+            if (id) {
+                appState.missions = (appState.missions || []).filter(m => m.id !== id);
+                saveState();
+                closeMissionModal();
+                renderMatrix();
+                renderEquityDashboard();
+                showToast("Affectation effacée.");
+            }
+        }
+
+        function renderEquityDashboard() {
+            const headerRow = document.getElementById('equity-table-header');
+            const tbody = document.getElementById('equity-table-body');
+            const alertsContainer = document.getElementById('equity-alerts-container');
+
+            if (!headerRow || !tbody || !alertsContainer) return;
+
+            if (!appState.aeds || appState.aeds.length === 0) {
+                headerRow.innerHTML = '';
+                tbody.innerHTML = '<tr><td class="p-4 text-center text-slate-400">Aucune donnée disponible</td></tr>';
+                alertsContainer.innerHTML = '';
+                return;
+            }
+
+            let headerHTML = `<th class="p-3 bg-slate-200/70 font-bold">Postes / Missions</th>`;
+            appState.aeds.forEach(aed => {
+                headerHTML += `<th class="p-3 font-bold text-center border-l border-slate-200">${escapeHtml(aed.name)}</th>`;
+            });
+            headerRow.innerHTML = headerHTML;
+
+            const postSums = {};
+            Object.keys(MISSION_TYPES).forEach(type => {
+                postSums[type] = {};
+                appState.aeds.forEach(aed => postSums[type][aed.id] = 0);
+            });
+
+            (appState.missions || []).forEach(m => {
+                if (postSums[m.type] && postSums[m.type][m.aedId] !== undefined) {
+                    const startM = timeToMinutes(m.startTime);
+                    const endM = timeToMinutes(m.endTime);
+                    if (endM > startM) {
+                        postSums[m.type][m.aedId] += (endM - startM);
+                    }
+                }
+            });
+
+            let tbodyHTML = '';
+            Object.keys(MISSION_TYPES).forEach(typeKey => {
+                const typeObj = MISSION_TYPES[typeKey];
+                tbodyHTML += `<tr class="hover:bg-slate-50">
+                    <td class="p-2.5 font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full ${typeObj.bg}"></span>
+                        ${escapeHtml(typeObj.name)}
+                    </td>`;
+
+                appState.aeds.forEach(aed => {
+                    const minutes = postSums[typeKey][aed.id] || 0;
+                    const hours = (minutes / 60).toFixed(1);
+                    tbodyHTML += `<td class="p-2.5 text-center border-l border-slate-100 font-medium ${minutes > 0 ? 'text-indigo-900 font-bold' : 'text-slate-400'}">
+                        ${minutes > 0 ? `${hours}h` : '-'}
+                    </td>`;
+                });
+
+                tbodyHTML += `</tr>`;
+            });
+
+            tbody.innerHTML = tbodyHTML;
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `planning_vie_scolaire_${new Date().toISOString().slice(0, 10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const parsed = JSON.parse(e.target.result);
-                    if (parsed && Array.isArray(parsed.players) && Array.isArray(parsed.teams)) {
-                        players = parsed.players;
-                        teams = parsed.teams;
-                        totalSessionsPlayed = parsed.totalSessionsPlayed || 0;
-                        sessionActive = !!parsed.sessionActive;
-                        sessionMatches = parsed.sessionMatches || [];
-                        currentRotation = parsed.currentRotation || { terrainA: null, terrainB: null };
-                        
-                        sauvegarderAutomatiquement();
-                        renderAll();
-                        showToast("Sauvegarde JSON chargée avec succès !", "success");
+                    const data = JSON.parse(e.target.result);
+                    if (data && data.aeds && data.missions) {
+                        appState = data;
+                        initCpeConstraints();
+                        initAedBreaks();
+                        saveState();
+                        showToast("Données importées avec succès.");
                     } else {
-                        showToast("Format du fichier JSON invalide.", "error");
+                        alert("Le fichier JSON fourni n'a pas le bon format.");
                     }
                 } catch (err) {
-                    console.error(err);
-                    showToast("Erreur lors de la lecture du fichier JSON.", "error");
+                    alert("Erreur lors de la lecture du fichier JSON.");
                 }
-                event.target.value = '';
             };
             reader.readAsText(file);
         }
 
-        function demanderResetComplet() {
-            document.getElementById('reset-modal').classList.remove('hidden');
-        }
-
-        function fermerResetModal() {
-            document.getElementById('reset-modal').classList.add('hidden');
-        }
-
-        function effectuerResetComplet() {
-            players = [];
-            teams = [];
-            totalSessionsPlayed = 0;
-            sessionActive = false;
-            sessionMatches = [];
-            currentRotation = { terrainA: null, terrainB: null };
-            localStorage.removeItem(STORAGE_KEY);
-            initDefaultTeams();
-            fermerResetModal();
-            renderAll();
-            showToast("Toutes les données ont été réinitialisées.", "info");
-        }
-
-        // --- PARSING EXCEL / CSV ---
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            const labelText = document.getElementById('file-label-text');
-            if (file) {
-                labelText.textContent = file.name;
-            } else {
-                labelText.textContent = "Choisir un fichier Excel (.xlsx) ou CSV";
+        function resetData() {
+            if (confirm("Voulez-vous vraiment réinitialiser toutes les données aux valeurs par défaut ?")) {
+                localStorage.removeItem('aed_timetable_app_v5');
+                seedDefaultData();
+                showToast("Données réinitialisées.");
             }
         }
-
-        function importerExcel() {
-            const fileInput = document.getElementById('excelFile');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                showToast("Veuillez sélectionner un fichier Excel ou CSV.", "warning");
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const firstSheet = workbook.Sheets[firstSheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-
-                    let loadedNames = [];
-                    jsonData.forEach(row => {
-                        if (row && row[0] !== undefined && row[0] !== null) {
-                            const name = String(row[0]).trim();
-                            if (name !== "" && name.toLowerCase() !== "nom" && name.toLowerCase() !== "élèves" && name.toLowerCase() !== "eleves") {
-                                loadedNames.push(name);
-                            }
-                        }
-                    });
-
-                    if (loadedNames.length === 0) {
-                        showToast("Aucun nom d'élève valide trouvé dans la première colonne.", "error");
-                        return;
-                    }
-
-                    let startId = players.length > 0 ? Math.max(...players.map(p => p.id)) + 1 : 1;
-                    let countAdded = 0;
-
-                    loadedNames.forEach(name => {
-                        if (!players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-                            players.push({
-                                id: startId++,
-                                name: name,
-                                teamId: null
-                            });
-                            countAdded++;
-                        }
-                    });
-
-                    initDefaultTeams();
-                    showToast(`${countAdded} élève(s) ajouté(s) à la réserve !`, "success");
-                    renderAll();
-                } catch (err) {
-                    console.error(err);
-                    showToast("Erreur lors de l'analyse du fichier Excel.", "error");
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function reinitialiserTotalPoints() {
-            teams.forEach(t => t.points = 0);
-            sauvegarderAutomatiquement();
-            renderLeaderboard();
-            showToast("Le total des points a été réinitialisé à 0.", "info");
-        }
-
-        function ajouterNouvelleEquipe() {
-            const newId = teams.length > 0 ? Math.max(...teams.map(t => t.id)) + 1 : 1;
-            teams.push({
-                id: newId,
-                name: `Équipe ${newId}`,
-                sessionsPlayed: 0,
-                points: 0,
-                matchesPlayedInSession: 0
-            });
-            showToast(`Nouvelle équipe "${teams[teams.length - 1].name}" ajoutée !`, "success");
-            renderAll();
-        }
-
-        function changerNomEquipe(teamId, newName) {
-            const team = teams.find(t => t.id === teamId);
-            if (team && newName.trim() !== "") {
-                team.name = newName.trim();
-                renderAll();
-            }
-        }
-
-        function supprimerEquipe(teamId) {
-            const team = teams.find(t => t.id === teamId);
-            if (!team) return;
-
-            players.forEach(p => {
-                if (p.teamId === teamId) p.teamId = null;
-            });
-
-            teams = teams.filter(t => t.id !== teamId);
-            showToast(`L'équipe "${team.name}" a été supprimée.`, "info");
-            renderAll();
-        }
-
-        function filtrerSuggestions(teamId, query) {
-            const listContainer = document.getElementById(`suggestions-${teamId}`);
-            if (!listContainer) return;
-
-            if (!query.trim()) {
-                listContainer.innerHTML = '';
-                listContainer.classList.add('hidden');
-                return;
-            }
-
-            const matches = players.filter(p => 
-                p.name.toLowerCase().includes(query.toLowerCase())
-            );
-
-            if (matches.length === 0) {
-                listContainer.innerHTML = `<li class="p-3 text-xs text-slate-500 text-center font-medium">Aucun élève trouvé</li>`;
-                listContainer.classList.remove('hidden');
-                return;
-            }
-
-            listContainer.innerHTML = '';
-            matches.slice(0, 6).forEach(p => {
-                const currentTeam = teams.find(t => t.id === p.teamId);
-                const teamLabel = currentTeam 
-                    ? `<span class="text-amber-400 font-semibold">${currentTeam.name}</span>` 
-                    : `<span class="text-pitch-400 font-semibold">Disponible</span>`;
-                
-                const item = document.createElement('li');
-                item.className = 'touch-btn-sm px-4 py-3 hover:bg-slate-800 cursor-pointer text-xs flex items-center justify-between transition border-b border-slate-800/80 last:border-0';
-                item.innerHTML = `
-                    <span class="font-bold text-slate-200">${p.name}</span>
-                    <span class="text-[10px] bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800">${teamLabel}</span>
-                `;
-                item.onclick = function() {
-                    assignerJoueurAEquipe(p.id, teamId);
-                };
-                listContainer.appendChild(item);
-            });
-
-            listContainer.classList.remove('hidden');
-        }
-
-        function assignerJoueurAEquipe(playerId, targetTeamId) {
-            const player = players.find(p => p.id === playerId);
-            const team = teams.find(t => t.id === targetTeamId);
-            
-            if (player && team) {
-                player.teamId = targetTeamId;
-                showToast(`${player.name} placé dans ${team.name}`, "success");
-                renderAll();
-            }
-        }
-
-        function retirerJoueurDeEquipe(playerId) {
-            const player = players.find(p => p.id === playerId);
-            if (player) {
-                player.teamId = null;
-                showToast(`${player.name} retiré de l'équipe`, "info");
-                renderAll();
-            }
-        }
-
-        // --- RENDERING / AFFICHAGE ---
-        function renderAll() {
-            sauvegarderAutomatiquement();
-            renderTerrains();
-            renderAllTeams();
-            renderLeaderboard();
-            updateStatsBadges();
-        }
-
-        function updateStatsBadges() {
-            document.getElementById('total-players-count').textContent = players.length;
-            const unassigned = players.filter(p => p.teamId === null).length;
-            document.getElementById('unassigned-players-count').textContent = unassigned;
-            document.getElementById('total-teams-count').textContent = teams.length;
-            document.getElementById('total-sessions-played').textContent = totalSessionsPlayed;
-        }
-
-        function renderTerrains() {
-            const terrainAEl = document.getElementById('terrain-a-content');
-            const terrainBEl = document.getElementById('terrain-b-content');
-            const pointsSection = document.getElementById('points-section');
-            const pointsControls = document.getElementById('points-controls');
-            const progressText = document.getElementById('session-progress-text');
-            const progressBar = document.getElementById('session-progress-bar');
-            const statusBadge = document.getElementById('session-status-badge');
-            const endedBanner = document.getElementById('session-ended-banner');
-            const btnNextRound = document.getElementById('btn-next-round');
-            const btnCancelSession = document.getElementById('btn-cancel-session');
-
-            const totalMatches = sessionMatches.length;
-            const playedMatches = sessionMatches.filter(m => m.played).length;
-
-            progressText.textContent = `${playedMatches} / ${totalMatches || 45} matchs joués`;
-            const pct = totalMatches > 0 ? (playedMatches / totalMatches) * 100 : 0;
-            progressBar.style.width = `${pct}%`;
-
-            if (!sessionActive && totalMatches > 0 && playedMatches === totalMatches) {
-                statusBadge.textContent = "Session Terminée";
-                statusBadge.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-900/80 text-emerald-300 border border-emerald-700";
-                endedBanner.classList.remove('hidden');
-                if (btnNextRound) btnNextRound.disabled = true;
-                if (btnCancelSession) btnCancelSession.classList.add('hidden');
-            } else if (sessionActive) {
-                statusBadge.textContent = "Session En Cours";
-                statusBadge.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-900/80 text-amber-300 border border-amber-700";
-                endedBanner.classList.add('hidden');
-                if (btnNextRound) btnNextRound.disabled = false;
-                if (btnCancelSession) btnCancelSession.classList.remove('hidden');
-            } else {
-                statusBadge.textContent = "Session non démarrée";
-                statusBadge.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700";
-                endedBanner.classList.add('hidden');
-                if (btnCancelSession) btnCancelSession.classList.add('hidden');
-            }
-
-            // Terrain A
-            renderSingleTerrain(terrainAEl, currentRotation.terrainA, 'A', currentRotation.playedA);
-            // Terrain B
-            renderSingleTerrain(terrainBEl, currentRotation.terrainB, 'B', currentRotation.playedB);
-
-            // Points section controls
-            pointsControls.innerHTML = '';
-            let hasActiveMatches = false;
-
-            if (currentRotation.terrainA && !currentRotation.playedA) {
-                hasActiveMatches = true;
-                pointsControls.innerHTML += createPointsCard(currentRotation.terrainA, 'A');
-            }
-            if (currentRotation.terrainB && !currentRotation.playedB) {
-                hasActiveMatches = true;
-                pointsControls.innerHTML += createPointsCard(currentRotation.terrainB, 'B');
-            }
-
-            if (hasActiveMatches) {
-                pointsSection.classList.remove('hidden');
-            } else {
-                pointsSection.classList.add('hidden');
-            }
-
-            // Waiting teams calculation
-            renderWaitingTeams();
-        }
-
-        function renderSingleTerrain(container, match, terrainName, isPlayed) {
-            if (!match) {
-                container.innerHTML = `
-                    <p class="text-slate-500 text-sm font-semibold">Aucun match attribué sur Terrain ${terrainName}.</p>
-                    <p class="text-xs text-slate-600 mt-1">Cliquez sur "Lancer le prochain tour aléatoire".</p>
-                `;
-                return;
-            }
-
-            const teamA = teams.find(t => t.id === match.teamA);
-            const teamB = teams.find(t => t.id === match.teamB);
-
-            const playersA = players.filter(p => p.teamId === match.teamA).map(p => p.name).join(', ') || 'Aucun joueur';
-            const playersB = players.filter(p => p.teamId === match.teamB).map(p => p.name).join(', ') || 'Aucun joueur';
-
-            container.innerHTML = `
-                <div class="w-full flex items-center justify-between gap-2 my-2">
-                    <div class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
-                        <div class="font-extrabold text-pitch-400 text-base truncate">${teamA ? teamA.name : 'Équipe A'}</div>
-                        <div class="text-[10px] text-slate-400 truncate mt-0.5">${playersA}</div>
-                    </div>
-                    <div class="px-3 py-1 font-black text-amber-400 text-sm bg-slate-900 rounded-lg border border-slate-800">VS</div>
-                    <div class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
-                        <div class="font-extrabold text-blue-400 text-base truncate">${teamB ? teamB.name : 'Équipe B'}</div>
-                        <div class="text-[10px] text-slate-400 truncate mt-0.5">${playersB}</div>
-                    </div>
-                </div>
-                ${isPlayed ? `<div class="mt-2 text-xs font-bold text-emerald-400 flex items-center justify-center gap-1"><i class="fa-solid fa-circle-check"></i> Résultat enregistré pour ce tour</div>` : ''}
-            `;
-        }
-
-        function createPointsCard(match, terrainName) {
-            const teamA = teams.find(t => t.id === match.teamA);
-            const teamB = teams.find(t => t.id === match.teamB);
-
-            return `
-                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs font-bold px-2.5 py-1 bg-slate-900 text-slate-300 rounded-md border border-slate-800">Terrain ${terrainName}</span>
-                        <span class="text-xs text-amber-400 font-semibold">Match en cours</span>
-                    </div>
-
-                    <div class="flex items-center justify-around font-extrabold text-white text-base mb-4 text-center">
-                        <span class="text-pitch-400">${teamA ? teamA.name : ''}</span>
-                        <span class="text-xs text-slate-500">VS</span>
-                        <span class="text-blue-400">${teamB ? teamB.name : ''}</span>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="enregistrerResultatTerrain('${terrainName}', ${match.teamA}, ${match.teamB}, false)" class="touch-btn bg-pitch-600 hover:bg-pitch-500 active:bg-pitch-700 text-white text-xs font-bold rounded-xl transition flex flex-col items-center justify-center py-2 shadow-md">
-                            <span>Gagnant</span>
-                            <span class="text-[10px] opacity-80">${teamA ? teamA.name : ''}</span>
-                        </button>
-
-                        <button onclick="enregistrerResultatTerrain('${terrainName}', null, null, true)" class="touch-btn bg-accent-600 hover:bg-accent-500 active:bg-accent-700 text-white text-xs font-bold rounded-xl transition flex flex-col items-center justify-center py-2 shadow-md">
-                            <span>Match Nul</span>
-                            <span class="text-[10px] opacity-80">+1 pt chacun</span>
-                        </button>
-
-                        <button onclick="enregistrerResultatTerrain('${terrainName}', ${match.teamB}, ${match.teamA}, false)" class="touch-btn bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex flex-col items-center justify-center py-2 shadow-md">
-                            <span>Gagnant</span>
-                            <span class="text-[10px] opacity-80">${teamB ? teamB.name : ''}</span>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderWaitingTeams() {
-            const container = document.getElementById('waiting-teams-container');
-            const activeTeamIds = [];
-
-            if (currentRotation.terrainA) {
-                activeTeamIds.push(currentRotation.terrainA.teamA, currentRotation.terrainA.teamB);
-            }
-            if (currentRotation.terrainB) {
-                activeTeamIds.push(currentRotation.terrainB.teamA, currentRotation.terrainB.teamB);
-            }
-
-            const waiting = teams.filter(t => !activeTeamIds.includes(t.id));
-
-            if (waiting.length === 0 || activeTeamIds.length === 0) {
-                container.innerHTML = `<span class="text-xs text-slate-500 italic">Aucune rotation active pour le moment</span>`;
-                return;
-            }
-
-            container.innerHTML = waiting.map(t => `
-                <span class="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-800 flex items-center gap-1.5">
-                    <i class="fa-solid fa-shield text-slate-500 text-[10px]"></i>
-                    ${t.name}
-                </span>
-            `).join('');
-        }
-
-        function renderAllTeams() {
-            const container = document.getElementById('all-teams');
-            if (teams.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full py-12 text-center border-2 border-dashed border-slate-800 rounded-2xl">
-                        <p class="text-slate-400 font-medium">Aucune équipe n'existe encore. Cliquez sur "Ajouter une équipe vide".</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = '';
-
-            teams.forEach(team => {
-                const teamPlayers = players.filter(p => p.teamId === team.id);
-                
-                let playersHtml = teamPlayers.map(p => `
-                    <li class="flex items-center justify-between bg-slate-900/90 hover:bg-slate-850 px-3.5 py-2 rounded-xl border border-slate-800/80 transition">
-                        <span class="text-xs font-bold text-slate-200 truncate">👤 ${p.name}</span>
-                        <button onclick="retirerJoueurDeEquipe(${p.id})" title="Retirer de l'équipe" class="touch-btn-sm text-slate-500 hover:text-red-400 transition flex items-center justify-center">
-                            <i class="fa-solid fa-xmark text-sm"></i>
-                        </button>
-                    </li>
-                `).join('');
-
-                container.innerHTML += `
-                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative">
-                        <div>
-                            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-800">
-                                <input 
-                                    type="text" 
-                                    value="${team.name}" 
-                                    onchange="changerNomEquipe(${team.id}, this.value)"
-                                    title="Cliquer pour modifier le nom"
-                                    class="bg-transparent font-extrabold text-slate-100 text-base focus:outline-none focus:bg-slate-900 focus:px-2 focus:py-1 rounded-lg border border-transparent focus:border-pitch-500 w-full truncate"
-                                />
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs font-bold text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800 shrink-0">
-                                        ${teamPlayers.length}
-                                    </span>
-                                    <button onclick="supprimerEquipe(${team.id})" title="Supprimer l'équipe" class="touch-btn-sm text-slate-600 hover:text-red-400 transition flex items-center justify-center">
-                                        <i class="fa-solid fa-trash-can text-sm"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <ul class="space-y-2 mb-4 max-h-56 overflow-y-auto pr-1">
-                                ${playersHtml.length > 0 ? playersHtml : '<li class="text-xs text-slate-500 text-center py-6 italic border border-dashed border-slate-900 rounded-xl">Équipe vide</li>'}
-                            </ul>
-                        </div>
-
-                        <div class="relative mt-2">
-                            <div class="relative">
-                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                                <input 
-                                    type="text" 
-                                    placeholder="🔍 Ajouter un élève..." 
-                                    oninput="filtrerSuggestions(${team.id}, this.value)"
-                                    onfocus="filtrerSuggestions(${team.id}, this.value)"
-                                    class="w-full h-11 bg-slate-900 text-slate-200 text-xs rounded-xl pl-10 pr-3 border border-slate-800 focus:outline-none focus:border-pitch-500 transition"
-                                />
-                            </div>
-                            <ul id="suggestions-${team.id}" class="suggestions-dropdown hidden absolute left-0 right-0 bottom-full mb-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-30 max-h-48 overflow-y-auto">
-                            </ul>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function renderLeaderboard() {
-            const tbody = document.getElementById('leaderboard-body');
-            const filterInput = document.getElementById('leaderboard-filter');
-            const filterQuery = filterInput ? filterInput.value.toLowerCase().trim() : '';
-
-            if (teams.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-500 font-medium">Aucune équipe disponible.</td></tr>`;
-                return;
-            }
-
-            let teamsRanking = teams.map(team => {
-                const teamPlayers = players.filter(p => p.teamId === team.id);
-                return {
-                    id: team.id,
-                    name: team.name,
-                    sessionsPlayed: team.sessionsPlayed || 0,
-                    matchesPlayedInSession: team.matchesPlayedInSession || 0,
-                    playerCount: teamPlayers.length,
-                    points: team.points || 0
-                };
-            });
-
-            let filtered = teamsRanking.filter(t => t.name.toLowerCase().includes(filterQuery));
-            filtered.sort((a, b) => b.points - a.points);
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-500 font-medium">Aucune équipe ne correspond à votre recherche.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = '';
-            filtered.forEach((t, index) => {
-                let rankBadge = `<span class="font-bold text-slate-400 text-sm">#${index + 1}</span>`;
-                if (index === 0) rankBadge = `<span class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 font-black text-sm flex items-center justify-center">🥇</span>`;
-                if (index === 1) rankBadge = `<span class="w-8 h-8 rounded-xl bg-slate-400/20 text-slate-300 border border-slate-400/40 font-black text-sm flex items-center justify-center">🥈</span>`;
-                if (index === 2) rankBadge = `<span class="w-8 h-8 rounded-xl bg-amber-700/20 text-amber-600 border border-amber-700/40 font-black text-sm flex items-center justify-center">🥉</span>`;
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-900/80 transition">
-                        <td class="py-4 px-6">${rankBadge}</td>
-                        <td class="py-4 px-6 font-bold text-slate-100 text-base">
-                            <span class="inline-flex items-center gap-2">
-                                <i class="fa-solid fa-shield text-pitch-500 text-sm"></i>
-                                ${t.name}
-                            </span>
-                        </td>
-                        <td class="py-4 px-6 text-amber-400 text-sm font-bold">${t.sessionsPlayed} séance(s)</td>
-                        <td class="py-4 px-6 text-slate-300 text-sm font-semibold">${t.matchesPlayedInSession} match(s)</td>
-                        <td class="py-4 px-6 text-slate-400 text-sm font-medium">${t.playerCount} joueur(s)</td>
-                        <td class="py-4 px-6 text-right font-black text-pitch-400 text-lg">${t.points} <span class="text-xs font-medium text-slate-500">pts</span></td>
-                    </tr>
-                `;
-            });
-        }
-
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.relative')) {
-                document.querySelectorAll('.suggestions-dropdown').forEach(el => el.classList.add('hidden'));
-            }
-        });
-
-        window.onload = function() {
-            initDefaultTeams();
-            const hasRestored = chargerDepuisLocalStorage();
-            if (hasRestored) {
-                showToast("Dernière session restaurée automatiquement.", "info");
-            }
-            renderAll();
-        };
     </script>
 </body>
 </html>
