@@ -187,6 +187,14 @@
 
     .badge-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 2px 8px; border-radius: 10px; background: rgba(255,255,255,0.1); margin-left: 6px; font-weight: bold; }
 
+    .marche-immo-ticker {
+      background: #1e293b; border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px;
+      padding: 8px 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; font-weight: bold; color: #e2e8f0;
+    }
+    .marche-immo-hausse { color: #38ef7d; font-family: monospace; font-size: 13px; }
+    .marche-immo-baisse { color: #ff453a; font-family: monospace; font-size: 13px; }
+
     .aide-content { font-size: 13px; color: #cbd5e0; line-height: 1.5; overflow-y: auto; max-height: 70vh; padding-right: 6px; }
     .aide-section { background: #1a222d; border-radius: 12px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
     .aide-section-title { font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
@@ -244,7 +252,7 @@
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v4.4.0 (20%/h • 2h Déblocage)</div>
+    <div class="version-tag">v4.4.0 (118 Entreprises • 20%/h • Marché Immo 30m)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -273,8 +281,8 @@
           • 🟢 <strong>Facile</strong> : Multiplications | Gain : +30 000 € | Perte : -10 000 €<br>
           • 🟠 <strong>Intermédiaire</strong> : Multiplications | Gain : +50 000 € | Perte : -10 000 €<br>
           • 🔴 <strong>Difficile</strong> : Multiplications | Gain : +100 000 € | Perte : -10 000 €<br>
-          • 💀 <strong>Extrême (QCM)</strong> : Tables de 4 à 10 | Gain : <strong>+100 000 €</strong> | Perte : -10 000 €<br>
-          • 🔥 <strong>ULTIME</strong> : Additions & Soustractions à 2 chiffres | Gain : <strong>+500 000 €</strong> | Perte : -10 000 €
+          • 💀 <strong>Extrême (QCM)</strong> : Tables de 4 à 10 (3 choix, Min 10 questions) | Gain : +100 000 € | Perte : -10 000 €<br>
+          • 🔥 <strong>ULTIME</strong> : Additions & Soustractions à 2 chiffres (ex: 45+56) | Gain : +500 000 € | Perte : -10 000 €
         </div>
 
         <div class="aide-section">
@@ -285,9 +293,9 @@
 
         <div class="aide-section">
           <div class="aide-section-title">🏢 Immobilier, Malls & Entreprises</div>
-          • <strong>Revenus passifs</strong> : Snacks (+1 000€/h), Hôtels, Malls et Entreprises rapportent <strong>20%/h</strong> automatiquement après <strong>2h d'acquisition</strong>.<br>
-          • <strong>Évolution de la valeur</strong> : L'immobilier augmente/varie en valeur à partir de <strong>3 heures</strong> après l'acquisition.<br>
-          • <strong>Marché Immobilier Dynamique</strong> : Toutes les 30 minutes, le cours varie aléatoirement entre une perte de valeur et jusqu'à <strong>10 000 000%</strong> de plus-value !
+          • <strong>Revenus passifs</strong> : Snacks (+1 000€/h), Hôtels, Malls et Entreprises rapportent <strong>20%/h</strong> automatiquement 2 heures après l'achat !<br>
+          • <strong>Prise de Valeur</strong> : L'immobilier augmente sa valeur à partir de <strong>3 heures</strong> après l'acquisition.<br>
+          • <strong>Marché Immobilier Dynamique</strong> : Toutes les 30 minutes, le taux du marché immobilier varie aléatoirement entre <strong>+5% et +10 000 000%</strong> (attention, le marché peut également baisser et perdre de la valeur !).
         </div>
 
         <div class="aide-section">
@@ -473,6 +481,11 @@
         <button class="btn-close" onclick="fermerHistorique()">✕</button>
       </div>
 
+      <div class="marche-immo-ticker" id="marcheImmoTicker">
+        <span>📈 Tendance Marché Immo (30 min) :</span>
+        <span id="marcheImmoValDisplay" class="marche-immo-hausse">+0%</span>
+      </div>
+
       <div class="categories-tabs" id="tabsClassementGroupe" style="margin-bottom: 10px;">
         <button class="tab-btn active" id="btnTabClassementTous" onclick="changerOngletClassement('tous')">🌐 Tous</button>
         <button class="tab-btn" id="btnTabClassementFamille" onclick="changerOngletClassement('famille')">👨‍👩‍👧‍👦 Famille</button>
@@ -582,6 +595,14 @@
       lastTouchEnd = now;
     }, false);
 
+    const PIN_HASH_MAP = {
+      "0b82b3d681d6aa0274291c98db182245b058eb7b830d93708453ae66a9876798": "Yves",
+      "c67160ad3df65d4b4a1c5d4fb17502755f190c1f4e1f7c32b509ebed8a018247": "Terrance",
+      "7bf41e065bf639ddbe2a281ff9281a629b3ee33b1e754fb7128edfa58a74e5ea": "Lamar",
+      "56f108f972049e3776b23b4f6274474936d07e68fa707efd25718dfb8416d6ff": "Marjo",
+      "f1807d96a7ee007d4b4fb24e4d5804aa1f79f40076a084bcbb53158cfa40a7cf": "Joyce"
+    };
+
     let USERS_LIST = [
       { pin: "0712", nom: "Yves", groupe: "Famille" },
       { pin: "2807", nom: "Terrance", groupe: "Famille" },
@@ -627,47 +648,44 @@
       return "Famille";
     }
 
+    function estJoueurProtege(nom) {
+      if (!nom) return false;
+      const n = nom.trim().toLowerCase();
+      return n === "terrance" || n === "joyce";
+    }
+
+    async function hashPin(str) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(str);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
     let pinSaisi = "";
     let lastUserValide = "";
     let lastPinValide = "";
     let blocageSaisie = false;
     let actionApresPin = "";
-    let panierCourant = [];
     let tousLesTickets = [];
     let comptesComplets = {};
     let possessionsImmo = {};
+    let joueurSelectionneVueDetail = null;
     let filtreClassementActif = "tous";
 
+    let marcheImmoPct = 0;
+
     let niveauQuizActif = "facile";
+    let chronoMaxParQuestion = 10;
     let gainParQuestion = 30000;
     let perteParQuestion = 10000;
+    let questionsJoueesDansSession = 0;
+    let gainsSessionQuiz = 0;
+    let questionActiveCourante = null;
     let tempsRestant = 10;
     let intervalChrono = null;
-    let questionActiveCourante = null;
 
-    // VARIABLE DE VARIATION DU MARCHE IMMOBILIER (VARIATION ALEATOIRE DE -50% A +10 000 000%)
-    let facteurVariationMarche = 1.0;
-
-    function actualiserMarcheImmobilier() {
-      // Fluctuation aléatoire toutes les 30 min
-      const estPerte = Math.random() < 0.25; // 25% de chance de perte
-      if (estPerte) {
-        // Dépréciation entre 5% (-0.05) et 80% (-0.80)
-        facteurVariationMarche = 1.0 - (0.05 + Math.random() * 0.75);
-      } else {
-        // Plus-value entre 5% (+0.05) et 10 000 000% (+100000)
-        const minVal = 0.05;
-        const maxVal = 100000.0;
-        const gainPourcent = minVal + Math.pow(Math.random(), 4) * (maxVal - minVal);
-        facteurVariationMarche = 1.0 + gainPourcent;
-      }
-    }
-
-    // Lancement de l'actualisation toutes les 30 minutes (1 800 000 ms)
-    setInterval(actualiserMarcheImmobilier, 30 * 60 * 1000);
-    actualiserMarcheImmobilier();
-
-    // BASE D'ARTICLES (20%/H • DEBLOCAGE 2h)
+    // BASE D'ARTICLES : AUTOMOBILES, IMMOBILIER & 118 GROSSES ENTREPRISES (REVENUS PASSIFS A 20%/H APRES 2H)
     let baseArticles = [
       // AUTOMOBILES
       { id: 801, cat: "Automobiles", emoji: "🚗", nom: "Audi A3 Sportback", prix: 36790.00 },
@@ -705,7 +723,7 @@
       { id: 513, cat: "Immobilier Marseille", emoji: "🚘", nom: "Garage 5 voitures", prix: 50000.00, immoKey: "garage5", capaciteGarage: 5 },
       { id: 514, cat: "Immobilier Marseille", emoji: "🏎", nom: "Garage 20 voitures", prix: 150000.00, immoKey: "garage20", capaciteGarage: 20 },
 
-      // ENTREPRISES CONNUES (20%/H APRES 2h D'ACQUISITION)
+      // ENTREPRISES CONNUES (118 ENTREPRISES AU TOTAL • 20%/H APRES 2H)
       { id: 901, cat: "Entreprises Connues", emoji: "🍎", nom: "Apple Inc.", prix: 3400000000000.00, immoKey: "ent_apple", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 902, cat: "Entreprises Connues", emoji: "💻", nom: "Microsoft", prix: 3100000000000.00, immoKey: "ent_msft", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 903, cat: "Entreprises Connues", emoji: "👁️", nom: "NVIDIA", prix: 3200000000000.00, immoKey: "ent_nvda", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
@@ -720,446 +738,1111 @@
       { id: 912, cat: "Entreprises Connues", emoji: "🍟", nom: "McDonald's", prix: 220000000000.00, immoKey: "ent_mcd", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 913, cat: "Entreprises Connues", emoji: "👟", nom: "Nike", prix: 130000000000.00, immoKey: "ent_nike", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 914, cat: "Entreprises Connues", emoji: "☕", nom: "Starbucks", prix: 110000000000.00, immoKey: "ent_sbux", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 915, cat: "Entreprises Connues", emoji: "🎮", nom: "Sony Group", prix: 110000000000.00, immoKey: "ent_sony", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true }
+      { id: 915, cat: "Entreprises Connues", emoji: "🧬", nom: "Eli Lilly", prix: 850000000000.00, immoKey: "ent_lly", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 916, cat: "Entreprises Connues", emoji: "💊", nom: "Novo Nordisk", prix: 550000000000.00, immoKey: "ent_nvo", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 917, cat: "Entreprises Connues", emoji: "💉", nom: "Pfizer", prix: 160000000000.00, immoKey: "ent_pfe", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 918, cat: "Entreprises Connues", emoji: "💳", nom: "Visa", prix: 570000000000.00, immoKey: "ent_v", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 919, cat: "Entreprises Connues", emoji: "💳", nom: "Mastercard", prix: 450000000000.00, immoKey: "ent_ma", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 920, cat: "Entreprises Connues", emoji: "🏦", nom: "JPMorgan Chase", prix: 590000000000.00, immoKey: "ent_jpm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 921, cat: "Entreprises Connues", emoji: "📈", nom: "Berkshire Hathaway", prix: 980000000000.00, immoKey: "ent_brk", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 922, cat: "Entreprises Connues", emoji: "🛢️", nom: "ExxonMobil", prix: 480000000000.00, immoKey: "ent_xom", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 923, cat: "Entreprises Connues", emoji: "🇸🇦", nom: "Saudi Aramco", prix: 1800000000000.00, immoKey: "ent_aramco", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 924, cat: "Entreprises Connues", emoji: "🛒", nom: "Walmart", prix: 630000000000.00, immoKey: "ent_wmt", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 925, cat: "Entreprises Connues", emoji: "🏭", nom: "TSMC", prix: 880000000000.00, immoKey: "ent_tsm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 926, cat: "Entreprises Connues", emoji: "🔬", nom: "ASML", prix: 350000000000.00, immoKey: "ent_asml", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 927, cat: "Entreprises Connues", emoji: "📲", nom: "Samsung Electronics", prix: 390000000000.00, immoKey: "ent_samsung", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 928, cat: "Entreprises Connues", emoji: "💾", nom: "Oracle", prix: 420000000000.00, immoKey: "ent_orcl", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 929, cat: "Entreprises Connues", emoji: "🔴", nom: "AMD", prix: 240000000000.00, immoKey: "ent_amd", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 930, cat: "Entreprises Connues", emoji: "📶", nom: "Qualcomm", prix: 190000000000.00, immoKey: "ent_qcom", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 931, cat: "Entreprises Connues", emoji: "🎨", nom: "Adobe", prix: 220000000000.00, immoKey: "ent_adbe", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 932, cat: "Entreprises Connues", emoji: "☁️", nom: "Salesforce", prix: 260000000000.00, immoKey: "ent_crm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 933, cat: "Entreprises Connues", emoji: "🎵", nom: "Spotify", prix: 65000000000.00, immoKey: "ent_spot", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 934, cat: "Entreprises Connues", emoji: "🚖", nom: "Uber", prix: 150000000000.00, immoKey: "ent_uber", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 935, cat: "Entreprises Connues", emoji: "✈️", nom: "Airbus", prix: 115000000000.00, immoKey: "ent_airbus", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 936, cat: "Entreprises Connues", emoji: "🏎️", nom: "Ferrari", prix: 75000000000.00, immoKey: "ent_race", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 937, cat: "Entreprises Connues", emoji: "💄", nom: "L'Oréal", prix: 220000000000.00, immoKey: "ent_or", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 938, cat: "Entreprises Connues", emoji: "🕊️", nom: "Hermès", prix: 230000000000.00, immoKey: "ent_rms", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+
+      // 80 NOUVELLES ENTREPRISES (VALEURS DE 1 MRD A 1000 MRDS €)
+      { id: 939, cat: "Entreprises Connues", emoji: "⛽", nom: "TotalEnergies", prix: 140000000000.00, immoKey: "ent_tte", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 940, cat: "Entreprises Connues", emoji: "🏦", nom: "BNP Paribas", prix: 70000000000.00, immoKey: "ent_bnp", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 941, cat: "Entreprises Connues", emoji: "🛡️", nom: "AXA", prix: 75000000000.00, immoKey: "ent_cs", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 942, cat: "Entreprises Connues", emoji: "💊", nom: "Sanofi", prix: 110000000000.00, immoKey: "ent_san", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 943, cat: "Entreprises Connues", emoji: "⚡", nom: "Schneider Electric", prix: 130000000000.00, immoKey: "ent_su", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 944, cat: "Entreprises Connues", emoji: "🎈", nom: "Air Liquide", prix: 90000000000.00, immoKey: "ent_ai", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 945, cat: "Entreprises Connues", emoji: "🏗️", nom: "Vinci", prix: 60000000000.00, immoKey: "ent_dg", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 946, cat: "Entreprises Connues", emoji: "🕶️", nom: "EssilorLuxottica", prix: 95000000000.00, immoKey: "ent_el", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 947, cat: "Entreprises Connues", emoji: "✈️", nom: "Safran", prix: 85000000000.00, immoKey: "ent_saf", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 948, cat: "Entreprises Connues", emoji: "💎", nom: "Kering", prix: 35000000000.00, immoKey: "ent_ker", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 949, cat: "Entreprises Connues", emoji: "🥛", nom: "Danone", prix: 40000000000.00, immoKey: "ent_bn", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 950, cat: "Entreprises Connues", emoji: "🚘", nom: "Stellantis", prix: 50000000000.00, immoKey: "ent_stla", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 951, cat: "Entreprises Connues", emoji: "🍷", nom: "Pernod Ricard", prix: 35000000000.00, immoKey: "ent_ri", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 952, cat: "Entreprises Connues", emoji: "💻", nom: "Capgemini", prix: 30000000000.00, immoKey: "ent_cap", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 953, cat: "Entreprises Connues", emoji: "🧱", nom: "Saint-Gobain", prix: 40000000000.00, immoKey: "ent_sgb", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 954, cat: "Entreprises Connues", emoji: "💡", nom: "ENGIE", prix: 38000000000.00, immoKey: "ent_engi", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 955, cat: "Entreprises Connues", emoji: "🌾", nom: "Crédit Agricole", prix: 42000000000.00, immoKey: "ent_aca", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 956, cat: "Entreprises Connues", emoji: "🔴", nom: "Société Générale", prix: 22000000000.00, immoKey: "ent_gle", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 957, cat: "Entreprises Connues", emoji: "📱", nom: "Orange", prix: 28000000000.00, immoKey: "ent_ora", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 958, cat: "Entreprises Connues", emoji: "🛞", nom: "Michelin", prix: 24000000000.00, immoKey: "ent_ml", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 959, cat: "Entreprises Connues", emoji: "🌱", nom: "Veolia", prix: 20000000000.00, immoKey: "ent_vie", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 960, cat: "Entreprises Connues", emoji: "🛒", nom: "Carrefour", prix: 12000000000.00, immoKey: "ent_ca", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 961, cat: "Entreprises Connues", emoji: "📢", nom: "Publicis Groupe", prix: 25000000000.00, immoKey: "ent_pub", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 962, cat: "Entreprises Connues", emoji: "🏢", nom: "Bouygues", prix: 13000000000.00, immoKey: "ent_en", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 963, cat: "Entreprises Connues", emoji: "🛡️", nom: "Thales", prix: 32000000000.00, immoKey: "ent_ho", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 964, cat: "Entreprises Connues", emoji: "🔌", nom: "Legrand", prix: 26000000000.00, immoKey: "ent_lr", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 965, cat: "Entreprises Connues", emoji: "📐", nom: "Dassault Systèmes", prix: 48000000000.00, immoKey: "ent_dsy", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 966, cat: "Entreprises Connues", emoji: "🔬", nom: "STMicroelectronics", prix: 35000000000.00, immoKey: "ent_stmpa", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 967, cat: "Entreprises Connues", emoji: "🏨", nom: "Accor", prix: 10000000000.00, immoKey: "ent_ac", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 968, cat: "Entreprises Connues", emoji: "🚗", nom: "Renault Group", prix: 11000000000.00, immoKey: "ent_rnno", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 969, cat: "Entreprises Connues", emoji: "🎮", nom: "Ubisoft", prix: 2500000000.00, immoKey: "ent_ubi", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 970, cat: "Entreprises Connues", emoji: "🎰", nom: "La Française des Jeux (FDJ)", prix: 7000000000.00, immoKey: "ent_fdj", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 971, cat: "Entreprises Connues", emoji: "📺", nom: "TF1 Groupe", prix: 2000000000.00, immoKey: "ent_tf1", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 972, cat: "Entreprises Connues", emoji: "📺", nom: "M6 Groupe", prix: 1500000000.00, immoKey: "ent_m6", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 973, cat: "Entreprises Connues", emoji: "🍽️", nom: "Sodexo", prix: 12000000000.00, immoKey: "ent_sw", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 974, cat: "Entreprises Connues", emoji: "🎫", nom: "Edenred", prix: 11000000000.00, immoKey: "ent_eden", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 975, cat: "Entreprises Connues", emoji: "✅", nom: "Bureau Veritas", prix: 13000000000.00, immoKey: "ent_bvi", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 976, cat: "Entreprises Connues", emoji: "🏗️", nom: "Eiffage", prix: 10000000000.00, immoKey: "ent_fgr", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 977, cat: "Entreprises Connues", emoji: "🧫", nom: "Eurofins Scientific", prix: 10000000000.00, immoKey: "ent_erf", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 978, cat: "Entreprises Connues", emoji: "🧪", nom: "Arkema", prix: 7000000000.00, immoKey: "ent_ake", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 979, cat: "Entreprises Connues", emoji: "🥃", nom: "Rémy Cointreau", prix: 3500000000.00, immoKey: "ent_rco", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 980, cat: "Entreprises Connues", emoji: "☕", nom: "Groupe SEB", prix: 5000000000.00, immoKey: "ent_sk", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 981, cat: "Entreprises Connues", emoji: "🎧", nom: "Teleperformance", prix: 6000000000.00, immoKey: "ent_tep", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 982, cat: "Entreprises Connues", emoji: "🏢", nom: "Klépierre", prix: 7500000000.00, immoKey: "ent_li", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 983, cat: "Entreprises Connues", emoji: "🏢", nom: "Gecina", prix: 7000000000.00, immoKey: "ent_gfc", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 984, cat: "Entreprises Connues", emoji: "🏙️", nom: "Covivio", prix: 5000000000.00, immoKey: "ent_cov", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 985, cat: "Entreprises Connues", emoji: "💼", nom: "Wendel", prix: 4000000000.00, immoKey: "ent_mf", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 986, cat: "Entreprises Connues", emoji: "🚢", nom: "Bolloré", prix: 16000000000.00, immoKey: "ent_bol", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 987, cat: "Entreprises Connues", emoji: "🎵", nom: "Vivendi", prix: 10000000000.00, immoKey: "ent_viv", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 988, cat: "Entreprises Connues", emoji: "📡", nom: "Iliad (Free)", prix: 9000000000.00, immoKey: "ent_ild", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 989, cat: "Entreprises Connues", emoji: "🚢", nom: "CMA CGM", prix: 40000000000.00, immoKey: "ent_cmacgm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 990, cat: "Entreprises Connues", emoji: "⛺", nom: "Decathlon", prix: 15000000000.00, immoKey: "ent_decath", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 991, cat: "Entreprises Connues", emoji: "🔨", nom: "Leroy Merlin (Adeo)", prix: 18000000000.00, immoKey: "ent_leroy", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 992, cat: "Entreprises Connues", emoji: "🛒", nom: "Groupe Auchan", prix: 8000000000.00, immoKey: "ent_auchan", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 993, cat: "Entreprises Connues", emoji: "🏷️", nom: "E.Leclerc", prix: 25000000000.00, immoKey: "ent_leclerc", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 994, cat: "Entreprises Connues", emoji: "💻", nom: "SAP", prix: 250000000000.00, immoKey: "ent_sap", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 995, cat: "Entreprises Connues", emoji: "⚙️", nom: "Siemens", prix: 140000000000.00, immoKey: "ent_sie", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 996, cat: "Entreprises Connues", emoji: "📞", nom: "Deutsche Telekom", prix: 110000000000.00, immoKey: "ent_dte", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 997, cat: "Entreprises Connues", emoji: "🦅", nom: "Allianz", prix: 100000000000.00, immoKey: "ent_alv", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 998, cat: "Entreprises Connues", emoji: "🚘", nom: "Mercedes-Benz Group", prix: 65000000000.00, immoKey: "ent_mbg", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 999, cat: "Entreprises Connues", emoji: "🏎️", nom: "BMW Group", prix: 55000000000.00, immoKey: "ent_bmw", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1000, cat: "Entreprises Connues", emoji: "🚗", nom: "Volkswagen Group", prix: 50000000000.00, immoKey: "ent_vw", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1001, cat: "Entreprises Connues", emoji: "🏎️", nom: "Porsche AG", prix: 60000000000.00, immoKey: "ent_p911", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1002, cat: "Entreprises Connues", emoji: "👟", nom: "Adidas", prix: 40000000000.00, immoKey: "ent_ads", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1003, cat: "Entreprises Connues", emoji: "📦", nom: "Deutsche Post (DHL)", prix: 45000000000.00, immoKey: "ent_dpw", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1004, cat: "Entreprises Connues", emoji: "🧪", nom: "Bayer", prix: 28000000000.00, immoKey: "ent_bayn", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1005, cat: "Entreprises Connues", emoji: "⚗️", nom: "BASF", prix: 40000000000.00, immoKey: "ent_bas", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1006, cat: "Entreprises Connues", emoji: "👗", nom: "Inditex (Zara)", prix: 140000000000.00, immoKey: "ent_itx", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1007, cat: "Entreprises Connues", emoji: "🏦", nom: "Banco Santander", prix: 70000000000.00, immoKey: "ent_san_es", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1008, cat: "Entreprises Connues", emoji: "🏦", nom: "BBVA", prix: 55000000000.00, immoKey: "ent_bbva", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1009, cat: "Entreprises Connues", emoji: "⚡", nom: "Iberdrola", prix: 75000000000.00, immoKey: "ent_ibe", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1010, cat: "Entreprises Connues", emoji: "💡", nom: "Enel", prix: 65000000000.00, immoKey: "ent_enel", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1011, cat: "Entreprises Connues", emoji: "🏦", nom: "Intesa Sanpaolo", prix: 60000000000.00, immoKey: "ent_isp", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1012, cat: "Entreprises Connues", emoji: "🎮", nom: "Sony Group", prix: 110000000000.00, immoKey: "ent_sony", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1013, cat: "Entreprises Connues", emoji: "🍄", nom: "Nintendo", prix: 60000000000.00, immoKey: "ent_ntdo", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1014, cat: "Entreprises Connues", emoji: "🚘", nom: "Toyota Motor", prix: 260000000000.00, immoKey: "ent_tm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1015, cat: "Entreprises Connues", emoji: "🐧", nom: "Tencent", prix: 400000000000.00, immoKey: "ent_700", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1016, cat: "Entreprises Connues", emoji: "📦", nom: "Alibaba Group", prix: 200000000000.00, immoKey: "ent_baba", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1017, cat: "Entreprises Connues", emoji: "⛽", nom: "Shell", prix: 200000000000.00, immoKey: "ent_shel", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 1018, cat: "Entreprises Connues", emoji: "🍫", nom: "Nestlé", prix: 250000000000.00, immoKey: "ent_nesn", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true }
     ];
 
     let categorieActive = "Automobiles";
+    let listeArticles = [];
+    let audioCtx = null;
 
     function initApp() {
-      afficherCategories();
-      afficherGridArticles();
-      ecouterFirebase();
+      ecouterJoueursFirebase();
+      afficherOnglets();
+      afficherArticles();
+      MettreAJourEcran();
+      ecouterHistoriqueFirebase();
+      initialiserEtEcouterComptes();
+      ecouterPossessionsImmo();
+      ecouterMarcheImmobilier();
+      setInterval(traiterRevenusHorairesImmo, 10000);
     }
 
-    function ecouterFirebase() {
-      db.ref("comptes").on("value", snapshot => {
-        comptesComplets = snapshot.val() || {};
+    /* SYNCHRONISATION MARCHE IMMOBILIER EN TEMPS REEL (30 MIN) */
+    function ecouterMarcheImmobilier() {
+      db.ref('marche_immobilier').on('value', (snapshot) => {
+        const data = snapshot.val();
+        const maintenant = Date.now();
+        const tranche30min = Math.floor(maintenant / (30 * 60 * 1000));
+
+        if (!data || data.tranche !== tranche30min) {
+          // Tirage aléatoire : 25% de chance de perte, 75% de hausse entre 5% et 10 000 000%
+          const estPerte = Math.random() < 0.25;
+          let pct = 0;
+          if (estPerte) {
+            pct = - (Math.floor(Math.random() * 85) + 5); // perte de -5% à -90%
+          } else {
+            let min = 5;
+            let max = 10000000;
+            pct = Math.floor(Math.exp(Math.random() * Math.log(max / min)) * min);
+          }
+          db.ref('marche_immobilier').set({ tranche: tranche30min, pourcentage: pct });
+        } else {
+          marcheImmoPct = data.pourcentage;
+          afficherIndicateurMarche();
+          if (joueurSelectionneVueDetail) {
+            afficherDetailJoueur(joueurSelectionneVueDetail);
+          }
+        }
       });
-      db.ref("possessions").on("value", snapshot => {
+    }
+
+    function afficherIndicateurMarche() {
+      const display = document.getElementById('marcheImmoValDisplay');
+      if (!display) return;
+      if (marcheImmoPct >= 0) {
+        display.className = "marche-immo-hausse";
+        display.innerText = `+${marcheImmoPct.toLocaleString('fr-FR')}% 📈`;
+      } else {
+        display.className = "marche-immo-baisse";
+        display.innerText = `${marcheImmoPct.toLocaleString('fr-FR')}% 📉`;
+      }
+    }
+
+    /* MODAL AIDE */
+    function ouvrirAide() { document.getElementById('aideOverlay').classList.add('active'); }
+    function fermerAide() { document.getElementById('aideOverlay').classList.remove('active'); }
+
+    /* MODAL CREATION ECOLE */
+    function ouvrirModalCreerEcole() {
+      document.getElementById('ecoleNomInput').value = "";
+      document.getElementById('ecolePinInput').value = "";
+      document.getElementById('creerEcoleOverlay').classList.add('active');
+    }
+
+    function fermerModalCreerEcole() {
+      document.getElementById('creerEcoleOverlay').classList.remove('active');
+    }
+
+    function validerCreationJoueurEcole() {
+      const prenom = document.getElementById('ecoleNomInput').value.trim();
+      const pin = document.getElementById('ecolePinInput').value.trim();
+
+      if (!prenom) { alert("Veuillez saisir un prénom !"); return; }
+      if (pin.length !== 4 || isNaN(pin)) { alert("Veuillez saisir un code PIN à 4 chiffres !"); return; }
+
+      let doublonNom = USERS_LIST.find(u => u.nom.toLowerCase() === prenom.toLowerCase());
+      if (doublonNom) { alert("Ce prénom est déjà utilisé ! Choisissez un autre prénom."); return; }
+
+      USERS_LIST.push({ pin: pin, nom: prenom, groupe: "École" });
+      db.ref('utilisateurs_v2').set(USERS_LIST);
+      db.ref(`banques/${prenom}`).set(20000.00);
+
+      fermerModalCreerEcole();
+      alert(`🎉 Joueur "${prenom}" créé avec succès !\nPIN: ${pin}\nSolde: 20 000 €`);
+    }
+
+    function ecouterJoueursFirebase() {
+      db.ref('utilisateurs_v2').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) { 
+          db.ref('utilisateurs_v2').set(USERS_LIST); 
+        } else { 
+          USERS_LIST = Array.isArray(data) ? data : Object.values(data); 
+          afficherClassementEtPossessions(); 
+        }
+      });
+    }
+
+    function initialiserEtEcouterComptes() {
+      const banquesRef = db.ref('banques');
+      banquesRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          let initialData = {};
+          USERS_LIST.forEach(u => { 
+            let prenom = ObtenirPrenomUser(u);
+            initialData[prenom] = 20000.00; 
+          });
+          banquesRef.set(initialData);
+        } else {
+          comptesComplets = data;
+          afficherSoldesBanque();
+          afficherClassementEtPossessions();
+        }
+      });
+    }
+
+    function ecouterPossessionsImmo() {
+      db.ref('immobilier').on('value', (snapshot) => {
         possessionsImmo = snapshot.val() || {};
+        traiterRevenusHorairesImmo();
+        afficherSoldesBanque();
+        afficherClassementEtPossessions();
       });
     }
 
-    function afficherCategories() {
-      const cats = ["Automobiles", "Immobilier Marseille", "Entreprises Connues"];
-      const container = document.getElementById("categoriesTabs");
+    /* REVENUS PASSIFS : DEBLOCAGE DES GAINS A 2 HEURES DE L'ACQUISITION (20%/H) */
+    function traiterRevenusHorairesImmo() {
+      if (!possessionsImmo) return;
+      const maintenant = Date.now();
+      let updatesBanque = {};
+      let updatesImmo = {};
+
+      Object.keys(possessionsImmo).forEach(user => {
+        const biens = possessionsImmo[user];
+        if (!biens) return;
+
+        let deltaTotalARecup = 0;
+
+        Object.keys(biens).forEach(immoKey => {
+          if (immoKey === 'dernierePartie30k') return;
+          const dataBien = biens[immoKey];
+          if (!dataBien || !dataBien.achats) return;
+
+          const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
+
+          dataBien.achats.forEach((dateAchat, index) => {
+            let dernierPaiementIndiv = (dataBien.derniersPaiements && dataBien.derniersPaiements[index]) 
+              ? dataBien.derniersPaiements[index] 
+              : dateAchat;
+
+            let delaiMin = 0;
+            let gainParHeure = 0;
+
+            if (catalogueRef && catalogueRef.tauxPourcentHeure) {
+              delaiMin = (catalogueRef.delaiActivationHeures || 2) * 3600 * 1000; // 2h de délai
+              gainParHeure = catalogueRef.prix * catalogueRef.tauxPourcentHeure;
+            } else if (immoKey === 'snack') {
+              delaiMin = 2 * 3600 * 1000;
+              gainParHeure = 1000;
+            }
+
+            if (gainParHeure > 0) {
+              let debutEligibilite = dateAchat + delaiMin;
+              let debutCalcul = Math.max(dernierPaiementIndiv, debutEligibilite);
+
+              if (maintenant > debutCalcul) {
+                let secondesEcoulees = (maintenant - debutCalcul) / 1000;
+                let heuresCompletes = Math.floor(secondesEcoulees / 3600);
+
+                if (heuresCompletes >= 1) {
+                  deltaTotalARecup += heuresCompletes * gainParHeure;
+                  if (!updatesImmo[`immobilier/${user}/${immoKey}/derniersPaiements`]) {
+                    updatesImmo[`immobilier/${user}/${immoKey}/derniersPaiements`] = [...(dataBien.derniersPaiements || dataBien.achats)];
+                  }
+                  updatesImmo[`immobilier/${user}/${immoKey}/derniersPaiements`][index] = debutCalcul + (heuresCompletes * 3600 * 1000);
+                }
+              }
+            }
+          });
+        });
+
+        if (deltaTotalARecup > 0) {
+          let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
+          updatesBanque[`banques/${user}`] = Math.round((soldeActuel + deltaTotalARecup) * 100) / 100;
+        }
+      });
+
+      if (Object.keys(updatesBanque).length > 0) { db.ref().update(updatesBanque); }
+      if (Object.keys(updatesImmo).length > 0) { db.ref().update(updatesImmo); }
+    }
+
+    function ajouterPossessionImmo(user, item) {
+      if (!item.immoKey) return;
+      const ref = db.ref(`immobilier/${user}/${item.immoKey}`);
+      ref.once('value', (snapshot) => {
+        const currentData = snapshot.val() || { quantite: 0, achats: [], derniersPaiements: [] };
+        let quantite = (currentData.quantite || 0) + 1;
+        let achats = currentData.achats || [];
+        let derniersPaiements = currentData.derniersPaiements || [];
+        const now = Date.now();
+
+        achats.push(now);
+        derniersPaiements.push(now);
+
+        ref.set({ quantite: quantite, achats: achats, derniersPaiements: derniersPaiements });
+      });
+    }
+
+    /* REVENTE ET CALCUL DE VALEUR : AUGMENTATION A PARTIR DE 3H + VARIATION DU MARCHE (30 MIN) */
+    function calculerPrixReventeImmo(dateAchat, prixBase) {
+      const maintenant = Date.now();
+      const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
+
+      // L'immobilier augmente sa valeur seulement à partir de 3 heures d'acquisition
+      if (heuresEcoulees < 3) {
+        return { prix: prixBase, augmente: false, heuresRestantes: (3 - heuresEcoulees).toFixed(1) };
+      }
+
+      // À partir de 3 heures : application du multiplicateur du marché dynamique (30 min)
+      let multMarche = 1 + (marcheImmoPct / 100);
+      if (multMarche < 0.1) multMarche = 0.1; // plancher minimal à 10% de la valeur de base
+
+      let prixActuel = Math.round(prixBase * multMarche * 100) / 100;
+      return { prix: prixActuel, augmente: true, heuresRestantes: 0 };
+    }
+
+    function revendreBienImmobilier(user, immoKey, indexAchat, prixBase, nomBien) {
+      const ref = db.ref(`immobilier/${user}/${immoKey}`);
+      ref.once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data || !data.achats || !data.achats[indexAchat]) return;
+
+        const dateAchat = data.achats[indexAchat];
+        const calculVal = calculerPrixReventeImmo(dateAchat, prixBase);
+        const prixRevente = calculVal.prix;
+
+        let messageConfirmation = calculVal.augmente
+          ? `Voulez-vous revendre ${nomBien} pour ${prixRevente.toLocaleString('fr-FR')} € (Valeur actualisée selon le marché : ${marcheImmoPct >= 0 ? '+' : ''}${marcheImmoPct}%) ?`
+          : `Ce bien a moins de 3h d'ancienneté. Sa valeur n'a pas encore augmenté. Voulez-vous le revendre à son prix initial de ${prixBase.toLocaleString('fr-FR')} € ?`;
+
+        if (confirm(messageConfirmation)) {
+          let nouveauxAchats = [...data.achats];
+          let nouveauxPaiements = data.derniersPaiements ? [...data.derniersPaiements] : [];
+          nouveauxAchats.splice(indexAchat, 1);
+          if (nouveauxPaiements.length > indexAchat) nouveauxPaiements.splice(indexAchat, 1);
+
+          ref.set({
+            quantite: Math.max(0, (data.quantite || 1) - 1),
+            achats: nouveauxAchats,
+            derniersPaiements: nouveauxPaiements
+          });
+
+          let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
+          db.ref(`banques/${user}`).set(Math.round((soldeActuel + prixRevente) * 100) / 100);
+
+          const now = new Date();
+          db.ref('tickets').push({
+            codePin: "REVENTE",
+            utilisateur: user,
+            date: now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR') + " (Revente)",
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+            articles: [{ nom: `Revente ${nomBien}`, prix: prixRevente }],
+            total: prixRevente
+          });
+
+          alert(`🎉 Bien revendu pour ${prixRevente.toLocaleString('fr-FR')} € !`);
+        }
+      });
+    }
+
+    function ouvrirBanque() { afficherSoldesBanque(); document.getElementById('banqueOverlay').classList.add('active'); }
+    function fermerBanque() { document.getElementById('banqueOverlay').classList.remove('active'); }
+
+    function afficherSoldesBanque() {
+      const container = document.getElementById('soldesList');
+      if (!container) return;
       container.innerHTML = "";
-      cats.forEach(c => {
-        const btn = document.createElement("button");
-        btn.className = `tab-btn ${c === categorieActive ? 'active' : ''}`;
-        btn.innerText = c;
-        btn.onclick = () => { categorieActive = c; afficherCategories(); afficherGridArticles(); };
+
+      let listeJoueurs = USERS_LIST.map(u => {
+        let prenom = ObtenirPrenomUser(u);
+        let solde = comptesComplets[prenom] !== undefined ? comptesComplets[prenom] : 20000.00;
+        return { prenom: prenom, solde: solde, groupe: ObtenirGroupeUser(prenom) };
+      });
+
+      listeJoueurs.sort((a, b) => b.solde - a.solde);
+
+      listeJoueurs.forEach(j => {
+        let infosBadge = ObtenirInfosBadge(j.solde);
+        let badgeHtml = infosBadge.badgeActuel ? `<span class="badge-tag">${infosBadge.badgeActuel.nom}</span>` : '';
+
+        let div = document.createElement('div');
+        div.className = 'dark-card-item';
+        div.innerHTML = `
+          <div>
+            <div class="dark-card-name">${j.prenom} ${estJoueurProtege(j.prenom) ? '⭐' : ''} ${badgeHtml} <span style="font-size:11px; opacity:0.6;">(${j.groupe})</span></div>
+            ${infosBadge.prochainPalier ? `<div class="dark-card-sub">🎯 Prochain palier : ${infosBadge.prochainPalier.nom} (${infosBadge.prochainPalier.montant.toLocaleString('fr-FR')} €)</div>` : '<div class="dark-card-sub" style="color:#38ef7d;">🏆 Palier Max Ultima !</div>'}
+          </div>
+          <div class="dark-card-amount ${j.solde < 0 ? 'deficit' : ''}">${j.solde.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function afficherOnglets() {
+      const categories = ["Automobiles", "Immobilier Marseille", "Entreprises Connues"];
+      const container = document.getElementById('categoriesTabs');
+      container.innerHTML = "";
+      categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = `tab-btn ${cat === categorieActive ? 'active' : ''}`;
+        btn.innerText = cat === "Automobiles" ? "🚗 Autos" : cat === "Entreprises Connues" ? "🏢 Entreprises" : cat;
+        btn.onclick = () => { categorieActive = cat; afficherOnglets(); afficherArticles(); };
         container.appendChild(btn);
       });
     }
 
-    function afficherGridArticles() {
-      const grid = document.getElementById("articlesGrid");
+    function afficherArticles() {
+      const grid = document.getElementById('articlesGrid');
       grid.innerHTML = "";
-      const filtres = baseArticles.filter(a => a.cat === categorieActive);
-      filtres.forEach(art => {
-        const div = document.createElement("div");
-        div.className = "btn-article";
-        div.onclick = () => ajouterAuPanier(art);
-        div.innerHTML = `<span class="emoji">${art.emoji}</span><span>${art.nom}</span><span class="prix-tag">${art.prix.toLocaleString('fr-FR')} €</span>`;
-        grid.appendChild(div);
+      const articlesFiltres = baseArticles.filter(item => item.cat === categorieActive);
+      articlesFiltres.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = "btn-article";
+        btn.onclick = () => ajouterArticle(`${item.emoji} ${item.nom}`, item.prix, item);
+        btn.innerHTML = `<span class="emoji">${item.emoji}</span><span>${item.nom}</span><span class="prix-tag">${item.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>`;
+        grid.appendChild(btn);
       });
     }
 
-    function ajouterAuPanier(art) {
-      panierCourant.push(art);
-      mettreAJourTicket();
-    }
+    function MettreAJourEcran() {
+      let totalArticles = listeArticles.reduce((acc, item) => acc + item.prix, 0);
+      let totalGeneral = Math.round(totalArticles * 100) / 100;
+      document.getElementById('totalDisplay').innerText = totalGeneral.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
 
-    function mettreAJourTicket() {
-      const list = document.getElementById("ticketList");
-      const totalDisplay = document.getElementById("totalDisplay");
-      if (panierCourant.length === 0) {
-        list.innerHTML = `<div class="ticket-vide">Aucun article ajouté</div>`;
-        totalDisplay.innerText = "0,00 €";
-        return;
+      const ticketContainer = document.getElementById('ticketList');
+      if (listeArticles.length === 0) {
+        ticketContainer.innerHTML = '<div class="ticket-vide">Aucun article ajouté</div>';
+      } else {
+        ticketContainer.innerHTML = '';
+        listeArticles.forEach((item, index) => {
+          const div = document.createElement('div');
+          div.className = 'ligne-ticket';
+          div.innerHTML = `<span>${item.nom}</span><span><strong>${item.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</strong><button class="btn-suppr-ligne" onclick="supprimerArticle(${index})">✕</button></span>`;
+          ticketContainer.appendChild(div);
+        });
+        ticketContainer.scrollTop = ticketContainer.scrollHeight;
       }
-      list.innerHTML = "";
-      let tot = 0;
-      panierCourant.forEach((item, index) => {
-        tot += item.prix;
-        const line = document.createElement("div");
-        line.className = "ligne-ticket";
-        line.innerHTML = `<span>${item.emoji} ${item.nom}</span><div><b>${item.prix.toLocaleString('fr-FR')} €</b><button class="btn-suppr-ligne" onclick="retirerDuPanier(${index})">✕</button></div>`;
-        list.appendChild(line);
-      });
-      totalDisplay.innerText = tot.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + " €";
     }
 
-    function retirerDuPanier(index) {
-      panierCourant.splice(index, 1);
-      mettreAJourTicket();
+    function ajouterArticle(nom, prix, fullItem) {
+      listeArticles.push({ nom: nom, prix: prix, immoKey: fullItem ? fullItem.immoKey : null, cat: fullItem ? fullItem.cat : null });
+      MettreAJourEcran();
     }
 
-    function reinitialiser() {
-      panierCourant = [];
-      mettreAJourTicket();
-    }
+    function supprimerArticle(index) { listeArticles.splice(index, 1); MettreAJourEcran(); }
+    function reinitialiser() { listeArticles = []; MettreAJourEcran(); }
 
-    // GESTION DU CODE PIN
     function demanderCodePin(action) {
+      if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+
+      if (action === 'paiement') {
+        let totalFinal = listeArticles.reduce((acc, item) => acc + item.prix, 0);
+        if (!totalFinal || totalFinal === 0) { alert("Ajoutez au moins un article avant de payer !"); return; }
+        document.getElementById('pinTitleModal').innerText = "Code PIN requis";
+        document.getElementById('pinSubtitleModal').innerText = "Saisissez votre code à 4 chiffres";
+      } else if (action === 'reglages') {
+        document.getElementById('pinTitleModal').innerText = "Sécurité Réglages";
+        document.getElementById('pinSubtitleModal').innerText = "Code administrateur requis";
+      } else if (action === 'quiz_login') {
+        document.getElementById('pinTitleModal').innerText = "Connexion Calcul Mental 🧮";
+        document.getElementById('pinSubtitleModal').innerText = "Entrez votre code PIN pour jouer";
+      }
+
       actionApresPin = action;
       pinSaisi = "";
-      mettreAJourDotsPin();
-      document.getElementById("pinErrorMsg").innerText = "";
-      document.getElementById("pinOverlay").classList.add("active");
+      blocageSaisie = false;
+      document.getElementById('selectionJoueurPinSimilaire').style.display = "none";
+      document.getElementById('pinBoxContainer').style.display = "block";
+      mettreAJourPointsPin();
+      document.getElementById('pinErrorMsg').innerText = "";
+      document.getElementById('pinOverlay').classList.add('active');
     }
 
     function fermerCodePin() {
-      document.getElementById("pinOverlay").classList.remove("active");
-      document.getElementById("selectionJoueurPinSimilaire").style.display = "none";
-      document.getElementById("pinBoxContainer").style.display = "block";
+      document.getElementById('pinOverlay').classList.remove('active');
+      pinSaisi = "";
+      blocageSaisie = false;
     }
 
     function taperCodePin(chiffre) {
+      if (blocageSaisie) return;
       if (pinSaisi.length < 4) {
         pinSaisi += chiffre;
-        mettreAJourDotsPin();
+        mettreAJourPointsPin();
         if (pinSaisi.length === 4) {
-          verifierCodePin();
+          blocageSaisie = true;
+          setTimeout(verifierCodePin, 150);
         }
       }
     }
 
     function effacerChiffrePin() {
-      pinSaisi = pinSaisi.slice(0, -1);
-      mettreAJourDotsPin();
+      if (blocageSaisie) return;
+      if (pinSaisi.length > 0) { pinSaisi = pinSaisi.slice(0, -1); mettreAJourPointsPin(); }
     }
 
-    function mettreAJourDotsPin() {
+    function mettreAJourPointsPin(isError = false) {
       for (let i = 0; i < 4; i++) {
         const dot = document.getElementById(`dot${i}`);
-        if (i < pinSaisi.length) dot.classList.add("filled");
-        else dot.classList.remove("filled");
+        dot.className = "dot";
+        if (isError) { dot.classList.add('error'); }
+        else if (i < pinSaisi.length) { dot.classList.add('filled'); }
       }
     }
 
-    function verifierCodePin() {
-      const correspondances = USERS_LIST.filter(u => u.pin === pinSaisi);
-      if (correspondances.length === 1) {
-        lastUserValide = correspondances[0].nom;
+    async function verifierCodePin() {
+      const hashSaisi = await hashPin(pinSaisi);
+
+      if (PIN_HASH_MAP[hashSaisi]) {
         lastPinValide = pinSaisi;
-        executerActionApresPin();
-      } else if (correspondances.length > 1) {
-        document.getElementById("pinBoxContainer").style.display = "none";
-        const select = document.getElementById("selectJoueurPinDoublon");
+        lastUserValide = PIN_HASH_MAP[hashSaisi];
+        fermerCodePin();
+        executerActionPostPin();
+        return;
+      }
+
+      let joueursCorrespondants = USERS_LIST.filter(u => u.pin === pinSaisi);
+
+      if (joueursCorrespondants.length === 1) {
+        lastPinValide = pinSaisi;
+        lastUserValide = joueursCorrespondants[0].nom;
+        fermerCodePin();
+        executerActionPostPin();
+      } else if (joueursCorrespondants.length > 1) {
+        document.getElementById('pinBoxContainer').style.display = "none";
+        const select = document.getElementById('selectJoueurPinDoublon');
         select.innerHTML = "";
-        correspondances.forEach(u => {
-          select.innerHTML += `<option value="${u.nom}">${u.nom} (${u.groupe})</option>`;
+        joueursCorrespondants.forEach(j => {
+          let opt = document.createElement('option');
+          opt.value = j.nom;
+          opt.innerText = `${j.nom} (${j.groupe})`;
+          select.appendChild(opt);
         });
-        document.getElementById("selectionJoueurPinSimilaire").style.display = "block";
+        document.getElementById('selectionJoueurPinSimilaire').style.display = "block";
       } else {
-        document.getElementById("pinErrorMsg").innerText = "Code PIN incorrect";
-        setTimeout(() => { pinSaisi = ""; mettreAJourDotsPin(); document.getElementById("pinErrorMsg").innerText = ""; }, 1000);
+        document.getElementById('pinErrorMsg').innerText = "Code PIN incorrect, réessayez";
+        mettreAJourPointsPin(true);
+        if (navigator.vibrate) { navigator.vibrate([80, 50, 80]); }
+        setTimeout(() => {
+          pinSaisi = "";
+          mettreAJourPointsPin();
+          blocageSaisie = false;
+        }, 400);
       }
     }
 
     function confirmerChoixJoueurDoublon() {
-      lastUserValide = document.getElementById("selectJoueurPinDoublon").value;
-      lastPinValide = pinSaisi;
-      executerActionApresPin();
-    }
-
-    function executerActionApresPin() {
-      fermerCodePin();
-      if (actionApresPin === "paiement") {
-        effectuerPaiement();
-      } else if (actionApresPin === "quiz_login") {
-        document.getElementById("quizLevelOverlay").classList.add("active");
-      } else if (actionApresPin === "reglages") {
-        ouvrirReglages();
+      const nomChoisi = document.getElementById('selectJoueurPinDoublon').value;
+      if (nomChoisi) {
+        lastPinValide = pinSaisi;
+        lastUserValide = nomChoisi;
+        fermerCodePin();
+        executerActionPostPin();
       }
     }
 
-    // DEMARRAGE QUIZ ET GAINS MIS A JOUR (EXTREME = 100k, ULTIME = 500k)
-    function demarrerQuizAvecNiveau(niveau) {
-      niveauQuizActif = niveau;
-      if (niveau === 'facile') gainParQuestion = 30000;
-      else if (niveau === 'intermediaire') gainParQuestion = 50000;
-      else if (niveau === 'difficile') gainParQuestion = 100000;
-      else if (niveau === 'extreme') gainParQuestion = 100000; // Mis à jour à 100 000 €
-      else if (niveau === 'ultime') gainParQuestion = 500000;  // Mis à jour à 500 000 €
-
-      document.getElementById("quizLevelOverlay").classList.remove("active");
-      document.getElementById("quizUserBadge").innerText = lastUserValide;
-      document.getElementById("quizOverlay").classList.add("active");
-      genererQuestionQuiz();
+    function executerActionPostPin() {
+      if (actionApresPin === 'paiement') { validerPaiement(); }
+      else if (actionApresPin === 'reglages') { ouvrirEcranReglages(); }
+      else if (actionApresPin === 'quiz_login') { ouvrirSelectionNiveauQuiz(); }
     }
 
-    function genererQuestionQuiz() {
-      let a, b, enonce, reponseCorrecte;
-      if (niveauQuizActif === 'facile') {
-        a = Math.floor(Math.random() * 9) + 2; b = Math.floor(Math.random() * 9) + 2;
-        enonce = `${a} × ${b}`; reponseCorrecte = a * b;
-      } else if (niveauQuizActif === 'intermediaire') {
-        a = Math.floor(Math.random() * 12) + 3; b = Math.floor(Math.random() * 12) + 3;
-        enonce = `${a} × ${b}`; reponseCorrecte = a * b;
-      } else if (niveauQuizActif === 'difficile') {
-        a = Math.floor(Math.random() * 15) + 5; b = Math.floor(Math.random() * 15) + 5;
-        enonce = `${a} × ${b}`; reponseCorrecte = a * b;
-      } else if (niveauQuizActif === 'extreme') {
-        a = Math.floor(Math.random() * 7) + 4; b = Math.floor(Math.random() * 7) + 4;
-        enonce = `${a} × ${b}`; reponseCorrecte = a * b;
-      } else if (niveauQuizActif === 'ultime') {
-        a = Math.floor(Math.random() * 89) + 10; b = Math.floor(Math.random() * 89) + 10;
-        const estPlus = Math.random() > 0.5;
-        enonce = estPlus ? `${a} + ${b}` : `${Math.max(a,b)} - ${Math.min(a,b)}`;
-        reponseCorrecte = estPlus ? (a + b) : (Math.max(a,b) - Math.min(a,b));
-      }
+    function calculerCapaciteEtVoitures(user) {
+      const userBiens = possessionsImmo[user] || {};
+      let capaciteTotale = 0;
+      if (userBiens.garage5 && userBiens.garage5.quantite) capaciteTotale += userBiens.garage5.quantite * 5;
+      if (userBiens.garage20 && userBiens.garage20.quantite) capaciteTotale += userBiens.garage20.quantite * 20;
 
-      questionActiveCourante = { enonce, reponseCorrecte };
-      document.getElementById("quizEnonce").innerText = enonce;
-      document.getElementById("quizRewardInfo").innerText = `+${gainParQuestion.toLocaleString('fr-FR')} € / -10 000 €`;
-      document.getElementById("quizReponseInput").value = "";
+      let voituresPossedees = 0;
+      const nomCatalogueExactsAuto = baseArticles.filter(a => a.cat === "Automobiles").map(a => a.nom);
+      const nomCatalogueAvecEmojiAuto = baseArticles.filter(a => a.cat === "Automobiles").map(a => `${a.emoji} ${a.nom}`);
 
-      if (niveauQuizActif === 'extreme') {
-        document.getElementById("vueQuizMaths").style.display = "none";
-        document.getElementById("vueQuizQCM").style.display = "block";
-        genererOptionsQCM(reponseCorrecte);
-      } else {
-        document.getElementById("vueQuizMaths").style.display = "block";
-        document.getElementById("vueQuizQCM").style.display = "none";
-      }
-
-      lancerChronoQuiz();
-    }
-
-    function genererOptionsQCM(correct) {
-      const qcmContainer = document.getElementById("qcmContainer");
-      qcmContainer.innerHTML = "";
-      let options = [correct, correct + (Math.floor(Math.random() * 5) + 1), correct - (Math.floor(Math.random() * 5) + 1)];
-      options.sort(() => Math.random() - 0.5);
-      options.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.className = "btn-qcm";
-        btn.innerText = opt;
-        btn.onclick = () => validerReponseQuiz(opt);
-        qcmContainer.appendChild(btn);
-      });
-    }
-
-    function lancerChronoQuiz() {
-      clearInterval(intervalChrono);
-      tempsRestant = 10;
-      const box = document.getElementById("quizTimerBox");
-      box.classList.remove("danger");
-      box.innerText = `⏳ ${tempsRestant}s`;
-
-      intervalChrono = setInterval(() => {
-        tempsRestant--;
-        box.innerText = `⏳ ${tempsRestant}s`;
-        if (tempsRestant <= 3) box.classList.add("danger");
-        if (tempsRestant <= 0) {
-          clearInterval(intervalChrono);
-          traiterErreurQuiz();
+      let ticketsJoueur = tousLesTickets.filter(t => (t.utilisateur || ObtenirPrenomUser(USERS_LIST.find(u => u.pin === t.codePin))) === user);
+      ticketsJoueur.forEach(ticket => {
+        if (ticket.articles && Array.isArray(ticket.articles)) {
+          ticket.articles.forEach(art => {
+            if (art.prix > 0 && (nomCatalogueExactsAuto.includes(art.nom) || nomCatalogueAvecEmojiAuto.includes(art.nom))) {
+              voituresPossedees += 1;
+            }
+          });
         }
-      }, 1000);
+      });
+
+      return { capaciteTotale, voituresPossedees };
     }
 
-    function taperQuizChiffre(c) {
-      const inp = document.getElementById("quizReponseInput");
-      inp.value += c;
-      if (parseInt(inp.value, 10) === questionActiveCourante.reponseCorrecte) {
-        validerReponseQuiz(parseInt(inp.value, 10));
+    function validerPaiement() {
+      let totalPaye = listeArticles.reduce((acc, item) => acc + item.prix, 0);
+      let user = lastUserValide;
+      let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
+
+      if (soldeActuel < totalPaye) {
+        let manque = (totalPaye - soldeActuel).toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        alert(`🚫 SOLDE INSUFFISANT !\n\nSolde actuel : ${soldeActuel.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €\nTotal achat : ${totalPaye.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €\nIl vous manque : ${manque} €`);
+        return;
       }
-    }
 
-    function effacerQuizChiffre() {
-      const inp = document.getElementById("quizReponseInput");
-      inp.value = inp.value.slice(0, -1);
-    }
-
-    function validerReponseQuiz(val) {
-      clearInterval(intervalChrono);
-      if (val === questionActiveCourante.reponseCorrecte) {
-        attribuerSolde(lastUserValide, gainParQuestion);
-        setTimeout(genererQuestionQuiz, 400);
-      } else {
-        traiterErreurQuiz();
+      let voituresDansPanier = listeArticles.filter(i => i.cat === "Automobiles").length;
+      if (voituresDansPanier > 0) {
+        let statsGarage = calculerCapaciteEtVoitures(user);
+        if (statsGarage.capaciteTotale === 0) {
+          alert(`🚫 ACHAT IMPOSSIBLE !\nVous devez posséder au moins un garage (5 ou 20 places) dans "Immobilier Marseille" pour acheter une voiture.`);
+          return;
+        }
+        if (statsGarage.voituresPossedees + voituresDansPanier > statsGarage.capaciteTotale) {
+          alert(`🚫 GARAGE PLEIN !\nVous possédez ${statsGarage.voituresPossedees}/${statsGarage.capaciteTotale} véhicule(s).\nAchetez un autre garage.`);
+          return;
+        }
       }
-    }
 
-    function traiterErreurQuiz() {
-      attribuerSolde(lastUserValide, -10000);
-      setTimeout(genererQuestionQuiz, 600);
-    }
+      let nouveauSolde = Math.round((soldeActuel - totalPaye) * 100) / 100;
+      db.ref(`banques/${user}`).set(nouveauSolde);
 
-    function quitterQuizManuel() {
-      clearInterval(intervalChrono);
-      document.getElementById("quizOverlay").classList.remove("active");
-    }
+      listeArticles.forEach(item => { if (item.immoKey) { ajouterPossessionImmo(user, item); } });
+      enregistrerTicketFirebase(lastPinValide, user, listeArticles, totalPaye);
 
-    function attribuerSolde(prenom, montant) {
-      db.ref(`comptes/${prenom}`).transaction(current => (current || 0) + montant);
-    }
-
-    function effectuerPaiement() {
-      let total = 0;
-      panierCourant.forEach(item => total += item.prix);
-      if (total === 0) return;
-
-      document.getElementById("apAmountDisplay").innerText = total.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + " €";
-      document.getElementById("apUserDisplay").innerText = `Payeur : ${lastUserValide}`;
-      document.getElementById("applePayOverlay").classList.add("active");
+      const apOverlay = document.getElementById('applePayOverlay');
+      document.getElementById('apAmountDisplay').innerText = totalPaye.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+      document.getElementById('apUserDisplay').innerText = user;
+      document.getElementById('apStatusText').innerText = "Paiement en cours...";
+      document.getElementById('faceIdIcon').className = "face-id-icon";
+      document.getElementById('faceIdIcon').innerText = "😃";
+      apOverlay.classList.add('active');
 
       setTimeout(() => {
-        attribuerSolde(lastUserValide, -total);
-        panierCourant.forEach(item => {
-          if (item.immoKey) {
-            db.ref(`possessions/${lastUserValide}/${item.immoKey}`).push({
-              nom: item.nom,
-              prix: item.prix,
-              dateAchat: Date.now()
-            });
-          }
-        });
-        document.getElementById("faceIdIcon").classList.add("success");
-        document.getElementById("apStatusText").innerText = "Paiement Validé !";
+        jouerSonValidation();
+        document.getElementById('faceIdIcon').className = "face-id-icon success";
+        document.getElementById('faceIdIcon').innerText = "✓";
+        document.getElementById('apStatusText').innerText = "Payé avec succès";
         setTimeout(() => {
-          document.getElementById("applePayOverlay").classList.remove("active");
-          document.getElementById("faceIdIcon").classList.remove("success");
-          document.getElementById("apStatusText").innerText = "Vérification...";
+          apOverlay.classList.remove('active');
           reinitialiser();
         }, 1200);
       }, 1000);
     }
 
-    // REVENUS PASSIFS (DEBLOCAGE 2h, 20%/h) & VALEUR DE L'IMMOBILIER (VARIATION DEPUIS 3h)
-    function calculerGainsPassifsEtValeur(possessObj) {
-      let soldeActuelPassif = 0;
-      let valeurReventeTotal = 0;
-      const maintenant = Date.now();
+    function enregistrerTicketFirebase(codePin, user, articles, total) {
+      const now = new Date();
+      db.ref('tickets').push({
+        codePin: codePin,
+        utilisateur: user,
+        date: now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR'),
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        articles: articles,
+        total: total
+      });
+    }
 
-      if (!possessObj) return { gainsPassifs: 0, valeurRevente: 0 };
+    function ecouterHistoriqueFirebase() {
+      db.ref('tickets').on('value', (snapshot) => {
+        const data = snapshot.val();
+        tousLesTickets = data ? Object.values(data) : [];
+        afficherClassementEtPossessions();
+      });
+    }
 
-      Object.keys(possessObj).forEach(keyGroup => {
-        const biens = possessObj[keyGroup];
-        Object.keys(biens).forEach(id => {
-          const item = biens[id];
-          const tempsEcouleHeures = (maintenant - item.dateAchat) / (1000 * 60 * 60);
+    function ouvrirHistorique() { document.getElementById('historiqueOverlay').classList.add('active'); }
+    function fermerHistorique() { document.getElementById('historiqueOverlay').classList.remove('active'); }
 
-          // Gains passifs : 20%/h débloqués après 2h d'acquisition
-          if (tempsEcouleHeures >= 2) {
-            const heuresPayables = Math.floor(tempsEcouleHeures);
-            soldeActuelPassif += (item.prix * 0.20 * heuresPayables);
-          }
+    function changerOngletClassement(groupe) {
+      filtreClassementActif = groupe;
+      document.getElementById('btnTabClassementTous').className = `tab-btn ${groupe === 'tous' ? 'active' : ''}`;
+      document.getElementById('btnTabClassementFamille').className = `tab-btn ${groupe === 'famille' ? 'active' : ''}`;
+      document.getElementById('btnTabClassementEcole').className = `tab-btn ${groupe === 'ecole' ? 'active' : ''}`;
+      afficherClassementEtPossessions();
+    }
 
-          // Valeur de revente de l'immobilier : Évolue à partir de 3h d'acquisition
-          if (tempsEcouleHeures >= 3) {
-            valeurReventeTotal += (item.prix * facteurVariationMarche);
-          } else {
-            valeurReventeTotal += item.prix; // Valeur initiale avant 3h
-          }
+    function afficherClassementEtPossessions() {
+      const container = document.getElementById('historiqueList');
+      if (!container) return;
+      container.innerHTML = "";
+
+      let joueurs = USERS_LIST.map(u => {
+        let prenom = ObtenirPrenomUser(u);
+        let solde = comptesComplets[prenom] !== undefined ? comptesComplets[prenom] : 20000.00;
+        return { prenom: prenom, solde: solde, groupe: ObtenirGroupeUser(prenom) };
+      });
+
+      if (filtreClassementActif !== 'tous') {
+        joueurs = joueurs.filter(j => j.groupe.toLowerCase() === filtreClassementActif.toLowerCase());
+      }
+
+      joueurs.sort((a, b) => b.solde - a.solde);
+
+      if (joueurSelectionneVueDetail) {
+        afficherDetailJoueur(joueurSelectionneVueDetail);
+        return;
+      }
+
+      joueurs.forEach((j, index) => {
+        let infosBadge = ObtenirInfosBadge(j.solde);
+        let badgeHtml = infosBadge.badgeActuel ? `<span class="badge-tag">${infosBadge.badgeActuel.nom}</span>` : '';
+
+        let div = document.createElement('div');
+        div.className = 'dark-card-item';
+        div.onclick = () => { joueurSelectionneVueDetail = j.prenom; afficherClassementEtPossessions(); };
+        div.innerHTML = `
+          <div>
+            <div class="dark-card-name">#${index + 1} ${j.prenom} ${estJoueurProtege(j.prenom) ? '⭐' : ''} ${badgeHtml}</div>
+            <div class="dark-card-sub">👆 Cliquez pour voir le patrimoine</div>
+          </div>
+          <div class="dark-card-amount ${j.solde < 0 ? 'deficit' : ''}">${j.solde.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function afficherDetailJoueur(user) {
+      const container = document.getElementById('historiqueList');
+      container.innerHTML = "";
+
+      const btnRetour = document.createElement('button');
+      btnRetour.className = 'btn-back';
+      btnRetour.innerHTML = '← Retour au classement';
+      btnRetour.onclick = () => { joueurSelectionneVueDetail = null; afficherClassementEtPossessions(); };
+      container.appendChild(btnRetour);
+
+      const titleDiv = document.createElement('div');
+      titleDiv.style.cssText = "font-size:16px; font-weight:bold; color:white; margin-bottom:12px;";
+      titleDiv.innerText = `Patrimoine de ${user}`;
+      container.appendChild(titleDiv);
+
+      const userBiens = possessionsImmo[user] || {};
+      let auMoinsUnBien = false;
+
+      Object.keys(userBiens).forEach(immoKey => {
+        if (immoKey === 'dernierePartie30k') return;
+        const dataBien = userBiens[immoKey];
+        if (!dataBien || !dataBien.achats || dataBien.achats.length === 0) return;
+
+        auMoinsUnBien = true;
+        const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
+        const nomBien = catalogueRef ? catalogueRef.nom : immoKey;
+        const emojiBien = catalogueRef ? catalogueRef.emoji : '🏠';
+        const prixBase = catalogueRef ? catalogueRef.prix : 0;
+
+        dataBien.achats.forEach((dateAchat, indexAchat) => {
+          const mainDiv = document.createElement('div');
+          mainDiv.className = 'possession-pill';
+
+          let dateFormatee = new Date(dateAchat).toLocaleDateString('fr-FR') + ' ' + new Date(dateAchat).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+          
+          let calculVal = calculerPrixReventeImmo(dateAchat, prixBase);
+          let prixAffiche = calculVal.prix;
+
+          let infoPriseValeur = calculVal.augmente
+            ? `<div style="font-size:10px; color:#38ef7d;">📈 Valeur marché : ${prixAffiche.toLocaleString('fr-FR')} € (${marcheImmoPct >= 0 ? '+' : ''}${marcheImmoPct}%)</div>`
+            : `<div style="font-size:10px; color:#a0aec0;">⏳ Prise de valeur dans ${calculVal.heuresRestantes}h</div>`;
+
+          let boutonVente = `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${user}', '${immoKey}', ${indexAchat}, ${prixBase}, '${nomBien.replace(/'/g, "\\'")}')">💰 Revendre (${prixAffiche.toLocaleString('fr-FR')} €)</button>`;
+
+          mainDiv.innerHTML = `
+            <div>
+              <div style="font-weight:bold;">${emojiBien} ${nomBien}</div>
+              <div style="font-size:11px; opacity:0.7;">Acquis le : ${dateFormatee}</div>
+              ${infoPriseValeur}
+            </div>
+            <div style="text-align:right;">
+              <div class="possession-badge-green">Base: ${prixBase.toLocaleString('fr-FR')} €</div>
+              ${boutonVente}
+            </div>
+          `;
+          container.appendChild(mainDiv);
         });
       });
 
-      return { gainsPassifs: soldeActuelPassif, valeurRevente: valeurReventeTotal };
-    }
-
-    function ouvrirBanque() {
-      const container = document.getElementById("soldesList");
-      container.innerHTML = "";
-      Object.keys(comptesComplets).forEach(p => {
-        const soldeCash = comptesComplets[p];
-        const res = calculerGainsPassifsEtValeur(possessionsImmo[p]);
-        const soldeTotalNet = soldeCash + res.gainsPassifs;
-        const badgeInfo = ObtenirInfosBadge(soldeTotalNet);
-
-        const card = document.createElement("div");
-        card.className = "dark-card-item";
-        card.innerHTML = `
-          <div>
-            <div class="dark-card-name">${p} ${badgeInfo.badgeActuel ? `<span class="badge-tag">${badgeInfo.badgeActuel.nom}</span>` : ''}</div>
-            <div class="dark-card-sub">Cash: ${soldeCash.toLocaleString('fr-FR')} € | Passifs (+20%/h): +${res.gainsPassifs.toLocaleString('fr-FR')} €</div>
-          </div>
-          <div class="dark-card-amount ${soldeTotalNet < 0 ? 'deficit' : ''}">${soldeTotalNet.toLocaleString('fr-FR')} €</div>
-        `;
-        container.appendChild(card);
-      });
-      document.getElementById("banqueOverlay").classList.add("active");
-    }
-
-    function fermerBanque() { document.getElementById("banqueOverlay").classList.remove("active"); }
-
-    function ouvrirHistorique() {
-      afficherClassement();
-      document.getElementById("historiqueOverlay").classList.add("active");
-    }
-
-    function fermerHistorique() { document.getElementById("historiqueOverlay").classList.remove("active"); }
-
-    function changerOngletClassement(type) {
-      filtreClassementActif = type;
-      document.getElementById("btnTabClassementTous").classList.toggle("active", type === 'tous');
-      document.getElementById("btnTabClassementFamille").classList.toggle("active", type === 'famille');
-      document.getElementById("btnTabClassementEcole").classList.toggle("active", type === 'ecole');
-      afficherClassement();
-    }
-
-    function afficherClassement() {
-      const list = document.getElementById("historiqueList");
-      list.innerHTML = "";
-
-      let joueursFiltres = USERS_LIST.filter(u => {
-        if (filtreClassementActif === 'famille') return u.groupe === 'Famille';
-        if (filtreClassementActif === 'ecole') return u.groupe === 'École';
-        return true;
-      });
-
-      let ranking = joueursFiltres.map(u => {
-        const cash = comptesComplets[u.nom] || 0;
-        const res = calculerGainsPassifsEtValeur(possessionsImmo[u.nom]);
-        return { nom: u.nom, cash, total: cash + res.gainsPassifs, groupe: u.groupe };
-      });
-
-      ranking.sort((a, b) => b.total - a.total);
-
-      ranking.forEach((item, index) => {
-        const badgeInfo = ObtenirInfosBadge(item.total);
-        const div = document.createElement("div");
-        div.className = "dark-card-item";
-        div.innerHTML = `
-          <div>
-            <div class="dark-card-name">#${index + 1} ${item.nom} ${badgeInfo.badgeActuel ? `<span class="badge-tag">${badgeInfo.badgeActuel.nom}</span>` : ''}</div>
-            <div class="dark-card-sub">${item.groupe}</div>
-          </div>
-          <div class="dark-card-amount">${item.total.toLocaleString('fr-FR')} €</div>
-        `;
-        list.appendChild(div);
-      });
-    }
-
-    function ouvrirAide() { document.getElementById("aideOverlay").classList.add("active"); }
-    function fermerAide() { document.getElementById("aideOverlay").classList.remove("active"); }
-
-    function ouvrirModalCreerEcole() { document.getElementById("creerEcoleOverlay").classList.add("active"); }
-    function fermerModalCreerEcole() { document.getElementById("creerEcoleOverlay").classList.remove("active"); }
-
-    function validerCreationJoueurEcole() {
-      const nom = document.getElementById("ecoleNomInput").value.trim();
-      const pin = document.getElementById("ecolePinInput").value.trim();
-      if (nom && pin.length === 4) {
-        USERS_LIST.push({ pin, nom, groupe: "École" });
-        attribuerSolde(nom, 20000);
-        fermerModalCreerEcole();
-        document.getElementById("ecoleNomInput").value = "";
-        document.getElementById("ecolePinInput").value = "";
+      if (!auMoinsUnBien) {
+        container.innerHTML += `<div style="text-align:center; color:#a0aec0; margin-top:20px; font-style:italic;">Aucune possession immobilière ou entreprise pour le moment.</div>`;
       }
     }
 
-    function ouvrirReglages() { document.getElementById("reglagesOverlay").classList.add("active"); }
-    function fermerReglages() { document.getElementById("reglagesOverlay").classList.remove("active"); }
+    function ouvrirEcranReglages() { afficherListeArticlesReglages(); document.getElementById('reglagesOverlay').classList.add('active'); }
+    function fermerReglages() { document.getElementById('reglagesOverlay').classList.remove('active'); }
 
     function changerOngletReglages(tab) {
-      document.getElementById("btnTabArticles").classList.toggle("active", tab === 'articles');
-      document.getElementById("btnTabJoueurs").classList.toggle("active", tab === 'joueurs');
-      document.getElementById("vueReglagesArticles").style.display = tab === 'articles' ? 'flex' : 'none';
-      document.getElementById("vueReglagesJoueurs").style.display = tab === 'joueurs' ? 'flex' : 'none';
+      document.getElementById('btnTabArticles').className = `tab-btn ${tab === 'articles' ? 'active' : ''}`;
+      document.getElementById('btnTabJoueurs').className = `tab-btn ${tab === 'joueurs' ? 'active' : ''}`;
+      if (tab === 'articles') {
+        document.getElementById('vueReglagesArticles').style.display = 'flex';
+        document.getElementById('vueReglagesJoueurs').style.display = 'none';
+        afficherListeArticlesReglages();
+      } else {
+        document.getElementById('vueReglagesArticles').style.display = 'none';
+        document.getElementById('vueReglagesJoueurs').style.display = 'flex';
+        afficherListeJoueursReglages();
+      }
+    }
+
+    function afficherListeArticlesReglages() {
+      const container = document.getElementById('reglagesList');
+      container.innerHTML = "";
+      baseArticles.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'item-editor';
+        div.innerHTML = `
+          <input type="text" class="emoji-input" value="${item.emoji}" onchange="modifierArticleSysteme(${index}, 'emoji', this.value)">
+          <input type="text" class="nom-input" value="${item.nom}" onchange="modifierArticleSysteme(${index}, 'nom', this.value)">
+          <input type="number" class="prix-input" value="${item.prix}" onchange="modifierArticleSysteme(${index}, 'prix', parseFloat(this.value))">
+          <button style="background:#e53e3e; color:white; border:none; border-radius:8px; padding:6px 10px; cursor:pointer;" onclick="supprimerArticleSysteme(${index})">✕</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function modifierArticleSysteme(index, champ, valeur) {
+      baseArticles[index][champ] = valeur;
+      afficherArticles();
+    }
+
+    function supprimerArticleSysteme(index) {
+      baseArticles.splice(index, 1);
+      afficherListeArticlesReglages();
+      afficherArticles();
+    }
+
+    function ajouterNouvelArticleSysteme() {
+      const emoji = document.getElementById('nouveauEmoji').value || '🍕';
+      const nom = document.getElementById('nouveauNom').value.trim();
+      const prix = parseFloat(document.getElementById('nouveauPrix').value);
+      const cat = document.getElementById('nouvelleCategorie').value;
+
+      if (!nom || isNaN(prix)) { alert("Veuillez saisir un nom et un prix valides."); return; }
+
+      const newId = Date.now();
+      baseArticles.push({ id: newId, cat: cat, emoji: emoji, nom: nom, prix: prix });
+
+      document.getElementById('nouveauNom').value = "";
+      document.getElementById('nouveauPrix').value = "";
+
+      afficherListeArticlesReglages();
+      afficherArticles();
+    }
+
+    function afficherListeJoueursReglages() {
+      const container = document.getElementById('joueursList');
+      container.innerHTML = "";
+      USERS_LIST.forEach((user, index) => {
+        let prenom = ObtenirPrenomUser(user);
+        let groupe = ObtenirGroupeUser(prenom);
+        const div = document.createElement('div');
+        div.className = 'item-editor';
+        div.innerHTML = `
+          <span style="color:white; font-weight:bold; width:90px;">${prenom}</span>
+          <input type="text" class="prix-input" value="${user.pin || ''}" style="width:70px;" onchange="modifierJoueurSysteme(${index}, 'pin', this.value)">
+          <span style="color:#a0aec0; font-size:11px;">(${groupe})</span>
+          <button style="background:#e53e3e; color:white; border:none; border-radius:8px; padding:6px 10px; cursor:pointer; margin-left:auto;" onclick="supprimerJoueurSysteme('${prenom}')">✕</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function modifierJoueurSysteme(index, champ, valeur) {
+      USERS_LIST[index][champ] = valeur;
+      db.ref('utilisateurs_v2').set(USERS_LIST);
+    }
+
+    function supprimerJoueurSysteme(prenom) {
+      if (estJoueurProtege(prenom)) { alert("Ce joueur est protégé et ne peut pas être supprimé !"); return; }
+      if (confirm(`Voulez-vous supprimer le joueur "${prenom}" ?`)) {
+        USERS_LIST = USERS_LIST.filter(u => ObtenirPrenomUser(u) !== prenom);
+        db.ref('utilisateurs_v2').set(USERS_LIST);
+        db.ref(`banques/${prenom}`).remove();
+        afficherListeJoueursReglages();
+      }
+    }
+
+    function ajouterNouveauJoueurSysteme() {
+      const nom = document.getElementById('nouveauJoueurNom').value.trim();
+      const pin = document.getElementById('nouveauJoueurPin').value.trim();
+      const groupe = document.getElementById('nouveauJoueurGroupe').value;
+
+      if (!nom || pin.length !== 4 || isNaN(pin)) { alert("Veuillez remplir un prénom et un code PIN à 4 chiffres."); return; }
+
+      let doublonNom = USERS_LIST.find(u => ObtenirPrenomUser(u).toLowerCase() === nom.toLowerCase());
+      if (doublonNom) { alert("Ce prénom existe déjà !"); return; }
+
+      USERS_LIST.push({ pin: pin, nom: nom, groupe: groupe });
+      db.ref('utilisateurs_v2').set(USERS_LIST);
+      db.ref(`banques/${nom}`).set(20000.00);
+
+      document.getElementById('nouveauJoueurNom').value = "";
+      document.getElementById('nouveauJoueurPin').value = "";
+
+      afficherListeJoueursReglages();
+    }
+
+    /* SECTION QUIZ / CALCUL MENTAL (EXTREME -> +100k€, ULTIME -> +500k€) */
+    function ouvrirSelectionNiveauQuiz() {
+      document.getElementById('quizLevelOverlay').classList.add('active');
+    }
+
+    function demarrerQuizAvecNiveau(niveau) {
+      niveauQuizActif = niveau;
+      questionsJoueesDansSession = 0;
+      gainsSessionQuiz = 0;
+
+      perteParQuestion = 10000;
+
+      if (niveau === 'facile') { gainParQuestion = 30000; }
+      else if (niveau === 'intermediaire') { gainParQuestion = 50000; }
+      else if (niveau === 'difficile') { gainParQuestion = 100000; }
+      else if (niveau === 'extreme') { gainParQuestion = 100000; } // Mis à jour à 100 000 €
+      else if (niveau === 'ultime') { gainParQuestion = 500000; }  // Mis à jour à 500 000 €
+
+      document.getElementById('quizLevelOverlay').classList.remove('active');
+      document.getElementById('quizUserBadge').innerText = lastUserValide;
+      document.getElementById('quizOverlay').classList.add('active');
+
+      genererNouvelleQuestionQuiz();
+    }
+
+    function genererNouvelleQuestionQuiz() {
+      if (intervalChrono) clearInterval(intervalChrono);
+
+      tempsRestant = 10;
+      mettreAJourChronoHTML();
+
+      let n1, n2, rep, opStr;
+
+      if (niveauQuizActif === 'facile') {
+        n1 = Math.floor(Math.random() * 8) + 2;
+        n2 = Math.floor(Math.random() * 8) + 2;
+        rep = n1 * n2;
+        opStr = `${n1} × ${n2}`;
+      } else if (niveauQuizActif === 'intermediaire') {
+        n1 = Math.floor(Math.random() * 12) + 3;
+        n2 = Math.floor(Math.random() * 12) + 3;
+        rep = n1 * n2;
+        opStr = `${n1} × ${n2}`;
+      } else if (niveauQuizActif === 'difficile') {
+        n1 = Math.floor(Math.random() * 15) + 5;
+        n2 = Math.floor(Math.random() * 15) + 5;
+        rep = n1 * n2;
+        opStr = `${n1} × ${n2}`;
+      } else if (niveauQuizActif === 'extreme') {
+        n1 = Math.floor(Math.random() * 7) + 4;
+        n2 = Math.floor(Math.random() * 7) + 4;
+        rep = n1 * n2;
+        opStr = `${n1} × ${n2}`;
+      } else if (niveauQuizActif === 'ultime') {
+        let estAddition = Math.random() > 0.5;
+        n1 = Math.floor(Math.random() * 89) + 10;
+        n2 = Math.floor(Math.random() * 89) + 10;
+        if (estAddition) {
+          rep = n1 + n2;
+          opStr = `${n1} + ${n2}`;
+        } else {
+          if (n1 < n2) { let temp = n1; n1 = n2; n2 = temp; }
+          rep = n1 - n2;
+          opStr = `${n1} - ${n2}`;
+        }
+      }
+
+      questionActiveCourante = { enonce: opStr, reponse: rep.toString() };
+
+      document.getElementById('quizEnonce').innerText = opStr;
+      document.getElementById('quizRewardInfo').innerText = `Gain : +${gainParQuestion.toLocaleString('fr-FR')} € | Perte : -${perteParQuestion.toLocaleString('fr-FR')} €`;
+      document.getElementById('quizReponseInput').value = "";
+
+      if (niveauQuizActif === 'extreme') {
+        document.getElementById('vueQuizMaths').style.display = 'none';
+        document.getElementById('vueQuizQCM').style.display = 'block';
+        genererPropositionsQCM(rep);
+      } else {
+        document.getElementById('vueQuizMaths').style.display = 'block';
+        document.getElementById('vueQuizQCM').style.display = 'none';
+      }
+
+      intervalChrono = setInterval(demarrerTimerQuestion, 1000);
+    }
+
+    function genererPropositionsQCM(reponseExacte) {
+      const container = document.getElementById('qcmContainer');
+      container.innerHTML = "";
+
+      let choix = [reponseExacte];
+      while (choix.length < 3) {
+        let delta = (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? 1 : -1);
+        let faux = reponseExacte + delta;
+        if (faux > 0 && !choix.includes(faux)) { choix.push(faux); }
+      }
+
+      choix.sort(() => Math.random() - 0.5);
+
+      choix.forEach(val => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-qcm';
+        btn.innerText = val;
+        btn.onclick = () => validerChoixQCM(val.toString());
+        container.appendChild(btn);
+      });
+    }
+
+    function demarrerTimerQuestion() {
+      tempsRestant--;
+      mettreAJourChronoHTML();
+      if (tempsRestant <= 0) {
+        clearInterval(intervalChrono);
+        traiterErreurOuTempsEcoule("⌛ Temps écoulé !");
+      }
+    }
+
+    function mettreAJourChronoHTML() {
+      const box = document.getElementById('quizTimerBox');
+      box.innerText = `⏳ ${tempsRestant}s`;
+      if (tempsRestant <= 3) { box.classList.add('danger'); }
+      else { box.classList.remove('danger'); }
+    }
+
+    function taperQuizChiffre(chiffre) {
+      const input = document.getElementById('quizReponseInput');
+      input.value += chiffre;
+      if (input.value === questionActiveCourante.reponse) {
+        clearInterval(intervalChrono);
+        traiterBonneReponse();
+      } else if (input.value.length >= questionActiveCourante.reponse.length) {
+        clearInterval(intervalChrono);
+        traiterErreurOuTempsEcoule("❌ Mauvaise réponse !");
+      }
+    }
+
+    function effacerQuizChiffre() {
+      const input = document.getElementById('quizReponseInput');
+      input.value = input.value.slice(0, -1);
+    }
+
+    function validerChoixQCM(valSaisie) {
+      clearInterval(intervalChrono);
+      if (valSaisie === questionActiveCourante.reponse) { traiterBonneReponse(); }
+      else { traiterErreurOuTempsEcoule("❌ Mauvaise réponse QCM !"); }
+    }
+
+    function traiterBonneReponse() {
+      jouerSonValidation();
+      questionsJoueesDansSession++;
+      gainsSessionQuiz += gainParQuestion;
+
+      let user = lastUserValide;
+      let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
+      db.ref(`banques/${user}`).set(Math.round((soldeActuel + gainParQuestion) * 100) / 100);
+
+      setTimeout(() => { genererNouvelleQuestionQuiz(); }, 300);
+    }
+
+    function traiterErreurOuTempsEcoule(raison) {
+      questionsJoueesDansSession++;
+      gainsSessionQuiz -= perteParQuestion;
+
+      let user = lastUserValide;
+      let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
+      db.ref(`banques/${user}`).set(Math.round((soldeActuel - perteParQuestion) * 100) / 100);
+
+      alert(`${raison}\nRéponse : ${questionActiveCourante.reponse}\nPerte : -${perteParQuestion.toLocaleString('fr-FR')} €`);
+
+      if (niveauQuizActif === 'extreme' && questionsJoueesDansSession >= 10) {
+        quitterQuizManuel();
+      } else {
+        genererNouvelleQuestionQuiz();
+      }
+    }
+
+    function quitterQuizManuel() {
+      if (intervalChrono) clearInterval(intervalChrono);
+      document.getElementById('quizOverlay').classList.remove('active');
+      alert(`Fin de la session Calcul Mental !\nQuestions jouées : ${questionsJoueesDansSession}\nBilan session : ${gainsSessionQuiz >= 0 ? '+' : ''}${gainsSessionQuiz.toLocaleString('fr-FR')} €`);
+    }
+
+    function jouerSonValidation() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } catch(e){}
     }
   </script>
 </body>
