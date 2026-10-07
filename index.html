@@ -252,7 +252,7 @@
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v4.4.0 (118 Entreprises • 20%/h • Marché Immo 30m)</div>
+    <div class="version-tag">v4.5.0 (Règles Équité • Max 10 Hôtels • Entreprises Uniques)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -292,10 +292,14 @@
         </div>
 
         <div class="aide-section">
-          <div class="aide-section-title">🏢 Immobilier, Malls & Entreprises</div>
+          <div class="aide-section-title">🏢 Immobilier, Hôtels & Entreprises</div>
           • <strong>Revenus passifs</strong> : Snacks (+1 000€/h), Hôtels, Malls et Entreprises rapportent <strong>20%/h</strong> automatiquement 2 heures après l'achat !<br>
+          • <strong>Règles de Possession & Équité</strong> :<br>
+          &nbsp;&nbsp;- L'achat d'hôtels est limité à <strong>10 hôtels maximum</strong> par joueur.<br>
+          &nbsp;&nbsp;- Une entreprise ne peut être achetée qu'<strong>une seule fois</strong> par joueur.<br>
+          • <strong>Revente de Biens</strong> : Seuls les biens de la section <em>Immobilier Marseille</em> peuvent être revendus (les Hôtels ne sont pas revendables).<br>
           • <strong>Prise de Valeur</strong> : L'immobilier augmente sa valeur à partir de <strong>3 heures</strong> après l'acquisition.<br>
-          • <strong>Marché Immobilier Dynamique</strong> : Toutes les 30 minutes, le taux du marché immobilier varie aléatoirement entre <strong>+5% et +10 000 000%</strong> (attention, le marché peut également baisser et perdre de la valeur !).
+          • <strong>Marché Immobilier Dynamique</strong> : Toutes les 30 minutes, le taux du marché immobilier varie aléatoirement entre <strong>+5% et +10 000 000%</strong> (attention, le marché peut également baisser !).
         </div>
 
         <div class="aide-section">
@@ -672,6 +676,7 @@
     let possessionsImmo = {};
     let joueurSelectionneVueDetail = null;
     let filtreClassementActif = "tous";
+    let estEnTrainDeNettoyer = false;
 
     let marcheImmoPct = 0;
 
@@ -685,7 +690,7 @@
     let tempsRestant = 10;
     let intervalChrono = null;
 
-    // BASE D'ARTICLES : AUTOMOBILES, IMMOBILIER & 118 GROSSES ENTREPRISES (REVENUS PASSIFS A 20%/H APRES 2H)
+    // BASE D'ARTICLES : AUTOMOBILES, IMMOBILIER & 118 GROSSES ENTREPRISES
     let baseArticles = [
       // AUTOMOBILES
       { id: 801, cat: "Automobiles", emoji: "🚗", nom: "Audi A3 Sportback", prix: 36790.00 },
@@ -763,7 +768,7 @@
       { id: 937, cat: "Entreprises Connues", emoji: "💄", nom: "L'Oréal", prix: 220000000000.00, immoKey: "ent_or", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 938, cat: "Entreprises Connues", emoji: "🕊️", nom: "Hermès", prix: 230000000000.00, immoKey: "ent_rms", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
 
-      // 80 NOUVELLES ENTREPRISES (VALEURS DE 1 MRD A 1000 MRDS €)
+      // 80 NOUVELLES ENTREPRISES
       { id: 939, cat: "Entreprises Connues", emoji: "⛽", nom: "TotalEnergies", prix: 140000000000.00, immoKey: "ent_tte", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 940, cat: "Entreprises Connues", emoji: "🏦", nom: "BNP Paribas", prix: 70000000000.00, immoKey: "ent_bnp", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 941, cat: "Entreprises Connues", emoji: "🛡️", nom: "AXA", prix: 75000000000.00, immoKey: "ent_cs", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
@@ -870,11 +875,10 @@
         const tranche30min = Math.floor(maintenant / (30 * 60 * 1000));
 
         if (!data || data.tranche !== tranche30min) {
-          // Tirage aléatoire : 25% de chance de perte, 75% de hausse entre 5% et 10 000 000%
           const estPerte = Math.random() < 0.25;
           let pct = 0;
           if (estPerte) {
-            pct = - (Math.floor(Math.random() * 85) + 5); // perte de -5% à -90%
+            pct = - (Math.floor(Math.random() * 85) + 5);
           } else {
             let min = 5;
             let max = 10000000;
@@ -967,9 +971,58 @@
       });
     }
 
+    /* NETTOYAGE DU SURPLUS DES BIENS (EQUITE SUR FIREBASE) */
+    function nettoyerBiensSurplus(dataImmo) {
+      if (!dataImmo || estEnTrainDeNettoyer) return;
+      let updates = {};
+
+      Object.keys(dataImmo).forEach(user => {
+        let userBiens = dataImmo[user];
+        if (!userBiens) return;
+
+        // 1. Limite à 10 Hôtels Max par joueur
+        if (userBiens.hotel && userBiens.hotel.achats && userBiens.hotel.achats.length > 10) {
+          let nouveauxAchats = userBiens.hotel.achats.slice(0, 10);
+          let nouveauxPaiements = userBiens.hotel.derniersPaiements ? userBiens.hotel.derniersPaiements.slice(0, 10) : nouveauxAchats;
+          updates[`immobilier/${user}/hotel`] = {
+            quantite: 10,
+            achats: nouveauxAchats,
+            derniersPaiements: nouveauxPaiements
+          };
+        }
+
+        // 2. Limite à 1 seule acquisition par entreprise
+        Object.keys(userBiens).forEach(immoKey => {
+          if (immoKey === 'dernierePartie30k' || immoKey === 'hotel') return;
+          let catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
+          let estEntreprise = (immoKey.startsWith('ent_')) || (catalogueRef && (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise));
+
+          if (estEntreprise && userBiens[immoKey] && userBiens[immoKey].achats && userBiens[immoKey].achats.length > 1) {
+            let nouveauAchat = userBiens[immoKey].achats.slice(0, 1);
+            let nouveauPaiement = userBiens[immoKey].derniersPaiements ? userBiens[immoKey].derniersPaiements.slice(0, 1) : nouveauAchat;
+            updates[`immobilier/${user}/${immoKey}`] = {
+              quantite: 1,
+              achats: nouveauAchat,
+              derniersPaiements: nouveauPaiement
+            };
+          }
+        });
+      });
+
+      if (Object.keys(updates).length > 0) {
+        estEnTrainDeNettoyer = true;
+        db.ref().update(updates).then(() => {
+          estEnTrainDeNettoyer = false;
+        }).catch(() => {
+          estEnTrainDeNettoyer = false;
+        });
+      }
+    }
+
     function ecouterPossessionsImmo() {
       db.ref('immobilier').on('value', (snapshot) => {
         possessionsImmo = snapshot.val() || {};
+        nettoyerBiensSurplus(possessionsImmo);
         traiterRevenusHorairesImmo();
         afficherSoldesBanque();
         afficherClassementEtPossessions();
@@ -1005,7 +1058,7 @@
             let gainParHeure = 0;
 
             if (catalogueRef && catalogueRef.tauxPourcentHeure) {
-              delaiMin = (catalogueRef.delaiActivationHeures || 2) * 3600 * 1000; // 2h de délai
+              delaiMin = (catalogueRef.delaiActivationHeures || 2) * 3600 * 1000;
               gainParHeure = catalogueRef.prix * catalogueRef.tauxPourcentHeure;
             } else if (immoKey === 'snack') {
               delaiMin = 2 * 3600 * 1000;
@@ -1059,25 +1112,31 @@
       });
     }
 
-    /* REVENTE ET CALCUL DE VALEUR : AUGMENTATION A PARTIR DE 3H + VARIATION DU MARCHE (30 MIN) */
+    /* REVENTE DE BIENS (UNIQUEMENT SECTION IMMOBILIER, HORS HOTELS) */
     function calculerPrixReventeImmo(dateAchat, prixBase) {
       const maintenant = Date.now();
       const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
 
-      // L'immobilier augmente sa valeur seulement à partir de 3 heures d'acquisition
       if (heuresEcoulees < 3) {
         return { prix: prixBase, augmente: false, heuresRestantes: (3 - heuresEcoulees).toFixed(1) };
       }
 
-      // À partir de 3 heures : application du multiplicateur du marché dynamique (30 min)
       let multMarche = 1 + (marcheImmoPct / 100);
-      if (multMarche < 0.1) multMarche = 0.1; // plancher minimal à 10% de la valeur de base
+      if (multMarche < 0.1) multMarche = 0.1;
 
       let prixActuel = Math.round(prixBase * multMarche * 100) / 100;
       return { prix: prixActuel, augmente: true, heuresRestantes: 0 };
     }
 
     function revendreBienImmobilier(user, immoKey, indexAchat, prixBase, nomBien) {
+      const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
+      
+      // Sécurité : Vérification que le bien appartient à la section Immobilier et n'est pas un Hôtel
+      if (!catalogueRef || catalogueRef.cat !== "Immobilier Marseille" || immoKey === 'hotel') {
+        alert("🚫 Seuls les biens de la section Immobilier Marseille (hors Hôtels) peuvent être revendus !");
+        return;
+      }
+
       const ref = db.ref(`immobilier/${user}/${immoKey}`);
       ref.once('value', (snapshot) => {
         const data = snapshot.val();
@@ -1201,6 +1260,15 @@
     }
 
     function ajouterArticle(nom, prix, fullItem) {
+      if (fullItem) {
+        // Interdiction d'ajouter 2 fois la même entreprise dans le panier
+        if (fullItem.cat === "Entreprises Connues" || fullItem.estEntreprise) {
+          if (listeArticles.some(item => item.immoKey === fullItem.immoKey)) {
+            alert("🚫 Vous avez déjà cette entreprise dans votre panier ! Une entreprise ne peut être achetée qu'une seule fois.");
+            return;
+          }
+        }
+      }
       listeArticles.push({ nom: nom, prix: prix, immoKey: fullItem ? fullItem.immoKey : null, cat: fullItem ? fullItem.cat : null });
       MettreAJourEcran();
     }
@@ -1358,6 +1426,38 @@
         return;
       }
 
+      // VÉRIFICATION LIMITE D'HÔTELS (MAX 10 HÔTELS)
+      let hotelsPossedes = (possessionsImmo[user] && possessionsImmo[user].hotel && possessionsImmo[user].hotel.achats) 
+        ? possessionsImmo[user].hotel.achats.length 
+        : 0;
+      let hotelsDansPanier = listeArticles.filter(i => i.immoKey === 'hotel').length;
+
+      if (hotelsPossedes + hotelsDansPanier > 10) {
+        alert(`🚫 ACHAT IMPOSSIBLE !\nL'achat est limité à 10 hôtels maximum par joueur.\nActuellement possédés : ${hotelsPossedes}\nDans le panier : ${hotelsDansPanier}`);
+        return;
+      }
+
+      // VÉRIFICATION UNICITÉ DES ENTREPRISES (1 SEULE PAR JOUEUR)
+      let userBiens = possessionsImmo[user] || {};
+      let entrepriseEnDouble = false;
+      let nomEntrepriseDouble = "";
+
+      for (let item of listeArticles) {
+        if (item.cat === "Entreprises Connues" || (item.immoKey && item.immoKey.startsWith('ent_'))) {
+          let dejaPossede = userBiens[item.immoKey] && userBiens[item.immoKey].achats && userBiens[item.immoKey].achats.length > 0;
+          if (dejaPossede) {
+            entrepriseEnDouble = true;
+            nomEntrepriseDouble = item.nom;
+            break;
+          }
+        }
+      }
+
+      if (entrepriseEnDouble) {
+        alert(`🚫 ACHAT IMPOSSIBLE !\nVous possédez déjà l'entreprise "${nomEntrepriseDouble}". Une entreprise ne peut être achetée qu'une seule fois.`);
+        return;
+      }
+
       let voituresDansPanier = listeArticles.filter(i => i.cat === "Automobiles").length;
       if (voituresDansPanier > 0) {
         let statsGarage = calculerCapaciteEtVoitures(user);
@@ -1497,6 +1597,11 @@
         const emojiBien = catalogueRef ? catalogueRef.emoji : '🏠';
         const prixBase = catalogueRef ? catalogueRef.prix : 0;
 
+        // La revente ne marche que pour la section Immobilier, et les Hôtels ne peuvent pas être vendus
+        const estImmobilier = catalogueRef ? (catalogueRef.cat === "Immobilier Marseille") : false;
+        const estHotel = (immoKey === 'hotel');
+        const peutEtreVendu = estImmobilier && !estHotel;
+
         dataBien.achats.forEach((dateAchat, indexAchat) => {
           const mainDiv = document.createElement('div');
           mainDiv.className = 'possession-pill';
@@ -1510,7 +1615,9 @@
             ? `<div style="font-size:10px; color:#38ef7d;">📈 Valeur marché : ${prixAffiche.toLocaleString('fr-FR')} € (${marcheImmoPct >= 0 ? '+' : ''}${marcheImmoPct}%)</div>`
             : `<div style="font-size:10px; color:#a0aec0;">⏳ Prise de valeur dans ${calculVal.heuresRestantes}h</div>`;
 
-          let boutonVente = `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${user}', '${immoKey}', ${indexAchat}, ${prixBase}, '${nomBien.replace(/'/g, "\\'")}')">💰 Revendre (${prixAffiche.toLocaleString('fr-FR')} €)</button>`;
+          let boutonVente = peutEtreVendu
+            ? `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${user}', '${immoKey}', ${indexAchat}, ${prixBase}, '${nomBien.replace(/'/g, "\\'")}')">💰 Revendre (${prixAffiche.toLocaleString('fr-FR')} €)</button>`
+            : `<button class="btn-vente-immo bloque" disabled>🔒 Non vendable</button>`;
 
           mainDiv.innerHTML = `
             <div>
@@ -1647,7 +1754,7 @@
       afficherListeJoueursReglages();
     }
 
-    /* SECTION QUIZ / CALCUL MENTAL (EXTREME -> +100k€, ULTIME -> +500k€) */
+    /* SECTION QUIZ / CALCUL MENTAL */
     function ouvrirSelectionNiveauQuiz() {
       document.getElementById('quizLevelOverlay').classList.add('active');
     }
@@ -1662,8 +1769,8 @@
       if (niveau === 'facile') { gainParQuestion = 30000; }
       else if (niveau === 'intermediaire') { gainParQuestion = 50000; }
       else if (niveau === 'difficile') { gainParQuestion = 100000; }
-      else if (niveau === 'extreme') { gainParQuestion = 100000; } // Mis à jour à 100 000 €
-      else if (niveau === 'ultime') { gainParQuestion = 500000; }  // Mis à jour à 500 000 €
+      else if (niveau === 'extreme') { gainParQuestion = 100000; }
+      else if (niveau === 'ultime') { gainParQuestion = 500000; }
 
       document.getElementById('quizLevelOverlay').classList.remove('active');
       document.getElementById('quizUserBadge').innerText = lastUserValide;
