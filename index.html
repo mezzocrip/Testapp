@@ -23,67 +23,153 @@
     .caisse-container {
       background: white; width: 100vw; height: 100vh; height: 100dvh;
       display: flex; flex-direction: column; justify-content: space-between;
-      padding: calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+      padding: calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
       position: relative;
     }
 
     .version-tag {
-      position: absolute; bottom: calc(5px + env(safe-area-inset-bottom)); right: 15px;
-      font-size: 11px; font-weight: 600; color: #a0aec0; font-family: monospace; z-index: 10;
+      position: absolute; bottom: calc(4px + env(safe-area-inset-bottom)); right: 12px;
+      font-size: 10px; font-weight: 600; color: #a0aec0; font-family: monospace; z-index: 10;
     }
 
-    .header-caisse { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0; }
-    h1 { color: #1a202c; margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-    .header-actions { display: flex; gap: 8px; }
+    .header-caisse { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-shrink: 0; }
+    h1 { color: #1a202c; margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+    .header-actions { display: flex; gap: 6px; }
     
     .btn-quick-add {
-      background: #2b6cb0; color: white; border: none; border-radius: 12px;
-      padding: 0 12px; font-size: 13px; font-weight: bold; cursor: pointer;
-      display: flex; align-items: center; gap: 6px; height: 44px;
+      background: #2b6cb0; color: white; border: none; border-radius: 10px;
+      padding: 0 10px; font-size: 12px; font-weight: bold; cursor: pointer;
+      display: flex; align-items: center; gap: 4px; height: 38px;
     }
     .btn-quick-add:active { background: #2c5282; }
 
     .btn-icon {
-      background: #edf2f7; border: none; border-radius: 12px; width: 44px; height: 44px;
-      font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      background: #edf2f7; border: none; border-radius: 10px; width: 38px; height: 38px;
+      font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center;
     }
     .btn-icon:active { background: #cbd5e0; }
 
-    .layout-ipad { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; justify-content: space-between; }
-    .col-gauche { display: flex; flex-direction: column; flex-shrink: 0; }
+    /* LAYOUT AVEC SECTION JOUEUR + BIENS & CATALOGUE */
+    .layout-ipad { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; gap: 10px; }
 
-    .ecran { background-color: #1a202c; border-radius: 14px; padding: 10px 14px; margin-bottom: 8px; text-align: center; }
-    .total-label { color: #a0aec0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-    .total-montant { color: #38ef7d; font-size: 28px; font-family: monospace; font-weight: bold; margin-top: 2px; }
+    /* LIGNE DASHBOARD JOUEUR & BIENS POSSÉDÉS */
+    .dashboard-session {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      flex-shrink: 0;
+      background: #1a202c;
+      border-radius: 14px;
+      padding: 10px;
+      color: white;
+    }
+
+    .session-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #121820;
+      border-radius: 10px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .session-select {
+      width: 100%;
+      background: #202b38;
+      color: #38bdf8;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      outline: none;
+    }
+
+    .solde-gros-label { font-size: 10px; text-transform: uppercase; color: #a0aec0; letter-spacing: 0.5px; font-weight: 700; }
+    .solde-gros-montant { font-size: 26px; font-weight: 900; font-family: monospace; color: #38ef7d; margin-top: 2px; }
+
+    .biens-card {
+      background: #121820;
+      border-radius: 10px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      max-height: 120px;
+    }
+
+    .biens-title { font-size: 11px; text-transform: uppercase; color: #38bdf8; font-weight: bold; margin-bottom: 4px; }
+    .biens-list { overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; gap: 4px; padding-right: 2px; -webkit-overflow-scrolling: touch; }
+    .bien-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1a222d;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+    }
+    .bien-item-nom { color: #e2e8f0; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 60%; }
+    .btn-vendre-mini {
+      background: #e53e3e; color: white; border: none; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold; cursor: pointer;
+    }
+    .btn-vendre-mini:active { background: #c53030; }
+
+    /* CONTENU BAS: PANIER & CATALOGUE */
+    .zone-jeu { display: flex; flex-direction: row; flex-grow: 1; gap: 10px; overflow: hidden; }
+
+    .col-panier { display: flex; flex-direction: column; width: 35%; flex-shrink: 0; }
+    .col-catalogue { display: flex; flex-direction: column; width: 65%; flex-grow: 1; overflow: hidden; }
 
     .ticket-container {
-      background: #f8fafc; border: 2px dashed #cbd5e0; border-radius: 12px; padding: 8px 12px;
-      margin-bottom: 10px; max-height: 100px; overflow-y: auto; text-align: left; -webkit-overflow-scrolling: touch;
+      background: #f8fafc; border: 2px dashed #cbd5e0; border-radius: 12px; padding: 6px 10px;
+      flex-grow: 1; overflow-y: auto; text-align: left; -webkit-overflow-scrolling: touch;
     }
-    .ticket-vide { color: #a0aec0; font-size: 13px; text-align: center; margin: 6px 0; font-style: italic; }
-    .ligne-ticket { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #2d3748; padding: 4px 0; border-bottom: 1px solid #edf2f7; }
-    .btn-suppr-ligne { background: #fed7d7; color: #9b2c2c; border: none; border-radius: 8px; font-size: 12px; padding: 2px 6px; cursor: pointer; margin-left: 8px; font-weight: bold; }
+    .ticket-vide { color: #a0aec0; font-size: 12px; text-align: center; margin: 10px 0; font-style: italic; }
+    .ligne-ticket { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #2d3748; padding: 4px 0; border-bottom: 1px solid #edf2f7; }
+    .btn-suppr-ligne { background: #fed7d7; color: #9b2c2c; border: none; border-radius: 6px; font-size: 10px; padding: 2px 5px; cursor: pointer; margin-left: 6px; font-weight: bold; }
 
-    .section-title { font-size: 12px; color: #718096; margin-bottom: 6px; text-align: left; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-    .col-droite { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; margin-bottom: 8px; }
+    .section-title { font-size: 11px; color: #718096; margin-bottom: 4px; text-align: left; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    .categories-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; scrollbar-width: none; align-items: center; flex-shrink: 0; }
+    .categories-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 6px; scrollbar-width: none; align-items: center; flex-shrink: 0; }
     .categories-tabs::-webkit-scrollbar { display: none; }
-    .tab-btn { background: #e2e8f0; color: #4a5568; border: none; padding: 8px 14px; border-radius: 22px; font-size: 12px; font-weight: bold; white-space: nowrap; cursor: pointer; flex-shrink: 0; min-height: 38px; display: flex; align-items: center; }
+    .tab-btn { background: #e2e8f0; color: #4a5568; border: none; padding: 6px 10px; border-radius: 18px; font-size: 11px; font-weight: bold; white-space: nowrap; cursor: pointer; flex-shrink: 0; min-height: 32px; display: flex; align-items: center; }
     .tab-btn.active { background: #3182ce; color: white; }
 
     .articles-scroll { flex-grow: 1; overflow-y: auto; padding-right: 2px; -webkit-overflow-scrolling: touch; }
-    .articles-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .btn-article { background: #f7fafc; border: 1.5px solid #cbd5e0; border-radius: 14px; padding: 10px 6px; font-size: 12px; font-weight: 600; color: #2d3748; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 72px; text-align: center; }
+    .articles-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .btn-article { background: #f7fafc; border: 1.5px solid #cbd5e0; border-radius: 12px; padding: 8px 4px; font-size: 11px; font-weight: 600; color: #2d3748; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; text-align: center; position: relative; }
     .btn-article:active { background-color: #e2e8f0; transform: scale(0.98); }
-    .emoji { font-size: 22px; }
-    .prix-tag { font-weight: 800; color: #2b6cb0; font-size: 11px; background: #ebf8ff; padding: 2px 6px; border-radius: 8px; }
+    
+    /* STYLE GRISAGE ELEMENTS DEJA POSSEDES */
+    .btn-article.possede {
+      background: #e2e8f0;
+      opacity: 0.5;
+      border-color: #a0aec0;
+      cursor: not-allowed;
+    }
+    .btn-article.possede::after {
+      content: "DÉJÀ POSSÉDÉ";
+      position: absolute;
+      top: 4px; right: 4px;
+      font-size: 8px;
+      background: #718096;
+      color: white;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: 800;
+    }
 
-    .actions-section { flex-shrink: 0; margin-top: 4px; }
-    .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
-    .btn-validation { background: #000; color: #fff; border: none; border-radius: 14px; padding: 12px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; }
-    .btn-quiz-mode { background: #6b46c1; color: #fff; border: none; border-radius: 14px; padding: 12px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; }
-    .btn-reset { background: none; border: none; color: #e53e3e; font-weight: bold; cursor: pointer; padding: 6px; font-size: 12px; width: 100%; text-align: center; }
+    .emoji { font-size: 18px; }
+    .prix-tag { font-weight: 800; color: #2b6cb0; font-size: 10px; background: #ebf8ff; padding: 1px 5px; border-radius: 6px; }
+
+    .actions-section { flex-shrink: 0; margin-top: 6px; }
+    .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+    .btn-validation { background: #000; color: #fff; border: none; border-radius: 12px; padding: 10px; font-size: 14px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; }
+    .btn-quiz-mode { background: #6b46c1; color: #fff; border: none; border-radius: 12px; padding: 10px; font-size: 14px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; }
+    .btn-reset { background: none; border: none; color: #e53e3e; font-weight: bold; cursor: pointer; padding: 4px; font-size: 11px; width: 100%; text-align: center; }
 
     .pin-overlay, .banque-overlay, .historique-overlay, .reglages-overlay, .quiz-level-overlay, .quiz-overlay, .apple-pay-overlay, .creer-ecole-overlay, .aide-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85);
@@ -200,9 +286,7 @@
     .aide-section-title { font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
 
     @media (min-width: 600px) { .articles-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (min-width: 768px) and (orientation: landscape) {
-      .layout-ipad { display: grid; grid-template-columns: 340px 1fr; gap: 16px; }
-      .ticket-container { max-height: 160px; }
+    @media (min-width: 768px) {
       .articles-grid { grid-template-columns: repeat(4, 1fr); }
     }
   </style>
@@ -222,26 +306,44 @@
     </div>
     
     <div class="layout-ipad">
-      <div class="col-gauche">
-        <div class="ecran">
-          <div class="total-label">Total à payer</div>
-          <div class="total-montant" id="totalDisplay">0,00 €</div>
+      
+      <!-- NOUVEAU DASHBOARD / SESSION JOUEUR + BIENS -->
+      <div class="dashboard-session">
+        <div class="session-card">
+          <label style="font-size:10px; color:#38bdf8; font-weight:bold; margin-bottom:2px;">SESSION JOUEUR ACTIF</label>
+          <select id="selectJoueurSession" class="session-select" onchange="changerJoueurSession(this.value)">
+            <option value="">-- Choisir un joueur --</option>
+          </select>
+          <div class="solde-gros-label">Solde en compte</div>
+          <div class="solde-gros-montant" id="soldeJoueurSessionDisplay">0,00 €</div>
         </div>
 
-        <div class="section-title">Détail du panier</div>
-        <div class="ticket-container" id="ticketList">
-          <div class="ticket-vide">Aucun article ajouté</div>
+        <div class="biens-card">
+          <div class="biens-title">Biens Possédés</div>
+          <div class="biens-list" id="biensJoueurSessionList">
+            <div style="font-size:10px; color:#a0aec0; text-align:center; margin-top:10px;">Sélectionnez un joueur pour voir ses biens</div>
+          </div>
         </div>
       </div>
 
-      <div class="col-droite">
-        <div class="section-title">Catalogue</div>
-        <div class="categories-tabs" id="categoriesTabs"></div>
+      <div class="zone-jeu">
+        <div class="col-panier">
+          <div class="section-title">Panier (Total: <span id="totalDisplay">0,00 €</span>)</div>
+          <div class="ticket-container" id="ticketList">
+            <div class="ticket-vide">Aucun article ajouté</div>
+          </div>
+        </div>
 
-        <div class="articles-scroll">
-          <div class="articles-grid" id="articlesGrid"></div>
+        <div class="col-catalogue">
+          <div class="section-title">Catalogue</div>
+          <div class="categories-tabs" id="categoriesTabs"></div>
+
+          <div class="articles-scroll">
+            <div class="articles-grid" id="articlesGrid"></div>
+          </div>
         </div>
       </div>
+
     </div>
 
     <div class="actions-section">
@@ -249,10 +351,10 @@
         <button class="btn-validation" onclick="demanderCodePin('paiement')">Payer</button>
         <button class="btn-quiz-mode" onclick="demanderCodePin('quiz_login')">Calcul Mental 🧮</button>
       </div>
-      <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
+      <button class="btn-reset" onclick="reinitialiser()">Remise à zéro du panier</button>
     </div>
 
-    <div class="version-tag">v4.5.0 (Règles Équité • Max 10 Hôtels • Entreprises Uniques)</div>
+    <div class="version-tag">v5.0.0 (Refonte Session Joueur & Refonte Revente)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -299,7 +401,7 @@
           &nbsp;&nbsp;- Une entreprise ne peut être achetée qu'<strong>une seule fois</strong> par joueur.<br>
           • <strong>Revente de Biens</strong> : Seuls les biens de la section <em>Immobilier Marseille</em> peuvent être revendus (les Hôtels ne sont pas revendables).<br>
           • <strong>Prise de Valeur</strong> : L'immobilier augmente sa valeur à partir de <strong>3 heures</strong> après l'acquisition.<br>
-          • <strong>Marché Immobilier Dynamique</strong> : Toutes les 30 minutes, le taux du marché immobilier varie aléatoirement entre <strong>+5% et +10 000 000%</strong> (attention, le marché peut également baisser !).
+          • <strong>Marché Immobilier Dynamique</strong> : Toutes les 30 minutes, le taux du marché immobilier varie aléatoirement entre <strong>+5% et +10 000 000%</strong>.
         </div>
 
         <div class="aide-section">
@@ -671,9 +773,11 @@
     let lastPinValide = "";
     let blocageSaisie = false;
     let actionApresPin = "";
+    let itemAmettreEnVente = null; // Stocke l'item qu'un joueur veut revendre
     let tousLesTickets = [];
     let comptesComplets = {};
     let possessionsImmo = {};
+    let joueurActifSession = "";
     let joueurSelectionneVueDetail = null;
     let filtreClassementActif = "tous";
     let estEnTrainDeNettoyer = false;
@@ -690,7 +794,6 @@
     let tempsRestant = 10;
     let intervalChrono = null;
 
-    // BASE D'ARTICLES : AUTOMOBILES, IMMOBILIER & 118 GROSSES ENTREPRISES
     let baseArticles = [
       // AUTOMOBILES
       { id: 801, cat: "Automobiles", emoji: "🚗", nom: "Audi A3 Sportback", prix: 36790.00 },
@@ -728,7 +831,7 @@
       { id: 513, cat: "Immobilier Marseille", emoji: "🚘", nom: "Garage 5 voitures", prix: 50000.00, immoKey: "garage5", capaciteGarage: 5 },
       { id: 514, cat: "Immobilier Marseille", emoji: "🏎", nom: "Garage 20 voitures", prix: 150000.00, immoKey: "garage20", capaciteGarage: 20 },
 
-      // ENTREPRISES CONNUES (118 ENTREPRISES AU TOTAL • 20%/H APRES 2H)
+      // ENTREPRISES CONNUES (20%/H APRES 2H)
       { id: 901, cat: "Entreprises Connues", emoji: "🍎", nom: "Apple Inc.", prix: 3400000000000.00, immoKey: "ent_apple", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 902, cat: "Entreprises Connues", emoji: "💻", nom: "Microsoft", prix: 3100000000000.00, immoKey: "ent_msft", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 903, cat: "Entreprises Connues", emoji: "👁️", nom: "NVIDIA", prix: 3200000000000.00, immoKey: "ent_nvda", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
@@ -742,113 +845,7 @@
       { id: 911, cat: "Entreprises Connues", emoji: "🥤", nom: "Coca-Cola", prix: 290000000000.00, immoKey: "ent_ko", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 912, cat: "Entreprises Connues", emoji: "🍟", nom: "McDonald's", prix: 220000000000.00, immoKey: "ent_mcd", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 913, cat: "Entreprises Connues", emoji: "👟", nom: "Nike", prix: 130000000000.00, immoKey: "ent_nike", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 914, cat: "Entreprises Connues", emoji: "☕", nom: "Starbucks", prix: 110000000000.00, immoKey: "ent_sbux", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 915, cat: "Entreprises Connues", emoji: "🧬", nom: "Eli Lilly", prix: 850000000000.00, immoKey: "ent_lly", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 916, cat: "Entreprises Connues", emoji: "💊", nom: "Novo Nordisk", prix: 550000000000.00, immoKey: "ent_nvo", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 917, cat: "Entreprises Connues", emoji: "💉", nom: "Pfizer", prix: 160000000000.00, immoKey: "ent_pfe", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 918, cat: "Entreprises Connues", emoji: "💳", nom: "Visa", prix: 570000000000.00, immoKey: "ent_v", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 919, cat: "Entreprises Connues", emoji: "💳", nom: "Mastercard", prix: 450000000000.00, immoKey: "ent_ma", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 920, cat: "Entreprises Connues", emoji: "🏦", nom: "JPMorgan Chase", prix: 590000000000.00, immoKey: "ent_jpm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 921, cat: "Entreprises Connues", emoji: "📈", nom: "Berkshire Hathaway", prix: 980000000000.00, immoKey: "ent_brk", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 922, cat: "Entreprises Connues", emoji: "🛢️", nom: "ExxonMobil", prix: 480000000000.00, immoKey: "ent_xom", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 923, cat: "Entreprises Connues", emoji: "🇸🇦", nom: "Saudi Aramco", prix: 1800000000000.00, immoKey: "ent_aramco", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 924, cat: "Entreprises Connues", emoji: "🛒", nom: "Walmart", prix: 630000000000.00, immoKey: "ent_wmt", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 925, cat: "Entreprises Connues", emoji: "🏭", nom: "TSMC", prix: 880000000000.00, immoKey: "ent_tsm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 926, cat: "Entreprises Connues", emoji: "🔬", nom: "ASML", prix: 350000000000.00, immoKey: "ent_asml", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 927, cat: "Entreprises Connues", emoji: "📲", nom: "Samsung Electronics", prix: 390000000000.00, immoKey: "ent_samsung", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 928, cat: "Entreprises Connues", emoji: "💾", nom: "Oracle", prix: 420000000000.00, immoKey: "ent_orcl", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 929, cat: "Entreprises Connues", emoji: "🔴", nom: "AMD", prix: 240000000000.00, immoKey: "ent_amd", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 930, cat: "Entreprises Connues", emoji: "📶", nom: "Qualcomm", prix: 190000000000.00, immoKey: "ent_qcom", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 931, cat: "Entreprises Connues", emoji: "🎨", nom: "Adobe", prix: 220000000000.00, immoKey: "ent_adbe", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 932, cat: "Entreprises Connues", emoji: "☁️", nom: "Salesforce", prix: 260000000000.00, immoKey: "ent_crm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 933, cat: "Entreprises Connues", emoji: "🎵", nom: "Spotify", prix: 65000000000.00, immoKey: "ent_spot", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 934, cat: "Entreprises Connues", emoji: "🚖", nom: "Uber", prix: 150000000000.00, immoKey: "ent_uber", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 935, cat: "Entreprises Connues", emoji: "✈️", nom: "Airbus", prix: 115000000000.00, immoKey: "ent_airbus", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 936, cat: "Entreprises Connues", emoji: "🏎️", nom: "Ferrari", prix: 75000000000.00, immoKey: "ent_race", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 937, cat: "Entreprises Connues", emoji: "💄", nom: "L'Oréal", prix: 220000000000.00, immoKey: "ent_or", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 938, cat: "Entreprises Connues", emoji: "🕊️", nom: "Hermès", prix: 230000000000.00, immoKey: "ent_rms", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-
-      // 80 NOUVELLES ENTREPRISES
-      { id: 939, cat: "Entreprises Connues", emoji: "⛽", nom: "TotalEnergies", prix: 140000000000.00, immoKey: "ent_tte", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 940, cat: "Entreprises Connues", emoji: "🏦", nom: "BNP Paribas", prix: 70000000000.00, immoKey: "ent_bnp", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 941, cat: "Entreprises Connues", emoji: "🛡️", nom: "AXA", prix: 75000000000.00, immoKey: "ent_cs", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 942, cat: "Entreprises Connues", emoji: "💊", nom: "Sanofi", prix: 110000000000.00, immoKey: "ent_san", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 943, cat: "Entreprises Connues", emoji: "⚡", nom: "Schneider Electric", prix: 130000000000.00, immoKey: "ent_su", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 944, cat: "Entreprises Connues", emoji: "🎈", nom: "Air Liquide", prix: 90000000000.00, immoKey: "ent_ai", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 945, cat: "Entreprises Connues", emoji: "🏗️", nom: "Vinci", prix: 60000000000.00, immoKey: "ent_dg", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 946, cat: "Entreprises Connues", emoji: "🕶️", nom: "EssilorLuxottica", prix: 95000000000.00, immoKey: "ent_el", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 947, cat: "Entreprises Connues", emoji: "✈️", nom: "Safran", prix: 85000000000.00, immoKey: "ent_saf", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 948, cat: "Entreprises Connues", emoji: "💎", nom: "Kering", prix: 35000000000.00, immoKey: "ent_ker", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 949, cat: "Entreprises Connues", emoji: "🥛", nom: "Danone", prix: 40000000000.00, immoKey: "ent_bn", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 950, cat: "Entreprises Connues", emoji: "🚘", nom: "Stellantis", prix: 50000000000.00, immoKey: "ent_stla", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 951, cat: "Entreprises Connues", emoji: "🍷", nom: "Pernod Ricard", prix: 35000000000.00, immoKey: "ent_ri", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 952, cat: "Entreprises Connues", emoji: "💻", nom: "Capgemini", prix: 30000000000.00, immoKey: "ent_cap", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 953, cat: "Entreprises Connues", emoji: "🧱", nom: "Saint-Gobain", prix: 40000000000.00, immoKey: "ent_sgb", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 954, cat: "Entreprises Connues", emoji: "💡", nom: "ENGIE", prix: 38000000000.00, immoKey: "ent_engi", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 955, cat: "Entreprises Connues", emoji: "🌾", nom: "Crédit Agricole", prix: 42000000000.00, immoKey: "ent_aca", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 956, cat: "Entreprises Connues", emoji: "🔴", nom: "Société Générale", prix: 22000000000.00, immoKey: "ent_gle", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 957, cat: "Entreprises Connues", emoji: "📱", nom: "Orange", prix: 28000000000.00, immoKey: "ent_ora", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 958, cat: "Entreprises Connues", emoji: "🛞", nom: "Michelin", prix: 24000000000.00, immoKey: "ent_ml", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 959, cat: "Entreprises Connues", emoji: "🌱", nom: "Veolia", prix: 20000000000.00, immoKey: "ent_vie", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 960, cat: "Entreprises Connues", emoji: "🛒", nom: "Carrefour", prix: 12000000000.00, immoKey: "ent_ca", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 961, cat: "Entreprises Connues", emoji: "📢", nom: "Publicis Groupe", prix: 25000000000.00, immoKey: "ent_pub", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 962, cat: "Entreprises Connues", emoji: "🏢", nom: "Bouygues", prix: 13000000000.00, immoKey: "ent_en", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 963, cat: "Entreprises Connues", emoji: "🛡️", nom: "Thales", prix: 32000000000.00, immoKey: "ent_ho", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 964, cat: "Entreprises Connues", emoji: "🔌", nom: "Legrand", prix: 26000000000.00, immoKey: "ent_lr", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 965, cat: "Entreprises Connues", emoji: "📐", nom: "Dassault Systèmes", prix: 48000000000.00, immoKey: "ent_dsy", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 966, cat: "Entreprises Connues", emoji: "🔬", nom: "STMicroelectronics", prix: 35000000000.00, immoKey: "ent_stmpa", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 967, cat: "Entreprises Connues", emoji: "🏨", nom: "Accor", prix: 10000000000.00, immoKey: "ent_ac", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 968, cat: "Entreprises Connues", emoji: "🚗", nom: "Renault Group", prix: 11000000000.00, immoKey: "ent_rnno", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 969, cat: "Entreprises Connues", emoji: "🎮", nom: "Ubisoft", prix: 2500000000.00, immoKey: "ent_ubi", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 970, cat: "Entreprises Connues", emoji: "🎰", nom: "La Française des Jeux (FDJ)", prix: 7000000000.00, immoKey: "ent_fdj", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 971, cat: "Entreprises Connues", emoji: "📺", nom: "TF1 Groupe", prix: 2000000000.00, immoKey: "ent_tf1", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 972, cat: "Entreprises Connues", emoji: "📺", nom: "M6 Groupe", prix: 1500000000.00, immoKey: "ent_m6", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 973, cat: "Entreprises Connues", emoji: "🍽️", nom: "Sodexo", prix: 12000000000.00, immoKey: "ent_sw", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 974, cat: "Entreprises Connues", emoji: "🎫", nom: "Edenred", prix: 11000000000.00, immoKey: "ent_eden", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 975, cat: "Entreprises Connues", emoji: "✅", nom: "Bureau Veritas", prix: 13000000000.00, immoKey: "ent_bvi", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 976, cat: "Entreprises Connues", emoji: "🏗️", nom: "Eiffage", prix: 10000000000.00, immoKey: "ent_fgr", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 977, cat: "Entreprises Connues", emoji: "🧫", nom: "Eurofins Scientific", prix: 10000000000.00, immoKey: "ent_erf", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 978, cat: "Entreprises Connues", emoji: "🧪", nom: "Arkema", prix: 7000000000.00, immoKey: "ent_ake", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 979, cat: "Entreprises Connues", emoji: "🥃", nom: "Rémy Cointreau", prix: 3500000000.00, immoKey: "ent_rco", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 980, cat: "Entreprises Connues", emoji: "☕", nom: "Groupe SEB", prix: 5000000000.00, immoKey: "ent_sk", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 981, cat: "Entreprises Connues", emoji: "🎧", nom: "Teleperformance", prix: 6000000000.00, immoKey: "ent_tep", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 982, cat: "Entreprises Connues", emoji: "🏢", nom: "Klépierre", prix: 7500000000.00, immoKey: "ent_li", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 983, cat: "Entreprises Connues", emoji: "🏢", nom: "Gecina", prix: 7000000000.00, immoKey: "ent_gfc", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 984, cat: "Entreprises Connues", emoji: "🏙️", nom: "Covivio", prix: 5000000000.00, immoKey: "ent_cov", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 985, cat: "Entreprises Connues", emoji: "💼", nom: "Wendel", prix: 4000000000.00, immoKey: "ent_mf", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 986, cat: "Entreprises Connues", emoji: "🚢", nom: "Bolloré", prix: 16000000000.00, immoKey: "ent_bol", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 987, cat: "Entreprises Connues", emoji: "🎵", nom: "Vivendi", prix: 10000000000.00, immoKey: "ent_viv", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 988, cat: "Entreprises Connues", emoji: "📡", nom: "Iliad (Free)", prix: 9000000000.00, immoKey: "ent_ild", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 989, cat: "Entreprises Connues", emoji: "🚢", nom: "CMA CGM", prix: 40000000000.00, immoKey: "ent_cmacgm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 990, cat: "Entreprises Connues", emoji: "⛺", nom: "Decathlon", prix: 15000000000.00, immoKey: "ent_decath", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 991, cat: "Entreprises Connues", emoji: "🔨", nom: "Leroy Merlin (Adeo)", prix: 18000000000.00, immoKey: "ent_leroy", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 992, cat: "Entreprises Connues", emoji: "🛒", nom: "Groupe Auchan", prix: 8000000000.00, immoKey: "ent_auchan", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 993, cat: "Entreprises Connues", emoji: "🏷️", nom: "E.Leclerc", prix: 25000000000.00, immoKey: "ent_leclerc", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 994, cat: "Entreprises Connues", emoji: "💻", nom: "SAP", prix: 250000000000.00, immoKey: "ent_sap", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 995, cat: "Entreprises Connues", emoji: "⚙️", nom: "Siemens", prix: 140000000000.00, immoKey: "ent_sie", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 996, cat: "Entreprises Connues", emoji: "📞", nom: "Deutsche Telekom", prix: 110000000000.00, immoKey: "ent_dte", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 997, cat: "Entreprises Connues", emoji: "🦅", nom: "Allianz", prix: 100000000000.00, immoKey: "ent_alv", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 998, cat: "Entreprises Connues", emoji: "🚘", nom: "Mercedes-Benz Group", prix: 65000000000.00, immoKey: "ent_mbg", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 999, cat: "Entreprises Connues", emoji: "🏎️", nom: "BMW Group", prix: 55000000000.00, immoKey: "ent_bmw", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1000, cat: "Entreprises Connues", emoji: "🚗", nom: "Volkswagen Group", prix: 50000000000.00, immoKey: "ent_vw", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1001, cat: "Entreprises Connues", emoji: "🏎️", nom: "Porsche AG", prix: 60000000000.00, immoKey: "ent_p911", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1002, cat: "Entreprises Connues", emoji: "👟", nom: "Adidas", prix: 40000000000.00, immoKey: "ent_ads", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1003, cat: "Entreprises Connues", emoji: "📦", nom: "Deutsche Post (DHL)", prix: 45000000000.00, immoKey: "ent_dpw", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1004, cat: "Entreprises Connues", emoji: "🧪", nom: "Bayer", prix: 28000000000.00, immoKey: "ent_bayn", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1005, cat: "Entreprises Connues", emoji: "⚗️", nom: "BASF", prix: 40000000000.00, immoKey: "ent_bas", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1006, cat: "Entreprises Connues", emoji: "👗", nom: "Inditex (Zara)", prix: 140000000000.00, immoKey: "ent_itx", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1007, cat: "Entreprises Connues", emoji: "🏦", nom: "Banco Santander", prix: 70000000000.00, immoKey: "ent_san_es", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1008, cat: "Entreprises Connues", emoji: "🏦", nom: "BBVA", prix: 55000000000.00, immoKey: "ent_bbva", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1009, cat: "Entreprises Connues", emoji: "⚡", nom: "Iberdrola", prix: 75000000000.00, immoKey: "ent_ibe", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1010, cat: "Entreprises Connues", emoji: "💡", nom: "Enel", prix: 65000000000.00, immoKey: "ent_enel", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1011, cat: "Entreprises Connues", emoji: "🏦", nom: "Intesa Sanpaolo", prix: 60000000000.00, immoKey: "ent_isp", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1012, cat: "Entreprises Connues", emoji: "🎮", nom: "Sony Group", prix: 110000000000.00, immoKey: "ent_sony", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1013, cat: "Entreprises Connues", emoji: "🍄", nom: "Nintendo", prix: 60000000000.00, immoKey: "ent_ntdo", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1014, cat: "Entreprises Connues", emoji: "🚘", nom: "Toyota Motor", prix: 260000000000.00, immoKey: "ent_tm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1015, cat: "Entreprises Connues", emoji: "🐧", nom: "Tencent", prix: 400000000000.00, immoKey: "ent_700", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1016, cat: "Entreprises Connues", emoji: "📦", nom: "Alibaba Group", prix: 200000000000.00, immoKey: "ent_baba", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1017, cat: "Entreprises Connues", emoji: "⛽", nom: "Shell", prix: 200000000000.00, immoKey: "ent_shel", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 1018, cat: "Entreprises Connues", emoji: "🍫", nom: "Nestlé", prix: 250000000000.00, immoKey: "ent_nesn", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true }
+      { id: 914, cat: "Entreprises Connues", emoji: "☕", nom: "Starbucks", prix: 110000000000.00, immoKey: "ent_sbux", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true }
     ];
 
     let categorieActive = "Automobiles";
@@ -858,13 +855,79 @@
     function initApp() {
       ecouterJoueursFirebase();
       afficherOnglets();
-      afficherArticles();
       MettreAJourEcran();
       ecouterHistoriqueFirebase();
       initialiserEtEcouterComptes();
       ecouterPossessionsImmo();
       ecouterMarcheImmobilier();
       setInterval(traiterRevenusHorairesImmo, 10000);
+    }
+
+    function changerJoueurSession(prenom) {
+      joueurActifSession = prenom;
+      mettreAJourAffichageSession();
+      afficherArticles();
+    }
+
+    function mettreAJourAffichageSession() {
+      const displaySolde = document.getElementById('soldeJoueurSessionDisplay');
+      const displayBiens = document.getElementById('biensJoueurSessionList');
+
+      if (!joueurActifSession) {
+        displaySolde.innerText = "0,00 €";
+        displayBiens.innerHTML = '<div style="font-size:10px; color:#a0aec0; text-align:center; margin-top:10px;">Sélectionnez un joueur pour voir ses biens</div>';
+        return;
+      }
+
+      let solde = comptesComplets[joueurActifSession] !== undefined ? comptesComplets[joueurActifSession] : 20000.00;
+      displaySolde.innerText = solde.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+
+      displayBiens.innerHTML = "";
+      const userBiens = possessionsImmo[joueurActifSession] || {};
+      let auMoinsUnBien = false;
+
+      Object.keys(userBiens).forEach(immoKey => {
+        if (immoKey === 'dernierePartie30k') return;
+        const dataBien = userBiens[immoKey];
+        if (!dataBien || !dataBien.achats || dataBien.achats.length === 0) return;
+
+        auMoinsUnBien = true;
+        const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
+        const nomBien = catalogueRef ? catalogueRef.nom : immoKey;
+        const emojiBien = catalogueRef ? catalogueRef.emoji : '🏠';
+        const prixBase = catalogueRef ? catalogueRef.prix : 0;
+
+        const estImmobilier = catalogueRef ? (catalogueRef.cat === "Immobilier Marseille") : false;
+        const estHotel = (immoKey === 'hotel');
+        const peutEtreVendu = estImmobilier && !estHotel;
+
+        dataBien.achats.forEach((dateAchat, indexAchat) => {
+          let calculVal = calculerPrixReventeImmo(dateAchat, prixBase);
+          let prixRevente = calculVal.prix;
+
+          let div = document.createElement('div');
+          div.className = 'bien-item';
+          
+          let btnVendre = peutEtreVendu 
+            ? `<button class="btn-vendre-mini" onclick="demanderCodePinRevente('${joueurActifSession}', '${immoKey}', ${indexAchat}, ${prixBase}, '${nomBien.replace(/'/g, "\\'")}')">Vendre (${prixRevente.toLocaleString('fr-FR')}€)</button>`
+            : `<span style="font-size:9px; color:#718096; font-weight:bold;">Non vendable</span>`;
+
+          div.innerHTML = `
+            <span class="bien-item-nom">${emojiBien} ${nomBien}</span>
+            ${btnVendre}
+          `;
+          displayBiens.appendChild(div);
+        });
+      });
+
+      if (!auMoinsUnBien) {
+        displayBiens.innerHTML = '<div style="font-size:10px; color:#a0aec0; text-align:center; margin-top:10px;">Aucun bien détenu</div>';
+      }
+    }
+
+    function demanderCodePinRevente(user, immoKey, indexAchat, prixBase, nomBien) {
+      itemAmettreEnVente = { user, immoKey, indexAchat, prixBase, nomBien };
+      demanderCodePin('revente_bien');
     }
 
     /* SYNCHRONISATION MARCHE IMMOBILIER EN TEMPS REEL (30 MIN) */
@@ -888,6 +951,7 @@
         } else {
           marcheImmoPct = data.pourcentage;
           afficherIndicateurMarche();
+          mettreAJourAffichageSession();
           if (joueurSelectionneVueDetail) {
             afficherDetailJoueur(joueurSelectionneVueDetail);
           }
@@ -907,11 +971,9 @@
       }
     }
 
-    /* MODAL AIDE */
     function ouvrirAide() { document.getElementById('aideOverlay').classList.add('active'); }
     function fermerAide() { document.getElementById('aideOverlay').classList.remove('active'); }
 
-    /* MODAL CREATION ECOLE */
     function ouvrirModalCreerEcole() {
       document.getElementById('ecoleNomInput').value = "";
       document.getElementById('ecolePinInput').value = "";
@@ -947,9 +1009,33 @@
           db.ref('utilisateurs_v2').set(USERS_LIST); 
         } else { 
           USERS_LIST = Array.isArray(data) ? data : Object.values(data); 
+          remplirSelecteurJoueursSession();
           afficherClassementEtPossessions(); 
         }
       });
+    }
+
+    function remplirSelecteurJoueursSession() {
+      const select = document.getElementById('selectJoueurSession');
+      if (!select) return;
+      let valActuelle = select.value;
+      select.innerHTML = '<option value="">-- Choisir un joueur --</option>';
+
+      USERS_LIST.forEach(u => {
+        let prenom = ObtenirPrenomUser(u);
+        let opt = document.createElement('option');
+        opt.value = prenom;
+        opt.innerText = `${prenom} (${ObtenirGroupeUser(prenom)})`;
+        select.appendChild(opt);
+      });
+
+      if (valActuelle && USERS_LIST.some(u => ObtenirPrenomUser(u) === valActuelle)) {
+        select.value = valActuelle;
+      } else if (USERS_LIST.length > 0) {
+        select.value = ObtenirPrenomUser(USERS_LIST[0]);
+        joueurActifSession = select.value;
+      }
+      mettreAJourAffichageSession();
     }
 
     function initialiserEtEcouterComptes() {
@@ -965,13 +1051,13 @@
           banquesRef.set(initialData);
         } else {
           comptesComplets = data;
+          mettreAJourAffichageSession();
           afficherSoldesBanque();
           afficherClassementEtPossessions();
         }
       });
     }
 
-    /* NETTOYAGE DU SURPLUS DES BIENS (EQUITE SUR FIREBASE) */
     function nettoyerBiensSurplus(dataImmo) {
       if (!dataImmo || estEnTrainDeNettoyer) return;
       let updates = {};
@@ -980,7 +1066,6 @@
         let userBiens = dataImmo[user];
         if (!userBiens) return;
 
-        // 1. Limite à 10 Hôtels Max par joueur
         if (userBiens.hotel && userBiens.hotel.achats && userBiens.hotel.achats.length > 10) {
           let nouveauxAchats = userBiens.hotel.achats.slice(0, 10);
           let nouveauxPaiements = userBiens.hotel.derniersPaiements ? userBiens.hotel.derniersPaiements.slice(0, 10) : nouveauxAchats;
@@ -991,7 +1076,6 @@
           };
         }
 
-        // 2. Limite à 1 seule acquisition par entreprise
         Object.keys(userBiens).forEach(immoKey => {
           if (immoKey === 'dernierePartie30k' || immoKey === 'hotel') return;
           let catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
@@ -1024,12 +1108,13 @@
         possessionsImmo = snapshot.val() || {};
         nettoyerBiensSurplus(possessionsImmo);
         traiterRevenusHorairesImmo();
+        mettreAJourAffichageSession();
+        afficherArticles();
         afficherSoldesBanque();
         afficherClassementEtPossessions();
       });
     }
 
-    /* REVENUS PASSIFS : DEBLOCAGE DES GAINS A 2 HEURES DE L'ACQUISITION (20%/H) */
     function traiterRevenusHorairesImmo() {
       if (!possessionsImmo) return;
       const maintenant = Date.now();
@@ -1112,7 +1197,6 @@
       });
     }
 
-    /* REVENTE DE BIENS (UNIQUEMENT SECTION IMMOBILIER, HORS HOTELS) */
     function calculerPrixReventeImmo(dateAchat, prixBase) {
       const maintenant = Date.now();
       const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
@@ -1128,12 +1212,20 @@
       return { prix: prixActuel, augmente: true, heuresRestantes: 0 };
     }
 
-    function revendreBienImmobilier(user, immoKey, indexAchat, prixBase, nomBien) {
+    function effectuerReventeApresVerificationPin() {
+      if (!itemAmettreEnVente) return;
+      const { user, immoKey, indexAchat, prixBase, nomBien } = itemAmettreEnVente;
+
+      if (lastUserValide.toLowerCase() !== user.toLowerCase()) {
+        alert(`🚫 Erreur : Le code PIN entré (${lastUserValide}) ne correspond pas au joueur propriétaire (${user}) !`);
+        itemAmettreEnVente = null;
+        return;
+      }
+
       const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
-      
-      // Sécurité : Vérification que le bien appartient à la section Immobilier et n'est pas un Hôtel
       if (!catalogueRef || catalogueRef.cat !== "Immobilier Marseille" || immoKey === 'hotel') {
         alert("🚫 Seuls les biens de la section Immobilier Marseille (hors Hôtels) peuvent être revendus !");
+        itemAmettreEnVente = null;
         return;
       }
 
@@ -1146,37 +1238,32 @@
         const calculVal = calculerPrixReventeImmo(dateAchat, prixBase);
         const prixRevente = calculVal.prix;
 
-        let messageConfirmation = calculVal.augmente
-          ? `Voulez-vous revendre ${nomBien} pour ${prixRevente.toLocaleString('fr-FR')} € (Valeur actualisée selon le marché : ${marcheImmoPct >= 0 ? '+' : ''}${marcheImmoPct}%) ?`
-          : `Ce bien a moins de 3h d'ancienneté. Sa valeur n'a pas encore augmenté. Voulez-vous le revendre à son prix initial de ${prixBase.toLocaleString('fr-FR')} € ?`;
+        let nouveauxAchats = [...data.achats];
+        let nouveauxPaiements = data.derniersPaiements ? [...data.derniersPaiements] : [];
+        nouveauxAchats.splice(indexAchat, 1);
+        if (nouveauxPaiements.length > indexAchat) nouveauxPaiements.splice(indexAchat, 1);
 
-        if (confirm(messageConfirmation)) {
-          let nouveauxAchats = [...data.achats];
-          let nouveauxPaiements = data.derniersPaiements ? [...data.derniersPaiements] : [];
-          nouveauxAchats.splice(indexAchat, 1);
-          if (nouveauxPaiements.length > indexAchat) nouveauxPaiements.splice(indexAchat, 1);
+        ref.set({
+          quantite: Math.max(0, (data.quantite || 1) - 1),
+          achats: nouveauxAchats,
+          derniersPaiements: nouveauxPaiements
+        });
 
-          ref.set({
-            quantite: Math.max(0, (data.quantite || 1) - 1),
-            achats: nouveauxAchats,
-            derniersPaiements: nouveauxPaiements
-          });
+        let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
+        db.ref(`banques/${user}`).set(Math.round((soldeActuel + prixRevente) * 100) / 100);
 
-          let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
-          db.ref(`banques/${user}`).set(Math.round((soldeActuel + prixRevente) * 100) / 100);
+        const now = new Date();
+        db.ref('tickets').push({
+          codePin: lastPinValide,
+          utilisateur: user,
+          date: now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR') + " (Revente)",
+          timestamp: firebase.database.ServerValue.TIMESTAMP,
+          articles: [{ nom: `Revente ${nomBien}`, prix: prixRevente }],
+          total: prixRevente
+        });
 
-          const now = new Date();
-          db.ref('tickets').push({
-            codePin: "REVENTE",
-            utilisateur: user,
-            date: now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR') + " (Revente)",
-            timestamp: firebase.database.ServerValue.TIMESTAMP,
-            articles: [{ nom: `Revente ${nomBien}`, prix: prixRevente }],
-            total: prixRevente
-          });
-
-          alert(`🎉 Bien revendu pour ${prixRevente.toLocaleString('fr-FR')} € !`);
-        }
+        alert(`🎉 Vente réussie !\n${nomBien} revendu pour ${prixRevente.toLocaleString('fr-FR')} € !`);
+        itemAmettreEnVente = null;
       });
     }
 
@@ -1230,10 +1317,27 @@
       const grid = document.getElementById('articlesGrid');
       grid.innerHTML = "";
       const articlesFiltres = baseArticles.filter(item => item.cat === categorieActive);
+      
+      const userBiens = (joueurActifSession && possessionsImmo[joueurActifSession]) ? possessionsImmo[joueurActifSession] : {};
+
       articlesFiltres.forEach(item => {
         const btn = document.createElement('button');
-        btn.className = "btn-article";
-        btn.onclick = () => ajouterArticle(`${item.emoji} ${item.nom}`, item.prix, item);
+        
+        let estDejaPossede = false;
+        if (item.cat === "Entreprises Connues" || item.estEntreprise) {
+          if (userBiens[item.immoKey] && userBiens[item.immoKey].quantite > 0) {
+            estDejaPossede = true;
+          }
+        }
+
+        btn.className = `btn-article ${estDejaPossede ? 'possede' : ''}`;
+        
+        if (!estDejaPossede) {
+          btn.onclick = () => ajouterArticle(`${item.emoji} ${item.nom}`, item.prix, item);
+        } else {
+          btn.onclick = () => alert("🚫 Cette entreprise est déjà possédée par ce joueur !");
+        }
+
         btn.innerHTML = `<span class="emoji">${item.emoji}</span><span>${item.nom}</span><span class="prix-tag">${item.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>`;
         grid.appendChild(btn);
       });
@@ -1261,7 +1365,6 @@
 
     function ajouterArticle(nom, prix, fullItem) {
       if (fullItem) {
-        // Interdiction d'ajouter 2 fois la même entreprise dans le panier
         if (fullItem.cat === "Entreprises Connues" || fullItem.estEntreprise) {
           if (listeArticles.some(item => item.immoKey === fullItem.immoKey)) {
             alert("🚫 Vous avez déjà cette entreprise dans votre panier ! Une entreprise ne peut être achetée qu'une seule fois.");
@@ -1282,8 +1385,11 @@
       if (action === 'paiement') {
         let totalFinal = listeArticles.reduce((acc, item) => acc + item.prix, 0);
         if (!totalFinal || totalFinal === 0) { alert("Ajoutez au moins un article avant de payer !"); return; }
-        document.getElementById('pinTitleModal').innerText = "Code PIN requis";
+        document.getElementById('pinTitleModal').innerText = "Code PIN d'achat";
         document.getElementById('pinSubtitleModal').innerText = "Saisissez votre code à 4 chiffres";
+      } else if (action === 'revente_bien') {
+        document.getElementById('pinTitleModal').innerText = "Code PIN de revente";
+        document.getElementById('pinSubtitleModal').innerText = "Entrez votre code pour confirmer la vente";
       } else if (action === 'reglages') {
         document.getElementById('pinTitleModal').innerText = "Sécurité Réglages";
         document.getElementById('pinSubtitleModal').innerText = "Code administrateur requis";
@@ -1387,6 +1493,7 @@
 
     function executerActionPostPin() {
       if (actionApresPin === 'paiement') { validerPaiement(); }
+      else if (actionApresPin === 'revente_bien') { effectuerReventeApresVerificationPin(); }
       else if (actionApresPin === 'reglages') { ouvrirEcranReglages(); }
       else if (actionApresPin === 'quiz_login') { ouvrirSelectionNiveauQuiz(); }
     }
@@ -1426,7 +1533,6 @@
         return;
       }
 
-      // VÉRIFICATION LIMITE D'HÔTELS (MAX 10 HÔTELS)
       let hotelsPossedes = (possessionsImmo[user] && possessionsImmo[user].hotel && possessionsImmo[user].hotel.achats) 
         ? possessionsImmo[user].hotel.achats.length 
         : 0;
@@ -1437,7 +1543,6 @@
         return;
       }
 
-      // VÉRIFICATION UNICITÉ DES ENTREPRISES (1 SEULE PAR JOUEUR)
       let userBiens = possessionsImmo[user] || {};
       let entrepriseEnDouble = false;
       let nomEntrepriseDouble = "";
@@ -1597,7 +1702,6 @@
         const emojiBien = catalogueRef ? catalogueRef.emoji : '🏠';
         const prixBase = catalogueRef ? catalogueRef.prix : 0;
 
-        // La revente ne marche que pour la section Immobilier, et les Hôtels ne peuvent pas être vendus
         const estImmobilier = catalogueRef ? (catalogueRef.cat === "Immobilier Marseille") : false;
         const estHotel = (immoKey === 'hotel');
         const peutEtreVendu = estImmobilier && !estHotel;
@@ -1616,7 +1720,7 @@
             : `<div style="font-size:10px; color:#a0aec0;">⏳ Prise de valeur dans ${calculVal.heuresRestantes}h</div>`;
 
           let boutonVente = peutEtreVendu
-            ? `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${user}', '${immoKey}', ${indexAchat}, ${prixBase}, '${nomBien.replace(/'/g, "\\'")}')">💰 Revendre (${prixAffiche.toLocaleString('fr-FR')} €)</button>`
+            ? `<button class="btn-vente-immo" onclick="demanderCodePinRevente('${user}', '${immoKey}', ${indexAchat}, ${prixBase}, '${nomBien.replace(/'/g, "\\'")}')">💰 Revendre (${prixAffiche.toLocaleString('fr-FR')} €)</button>`
             : `<button class="btn-vente-immo bloque" disabled>🔒 Non vendable</button>`;
 
           mainDiv.innerHTML = `
@@ -1754,7 +1858,6 @@
       afficherListeJoueursReglages();
     }
 
-    /* SECTION QUIZ / CALCUL MENTAL */
     function ouvrirSelectionNiveauQuiz() {
       document.getElementById('quizLevelOverlay').classList.add('active');
     }
