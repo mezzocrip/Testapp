@@ -264,7 +264,7 @@
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v4.9.0 (Code PIN Sécurisé • Sans Bouton Réglage)</div>
+    <div class="version-tag">v4.9.1 (Mes Biens & Vente Directe)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -619,7 +619,6 @@
     let possessionsImmo = {};
     let joueurSelectionneVueDetail = null;
     let filtreClassementActif = "tous";
-    let estEnTrainDeNettoyer = false;
 
     let marcheImmoPct = 0;
 
@@ -634,24 +633,24 @@
 
     let baseArticles = [
       // AUTOMOBILES
-      { id: 801, cat: "Automobiles", emoji: "🚗", nom: "Audi A3 Sportback", prix: 36790.00 },
-      { id: 802, cat: "Automobiles", emoji: "🚗", nom: "Fiat 500 Électrique", prix: 18790.00 },
-      { id: 803, cat: "Automobiles", emoji: "🚗", nom: "Citroën C4", prix: 27800.00 },
-      { id: 804, cat: "Automobiles", emoji: "🚙", nom: "Renault Clio 5", prix: 19900.00 },
-      { id: 805, cat: "Automobiles", emoji: "🚙", nom: "Peugeot 3008", prix: 38850.00 },
-      { id: 806, cat: "Automobiles", emoji: "🚙", nom: "Peugeot 5008", prix: 40490.00 },
-      { id: 807, cat: "Automobiles", emoji: "🏎", nom: "Tesla Model 3", prix: 39990.00 },
-      { id: 808, cat: "Automobiles", emoji: "🏎️", nom: "Tesla Model Y", prix: 44990.00 },
-      { id: 809, cat: "Automobiles", emoji: "🏎", nom: "Tesla Model S", prix: 92990.00 },
-      { id: 810, cat: "Automobiles", emoji: "🏎️", nom: "Tesla Model X", prix: 99990.00 },
-      { id: 811, cat: "Automobiles", emoji: "📐", nom: "Tesla Cybertruck", prix: 102000.00 },
-      { id: 812, cat: "Automobiles", emoji: "⚡", nom: "BYD Dolphin", prix: 33990.00 },
-      { id: 813, cat: "Automobiles", emoji: "⚡", nom: "BYD Atto 3", prix: 37990.00 },
-      { id: 814, cat: "Automobiles", emoji: "⚡", nom: "BYD Seal", prix: 46990.00 },
-      { id: 815, cat: "Automobiles", emoji: "⚡", nom: "BYD Sealion 7", prix: 47990.00 },
-      { id: 816, cat: "Automobiles", emoji: "⚡", nom: "BYD Tang", prix: 70990.00 },
-      { id: 817, cat: "Automobiles", emoji: "⚡", nom: "BYD Han", prix: 70800.00 },
-      { id: 818, cat: "Automobiles", emoji: "👑", nom: "Range Rover Autograph", prix: 144900.00 },
+      { id: 801, cat: "Automobiles", emoji: "🚗", nom: "Audi A3 Sportback", prix: 36790.00, immoKey: "car_audi_a3" },
+      { id: 802, cat: "Automobiles", emoji: "🚗", nom: "Fiat 500 Électrique", prix: 18790.00, immoKey: "car_fiat500" },
+      { id: 803, cat: "Automobiles", emoji: "🚗", nom: "Citroën C4", prix: 27800.00, immoKey: "car_citroen_c4" },
+      { id: 804, cat: "Automobiles", emoji: "🚙", nom: "Renault Clio 5", prix: 19900.00, immoKey: "car_renault_clio5" },
+      { id: 805, cat: "Automobiles", emoji: "🚙", nom: "Peugeot 3008", prix: 38850.00, immoKey: "car_peugeot3008" },
+      { id: 806, cat: "Automobiles", emoji: "🚙", nom: "Peugeot 5008", prix: 40490.00, immoKey: "car_peugeot5008" },
+      { id: 807, cat: "Automobiles", emoji: "🏎", nom: "Tesla Model 3", prix: 39990.00, immoKey: "car_tesla_m3" },
+      { id: 808, cat: "Automobiles", emoji: "🏎️", nom: "Tesla Model Y", prix: 44990.00, immoKey: "car_tesla_my" },
+      { id: 809, cat: "Automobiles", emoji: "🏎", nom: "Tesla Model S", prix: 92990.00, immoKey: "car_tesla_ms" },
+      { id: 810, cat: "Automobiles", emoji: "🏎️", nom: "Tesla Model X", prix: 99990.00, immoKey: "car_tesla_mx" },
+      { id: 811, cat: "Automobiles", emoji: "📐", nom: "Tesla Cybertruck", prix: 102000.00, immoKey: "car_tesla_cybertruck" },
+      { id: 812, cat: "Automobiles", emoji: "⚡", nom: "BYD Dolphin", prix: 33990.00, immoKey: "car_byd_dolphin" },
+      { id: 813, cat: "Automobiles", emoji: "⚡", nom: "BYD Atto 3", prix: 37990.00, immoKey: "car_byd_atto3" },
+      { id: 814, cat: "Automobiles", emoji: "⚡", nom: "BYD Seal", prix: 46990.00, immoKey: "car_byd_seal" },
+      { id: 815, cat: "Automobiles", emoji: "⚡", nom: "BYD Sealion 7", prix: 47990.00, immoKey: "car_byd_sealion7" },
+      { id: 816, cat: "Automobiles", emoji: "⚡", nom: "BYD Tang", prix: 70990.00, immoKey: "car_byd_tang" },
+      { id: 817, cat: "Automobiles", emoji: "⚡", nom: "BYD Han", prix: 70800.00, immoKey: "car_byd_han" },
+      { id: 818, cat: "Automobiles", emoji: "👑", nom: "Range Rover Autograph", prix: 144900.00, immoKey: "car_range_rover" },
 
       // IMMOBILIER MARSEILLE
       { id: 501, cat: "Immobilier Marseille", emoji: "🏢", nom: "Appart T1 Marseille", prix: 115000.00, immoKey: "t1" },
@@ -677,7 +676,7 @@
       { id: 905, cat: "Entreprises Connues", emoji: "📦", nom: "Amazon", prix: 2200000000000.00, immoKey: "ent_amzn", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 906, cat: "Entreprises Connues", emoji: "♾️", nom: "Meta Platforms", prix: 1400000000000.00, immoKey: "ent_meta", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 907, cat: "Entreprises Connues", emoji: "⚡", nom: "Tesla", prix: 800000000000.00, immoKey: "ent_tsla", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 908, cat: "Entreprises Connues", emoji: "👜", nom: "LVMH", prix: 350000000000.00, immoKey: "ent_lvmh", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 908, cat: "Entreprises Connues", emoji: "👜", nom: "LVMH", prix: 3500000000000.00, immoKey: "ent_lvmh", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 909, cat: "Entreprises Connues", emoji: "🎬", nom: "Netflix", prix: 280000000000.00, immoKey: "ent_nflx", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 910, cat: "Entreprises Connues", emoji: "✨", nom: "Walt Disney Company", prix: 210000000000.00, immoKey: "ent_disney", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 911, cat: "Entreprises Connues", emoji: "🥤", nom: "Coca-Cola", prix: 290000000000.00, immoKey: "ent_ko", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
@@ -688,7 +687,7 @@
       { id: 916, cat: "Entreprises Connues", emoji: "💊", nom: "Novo Nordisk", prix: 550000000000.00, immoKey: "ent_nvo", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 917, cat: "Entreprises Connues", emoji: "💉", nom: "Pfizer", prix: 160000000000.00, immoKey: "ent_pfe", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 918, cat: "Entreprises Connues", emoji: "💳", nom: "Visa", prix: 570000000000.00, immoKey: "ent_v", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 919, cat: "Entreprises Connues", emoji: "💳", nom: "Mastercard", prix: 450000000000.00, immoKey: "ent_ma", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 919, cat: "Entreprises Connues", emoji: "💳", nom: "Mastercard", prix: 4500000000000.00, immoKey: "ent_ma", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 920, cat: "Entreprises Connues", emoji: "🏦", nom: "JPMorgan Chase", prix: 590000000000.00, immoKey: "ent_jpm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true }
     ];
 
@@ -1130,6 +1129,7 @@
             db.ref(`banques/${user}`).set(nouveauSolde).then(() => {
               alert(`💰 ${nomBien} revendu avec succès pour ${prixRevente.toLocaleString('fr-FR')} € !`);
               afficherClassementEtPossessions();
+              if (categorieActive === "🏠 Mes Biens") afficherArticles();
             });
           });
         }
@@ -1330,266 +1330,258 @@
 
       if (categorieActive === "🏠 Mes Biens") {
         if (!joueurActif) {
-          grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#a0aec0; padding:20px;">Choisissez un joueur dans le menu déroulant en haut pour voir ses biens.</div>`;
+          grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#a0aec0; padding:20px; font-style:italic;">Veuillez sélectionner un joueur pour voir ses biens.</div>`;
           return;
         }
 
-        const biensUser = possessionsImmo[joueurActif] || {};
-        let possessions = [];
+        const userBiens = possessionsImmo[joueurActif] || {};
+        let nbBiensAffiches = 0;
 
-        baseArticles.forEach(art => {
-          if (art.immoKey && biensUser[art.immoKey] && biensUser[art.immoKey].quantite > 0) {
-            possessions.push({
-              ...art,
-              quantite: biensUser[art.immoKey].quantite,
-              achats: biensUser[art.immoKey].achats || []
-            });
-          }
+        Object.keys(userBiens).forEach(immoKey => {
+          const dataBien = userBiens[immoKey];
+          if (!dataBien || !dataBien.achats || dataBien.achats.length === 0) return;
+
+          const article = baseArticles.find(a => a.immoKey === immoKey);
+          if (!article) return;
+
+          dataBien.achats.forEach((dateAchat, idx) => {
+            nbBiensAffiches++;
+            const btn = document.createElement('div');
+            btn.className = "btn-article mes-biens-card";
+
+            const estRevendable = (article.cat === "Immobilier Marseille" && immoKey !== "hotel");
+            let infoCalcul = estRevendable ? calculerPrixReventeImmo(dateAchat, article.prix) : { prix: article.prix, augmente: false };
+            let prixAffichage = infoCalcul.prix;
+
+            let htmlRevendre = estRevendable 
+              ? `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${joueurActif}', '${immoKey}', ${idx}, ${article.prix}, '${article.nom.replace(/'/g, "\\'")}')">🏷️ Vendre (${prixAffichage.toLocaleString('fr-FR')} €)</button>`
+              : `<span style="font-size:10px; color:#a0aec0; margin-top:4px;">Non revendable</span>`;
+
+            btn.innerHTML = `
+              <div style="font-size:24px;">${article.emoji}</div>
+              <div style="font-weight:bold; font-size:13px; line-height:1.2;">${article.nom}</div>
+              <div class="prix-tag" style="background:rgba(255,255,255,0.1); color:#38ef7d; font-size:10px; border:1px solid rgba(56,239,125,0.3); margin-top:2px;">Valeur: ${article.prix.toLocaleString('fr-FR')} €</div>
+              ${htmlRevendre}
+            `;
+            grid.appendChild(btn);
+          });
         });
 
-        if (possessions.length === 0) {
-          grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#a0aec0; padding:20px;">${joueurActif} ne possède aucun bien actuellement.</div>`;
-          return;
+        if (nbBiensAffiches === 0) {
+          grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#a0aec0; padding:20px; font-style:italic;">Aucun bien possédé par ${joueurActif}.</div>`;
         }
-
-        possessions.forEach(item => {
-          let card = document.createElement('div');
-          card.className = "btn-article mes-biens-card";
-
-          let htmlContent = `
-            <div style="font-size:24px;">${item.emoji}</div>
-            <div style="font-weight:bold; font-size:13px; margin:4px 0;">${item.nom}</div>
-            <div class="possession-badge-green">Possédé : x${item.quantite}</div>
-          `;
-
-          if (item.cat === "Immobilier Marseille" && item.immoKey !== 'hotel') {
-            htmlContent += `<div style="margin-top:6px; font-size:10px; color:#a0aec0;">Revente possible via le classement 🧾</div>`;
-          }
-
-          card.innerHTML = htmlContent;
-          grid.appendChild(card);
-        });
         return;
       }
 
+      // AFFICHAGE DES ARTICLES standard
       let articlesFiltres = baseArticles.filter(a => a.cat === categorieActive);
 
-      articlesFiltres.forEach(item => {
+      articlesFiltres.forEach(art => {
         let btn = document.createElement('button');
         btn.className = "btn-article";
-
-        let ownerBadge = "";
-        if (item.cat === "Entreprises Connues" || item.immoKey === 'hotel') {
-          Object.keys(possessionsImmo).forEach(u => {
-            if (possessionsImmo[u][item.immoKey] && possessionsImmo[u][item.immoKey].quantite > 0) {
-              ownerBadge += `<span style="font-size:10px; color:#f97316; font-weight:bold;">👑 ${u}</span> `;
-            }
-          });
-        }
+        btn.onclick = () => ajouterAuPanier(art);
 
         btn.innerHTML = `
-          <span class="emoji">${item.emoji}</span>
-          <span>${item.nom}</span>
-          <span class="prix-tag">${item.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €</span>
-          ${ownerBadge ? `<div style="margin-top:2px;">${ownerBadge}</div>` : ''}
+          <span class="emoji">${art.emoji}</span>
+          <span style="line-height:1.2;">${art.nom}</span>
+          <span class="prix-tag">${art.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
         `;
 
-        btn.onclick = () => ajouterAuPanier(item);
         grid.appendChild(btn);
       });
     }
 
+    /* QUIZ & CALCUL MENTAL */
     function ouvrirSelectionNiveauQuiz() {
-      if (!lastUserValide) {
-        alert("Veuillez vous connecter d'abord !");
-        return;
-      }
       document.getElementById('quizLevelOverlay').classList.add('active');
     }
 
     function demarrerQuizAvecNiveau(niveau) {
       niveauQuizActif = niveau;
-      document.getElementById('quizLevelOverlay').classList.remove('active');
-
       questionsJoueesDansSession = 0;
       gainsSessionQuiz = 0;
 
-      if (niveau === 'facile') { gainParQuestion = 30000; }
-      else if (niveau === 'intermediaire') { gainParQuestion = 50000; }
-      else if (niveau === 'difficile') { gainParQuestion = 100000; }
-      else if (niveau === 'extreme') { gainParQuestion = 100000; }
-      else if (niveau === 'ultime') { gainParQuestion = 500000; }
+      if (niveau === 'facile') { gainParQuestion = 30000; perteParQuestion = 50000; }
+      else if (niveau === 'intermediaire') { gainParQuestion = 50000; perteParQuestion = 50000; }
+      else if (niveau === 'difficile') { gainParQuestion = 100000; perteParQuestion = 50000; }
+      else if (niveau === 'extreme') { gainParQuestion = 100000; perteParQuestion = 50000; }
+      else if (niveau === 'ultime') { gainParQuestion = 500000; perteParQuestion = 50000; }
 
-      perteParQuestion = 50000;
-
-      document.getElementById('quizUserBadge').innerText = lastUserValide;
-      document.getElementById('quizRewardInfo').innerText = `Gain : +${gainParQuestion.toLocaleString('fr-FR')} € | Perte : -${perteParQuestion.toLocaleString('fr-FR')} € | Validées : ${questionsJoueesDansSession}/10`;
+      document.getElementById('quizLevelOverlay').classList.remove('active');
+      document.getElementById('quizUserBadge').innerText = joueurActif;
+      document.getElementById('quizHeaderTitle').innerText = `Calcul Mental - ${niveau.toUpperCase()}`;
+      document.getElementById('quizRewardInfo').innerText = `+${gainParQuestion.toLocaleString('fr-FR')} € / -${perteParQuestion.toLocaleString('fr-FR')} €`;
 
       document.getElementById('quizOverlay').classList.add('active');
-      prochaineQuestionQuiz();
+      genererNouvelleQuestionQuiz();
     }
 
-    function prochaineQuestionQuiz() {
+    function genererNouvelleQuestionQuiz() {
       clearInterval(intervalChrono);
       tempsRestant = 10;
-      mettreAJourChronoUI();
+      mettreAJourChronoDisplay();
 
-      document.getElementById('quizRewardInfo').innerText = `Gain : +${gainParQuestion.toLocaleString('fr-FR')} € | Perte : -${perteParQuestion.toLocaleString('fr-FR')} € | Validées : ${questionsJoueesDansSession}/10`;
-      document.getElementById('quizReponseInput').value = "";
+      const vueMaths = document.getElementById('vueQuizMaths');
+      const vueQCM = document.getElementById('vueQuizQCM');
+      const repInput = document.getElementById('quizReponseInput');
 
-      if (niveauQuizActif === 'extreme') {
-        document.getElementById('vueQuizMaths').style.display = 'none';
-        document.getElementById('vueQuizQCM').style.display = 'block';
-        genererQCMQuestion();
-      } else {
-        document.getElementById('vueQuizMaths').style.display = 'block';
-        document.getElementById('vueQuizQCM').style.display = 'none';
-        genererMathsQuestion();
+      if (repInput) repInput.value = "";
+
+      let n1, n2, reponseExacte, enonce;
+
+      if (niveauQuizActif === 'facile') {
+        n1 = Math.floor(Math.random() * 9) + 2;
+        n2 = Math.floor(Math.random() * 9) + 2;
+        reponseExacte = n1 * n2;
+        enonce = `${n1} × ${n2}`;
+        vueMaths.style.display = 'block';
+        vueQCM.style.display = 'none';
+      } else if (niveauQuizActif === 'intermediaire') {
+        n1 = Math.floor(Math.random() * 12) + 3;
+        n2 = Math.floor(Math.random() * 12) + 3;
+        reponseExacte = n1 * n2;
+        enonce = `${n1} × ${n2}`;
+        vueMaths.style.display = 'block';
+        vueQCM.style.display = 'none';
+      } else if (niveauQuizActif === 'difficile') {
+        n1 = Math.floor(Math.random() * 15) + 5;
+        n2 = Math.floor(Math.random() * 15) + 5;
+        reponseExacte = n1 * n2;
+        enonce = `${n1} × ${n2}`;
+        vueMaths.style.display = 'block';
+        vueQCM.style.display = 'none';
+      } else if (niveauQuizActif === 'ultime') {
+        let op = Math.random() < 0.5 ? '+' : '-';
+        n1 = Math.floor(Math.random() * 89) + 10;
+        n2 = Math.floor(Math.random() * 89) + 10;
+        if (op === '-') {
+          if (n1 < n2) { let temp = n1; n1 = n2; n2 = temp; }
+          reponseExacte = n1 - n2;
+        } else {
+          reponseExacte = n1 + n2;
+        }
+        enonce = `${n1} ${op} ${n2}`;
+        vueMaths.style.display = 'block';
+        vueQCM.style.display = 'none';
+      } else if (niveauQuizActif === 'extreme') {
+        n1 = Math.floor(Math.random() * 7) + 4;
+        n2 = Math.floor(Math.random() * 7) + 4;
+        reponseExacte = n1 * n2;
+        enonce = `${n1} × ${n2}`;
+
+        vueMaths.style.display = 'none';
+        vueQCM.style.display = 'block';
+
+        let faux1 = reponseExacte + (Math.random() < 0.5 ? 2 : -2);
+        let faux2 = reponseExacte + (Math.random() < 0.5 ? 4 : -4);
+        if (faux1 === reponseExacte) faux1 += 3;
+        if (faux2 === reponseExacte || faux2 === faux1) faux2 += 5;
+
+        let choix = [reponseExacte, faux1, faux2].sort(() => Math.random() - 0.5);
+
+        const qcmContainer = document.getElementById('qcmContainer');
+        qcmContainer.innerHTML = "";
+        choix.forEach(c => {
+          let b = document.createElement('button');
+          b.className = "btn-qcm";
+          b.innerText = c;
+          b.onclick = () => verifierReponseQuiz(c);
+          qcmContainer.appendChild(b);
+        });
       }
+
+      questionActiveCourante = { enonce, reponseExacte };
+      document.getElementById('quizEnonce').innerText = enonce;
 
       intervalChrono = setInterval(() => {
         tempsRestant--;
-        mettreAJourChronoUI();
+        mettreAJourChronoDisplay();
         if (tempsRestant <= 0) {
           clearInterval(intervalChrono);
-          traiterErreurQuiz("⏳ Temps écoulé !");
+          sancionErreurQuiz("⏳ Temps écoulé ! (-50 000 €)");
         }
       }, 1000);
     }
 
-    function mettreAJourChronoUI() {
+    function mettreAJourChronoDisplay() {
       const box = document.getElementById('quizTimerBox');
       if (box) {
         box.innerText = `⏳ ${tempsRestant}s`;
-        box.className = tempsRestant <= 3 ? "quiz-timer-box danger" : "quiz-timer-box";
+        if (tempsRestant <= 3) box.classList.add('danger');
+        else box.classList.remove('danger');
       }
-    }
-
-    function genererMathsQuestion() {
-      let a = 2, b = 2, reponse = 0, enonce = "";
-
-      if (niveauQuizActif === 'facile') {
-        a = Math.floor(Math.random() * 8) + 2;
-        b = Math.floor(Math.random() * 8) + 2;
-        reponse = a * b;
-        enonce = `${a} × ${b} = ?`;
-      } else if (niveauQuizActif === 'intermediaire') {
-        a = Math.floor(Math.random() * 10) + 3;
-        b = Math.floor(Math.random() * 12) + 3;
-        reponse = a * b;
-        enonce = `${a} × ${b} = ?`;
-      } else if (niveauQuizActif === 'difficile') {
-        a = Math.floor(Math.random() * 12) + 6;
-        b = Math.floor(Math.random() * 15) + 6;
-        reponse = a * b;
-        enonce = `${a} × ${b} = ?`;
-      } else if (niveauQuizActif === 'ultime') {
-        let op = Math.random() < 0.5 ? '+' : '-';
-        a = Math.floor(Math.random() * 80) + 15;
-        b = Math.floor(Math.random() * 80) + 15;
-        if (op === '-') {
-          if (a < b) { let tmp = a; a = b; b = tmp; }
-          reponse = a - b;
-          enonce = `${a} − ${b} = ?`;
-        } else {
-          reponse = a + b;
-          enonce = `${a} + ${b} = ?`;
-        }
-      }
-
-      questionActiveCourante = { reponse: reponse, enonce: enonce };
-      document.getElementById('quizEnonce').innerText = enonce;
-      document.getElementById('quizMatiere').innerText = "CALCUL MENTAL";
-    }
-
-    function genererQCMQuestion() {
-      let table = Math.floor(Math.random() * 7) + 4;
-      let mult = Math.floor(Math.random() * 10) + 1;
-      let reponseExacte = table * mult;
-
-      let options = [reponseExacte];
-      while (options.length < 3) {
-        let faux = reponseExacte + (Math.floor(Math.random() * 10) - 5);
-        if (faux !== reponseExacte && faux > 0 && !options.includes(faux)) {
-          options.push(faux);
-        }
-      }
-
-      options.sort(() => Math.random() - 0.5);
-
-      questionActiveCourante = { reponse: reponseExacte };
-      document.getElementById('quizEnonce').innerText = `${table} × ${mult} = ?`;
-      document.getElementById('quizMatiere').innerText = "QCM TABLES DE MULTIPLICATION";
-
-      const container = document.getElementById('qcmContainer');
-      container.innerHTML = "";
-      options.forEach(opt => {
-        let btn = document.createElement('button');
-        btn.className = "btn-qcm";
-        btn.innerText = opt;
-        btn.onclick = () => verifierReponseQCM(opt);
-        container.appendChild(btn);
-      });
     }
 
     function taperQuizChiffre(c) {
-      const inp = document.getElementById('quizReponseInput');
-      inp.value += c;
-      if (parseInt(inp.value, 10) === questionActiveCourante.reponse) {
-        traiterSuccesQuiz();
+      const input = document.getElementById('quizReponseInput');
+      if (input) {
+        input.value += c;
+        if (parseInt(input.value) === questionActiveCourante.reponseExacte) {
+          verifierReponseQuiz(parseInt(input.value));
+        }
       }
     }
 
     function effacerQuizChiffre() {
-      const inp = document.getElementById('quizReponseInput');
-      inp.value = inp.value.slice(0, -1);
+      const input = document.getElementById('quizReponseInput');
+      if (input) input.value = input.value.slice(0, -1);
     }
 
-    function verifierReponseQCM(val) {
-      if (val === questionActiveCourante.reponse) {
-        traiterSuccesQuiz();
+    function verifierReponseQuiz(valSaisie) {
+      clearInterval(intervalChrono);
+      if (parseInt(valSaisie) === questionActiveCourante.reponseExacte) {
+        questionsJoueesDansSession++;
+        gainsSessionQuiz += gainParQuestion;
+
+        let soldeActuel = comptesComplets[joueurActif] !== undefined ? comptesComplets[joueurActif] : 20000.00;
+        let nouveauSolde = Math.round((soldeActuel + gainParQuestion) * 100) / 100;
+
+        db.ref(`banques/${joueurActif}`).set(nouveauSolde).then(() => {
+          mettreAJourSoldeJoueurActif();
+          genererNouvelleQuestionQuiz();
+        });
       } else {
-        traiterErreurQuiz(`❌ Mauvaise réponse ! La solution était ${questionActiveCourante.reponse}.`);
+        sancionErreurQuiz(`❌ Mauvaise réponse ! (${questionActiveCourante.reponseExacte}) -50 000 €`);
       }
     }
 
-    function traiterSuccesQuiz() {
+    function sancionErreurQuiz(msg) {
       clearInterval(intervalChrono);
-      questionsJoueesDansSession++;
-      gainsSessionQuiz += gainParQuestion;
-
-      let soldeActuel = comptesComplets[lastUserValide] !== undefined ? comptesComplets[lastUserValide] : 20000.00;
-      let nouveauSolde = Math.round((soldeActuel + gainParQuestion) * 100) / 100;
-      db.ref(`banques/${lastUserValide}`).set(nouveauSolde);
-
-      prochaineQuestionQuiz();
-    }
-
-    function traiterErreurQuiz(msg) {
-      clearInterval(intervalChrono);
-      let soldeActuel = comptesComplets[lastUserValide] !== undefined ? comptesComplets[lastUserValide] : 20000.00;
+      alert(msg);
+      let soldeActuel = comptesComplets[joueurActif] !== undefined ? comptesComplets[joueurActif] : 20000.00;
       let nouveauSolde = Math.round((soldeActuel - perteParQuestion) * 100) / 100;
-      db.ref(`banques/${lastUserValide}`).set(nouveauSolde);
 
-      alert(`${msg}\nPénalité d'erreur de -${perteParQuestion.toLocaleString('fr-FR')} € appliquée.`);
-      document.getElementById('quizOverlay').classList.remove('active');
+      db.ref(`banques/${joueurActif}`).set(nouveauSolde).then(() => {
+        mettreAJourSoldeJoueurActif();
+        quitterQuizAutomatique();
+      });
     }
 
     function quitterQuizManuel() {
       clearInterval(intervalChrono);
       if (questionsJoueesDansSession < 10) {
-        let soldeActuel = comptesComplets[lastUserValide] !== undefined ? comptesComplets[lastUserValide] : 20000.00;
-        let penaltyAbandon = 500000;
-        let nouveauSolde = Math.round((soldeActuel - penaltyAbandon) * 100) / 100;
-        db.ref(`banques/${lastUserValide}`).set(nouveauSolde);
-        alert(`⚠️ Abandon avant 10 questions (${questionsJoueesDansSession}/10) !\nPénalité d'abandon de -500 000 € appliquée.`);
+        if (confirm(`⚠️ Abandonner avant 10 questions entraîne une pénalité de 500 000 € !\nQuestions complétées : ${questionsJoueesDansSession}/10\nConfirmer l'abandon ?`)) {
+          let soldeActuel = comptesComplets[joueurActif] !== undefined ? comptesComplets[joueurActif] : 20000.00;
+          let nouveauSolde = Math.round((soldeActuel - 500000) * 100) / 100;
+          db.ref(`banques/${joueurActif}`).set(nouveauSolde).then(() => {
+            mettreAJourSoldeJoueurActif();
+            quitterQuizAutomatique();
+          });
+        }
+      } else {
+        quitterQuizAutomatique();
       }
+    }
+
+    function quitterQuizAutomatique() {
+      clearInterval(intervalChrono);
       document.getElementById('quizOverlay').classList.remove('active');
     }
 
+    /* GESTION COMPTES BANCAIRES & CLASSEMENT */
     function ouvrirBanque() {
-      afficherSoldesBanque();
       document.getElementById('banqueOverlay').classList.add('active');
+      afficherSoldesBanque();
     }
 
     function fermerBanque() {
@@ -1602,40 +1594,49 @@
 
       list.innerHTML = "";
 
-      USERS_LIST.forEach(u => {
+      let usersPries = USERS_LIST.slice().sort((a,b) => {
+        let pA = ObtenirPrenomUser(a);
+        let pB = ObtenirPrenomUser(b);
+        let sA = comptesComplets[pA] !== undefined ? comptesComplets[pA] : 20000.00;
+        let sB = comptesComplets[pB] !== undefined ? comptesComplets[pB] : 20000.00;
+        return sB - sA;
+      });
+
+      usersPries.forEach(u => {
         let prenom = ObtenirPrenomUser(u);
         let solde = comptesComplets[prenom] !== undefined ? comptesComplets[prenom] : 20000.00;
-        let badgeInfo = ObtenirInfosBadge(solde);
+        let groupe = ObtenirGroupeUser(prenom);
 
         let div = document.createElement('div');
         div.className = "dark-card-item";
+        div.onclick = () => { fermerBanque(); ouvrirDetailJoueur(prenom); };
 
         div.innerHTML = `
           <div>
-            <div class="dark-card-name">${prenom} ${badgeInfo.badgeActuel ? `<span class="badge-tag">${badgeInfo.badgeActuel.nom}</span>` : ''}</div>
-            <div class="dark-card-sub">Groupe : ${ObtenirGroupeUser(prenom)}</div>
+            <div class="dark-card-name">${prenom}</div>
+            <div class="dark-card-sub">Groupe : ${groupe}</div>
           </div>
-          <div class="dark-card-amount ${solde < 0 ? 'deficit' : ''}">${solde.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €</div>
+          <div class="dark-card-amount ${solde < 0 ? 'deficit' : ''}">${solde.toLocaleString('fr-FR', {minimumFractionDigits:2})} €</div>
         `;
-
         list.appendChild(div);
       });
     }
 
     function ouvrirHistorique() {
-      afficherClassementEtPossessions();
+      joueurSelectionneVueDetail = null;
       document.getElementById('historiqueOverlay').classList.add('active');
+      afficherClassementEtPossessions();
     }
 
     function fermerHistorique() {
       document.getElementById('historiqueOverlay').classList.remove('active');
     }
 
-    function changerOngletClassement(groupe) {
-      filtreClassementActif = groupe;
-      document.getElementById('btnTabClassementTous').className = `tab-btn ${groupe === 'tous' ? 'active' : ''}`;
-      document.getElementById('btnTabClassementFamille').className = `tab-btn ${groupe === 'famille' ? 'active' : ''}`;
-      document.getElementById('btnTabClassementEcole').className = `tab-btn ${groupe === 'ecole' ? 'active' : ''}`;
+    function changerOngletClassement(f) {
+      filtreClassementActif = f;
+      document.getElementById('btnTabClassementTous').className = `tab-btn ${f === 'tous' ? 'active' : ''}`;
+      document.getElementById('btnTabClassementFamille').className = `tab-btn ${f === 'famille' ? 'active' : ''}`;
+      document.getElementById('btnTabClassementEcole').className = `tab-btn ${f === 'ecole' ? 'active' : ''}`;
       afficherClassementEtPossessions();
     }
 
@@ -1643,99 +1644,108 @@
       const list = document.getElementById('historiqueList');
       if (!list) return;
 
-      list.innerHTML = "";
-
       if (joueurSelectionneVueDetail) {
-        let user = joueurSelectionneVueDetail;
-        let btnBack = document.createElement('button');
-        btnBack.className = "btn-back";
-        btnBack.innerHTML = "⬅️ Retour au classement";
-        btnBack.onclick = () => { joueurSelectionneVueDetail = null; afficherClassementEtPossessions(); };
-        list.appendChild(btnBack);
-
-        let userBiens = possessionsImmo[user] || {};
-        let count = 0;
-
-        baseArticles.forEach(art => {
-          if (art.immoKey && userBiens[art.immoKey] && userBiens[art.immoKey].quantite > 0) {
-            count++;
-            let dataBien = userBiens[art.immoKey];
-            let qte = dataBien.quantite;
-
-            let div = document.createElement('div');
-            div.className = "possession-pill";
-            div.style.flexDirection = "column";
-            div.style.alignItems = "stretch";
-
-            let html = `
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                  <strong style="font-size:15px; color:white;">${art.emoji} ${art.nom}</strong>
-                  <div style="font-size:12px; color:#a0aec0;">Possédé : x${qte}</div>
-                </div>
-                <span class="possession-badge-green">${(art.prix * qte).toLocaleString('fr-FR')} €</span>
-              </div>
-            `;
-
-            if (art.cat === "Immobilier Marseille" && art.immoKey !== 'hotel') {
-              html += `<div style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:8px;">`;
-              dataBien.achats.forEach((dateAchat, idx) => {
-                let res = calculerPrixReventeImmo(dateAchat, art.prix);
-                html += `
-                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:12px;">
-                    <span>Exemplaire #${idx + 1} (${new Date(dateAchat).toLocaleDateString('fr-FR')})</span>
-                    <button class="btn-vente-immo" onclick="revendreBienImmobilier('${user}', '${art.immoKey}', ${idx}, ${art.prix}, '${art.nom.replace(/'/g, "\\'")}')">
-                      Vendre (${res.prix.toLocaleString('fr-FR')} €)
-                    </button>
-                  </div>
-                `;
-              });
-              html += `</div>`;
-            }
-
-            div.innerHTML = html;
-            list.appendChild(div);
-          }
-        });
-
-        if (count === 0) {
-          list.innerHTML += `<div style="text-align:center; color:#a0aec0; margin-top:20px;">Aucun bien possédé.</div>`;
-        }
+        afficherDetailJoueur(joueurSelectionneVueDetail);
         return;
       }
 
-      let players = USERS_LIST.map(u => {
-        let prenom = ObtenirPrenomUser(u);
-        let groupe = ObtenirGroupeUser(prenom);
-        let solde = comptesComplets[prenom] !== undefined ? comptesComplets[prenom] : 20000.00;
-        return { prenom, groupe, solde };
+      document.getElementById('historiqueTitle').innerText = "Classement Général 🧾";
+      document.getElementById('tabsClassementGroupe').style.display = "flex";
+      list.innerHTML = "";
+
+      let usersFiltres = USERS_LIST.filter(u => {
+        let grp = ObtenirGroupeUser(ObtenirPrenomUser(u));
+        if (filtreClassementActif === 'famille') return grp === 'Famille';
+        if (filtreClassementActif === 'ecole') return grp === 'École';
+        return true;
       });
 
-      if (filtreClassementActif === 'famille') {
-        players = players.filter(p => p.groupe === 'Famille');
-      } else if (filtreClassementActif === 'ecole') {
-        players = players.filter(p => p.groupe === 'École');
-      }
+      usersFiltres.sort((a,b) => {
+        let pA = ObtenirPrenomUser(a);
+        let pB = ObtenirPrenomUser(b);
+        let sA = comptesComplets[pA] !== undefined ? comptesComplets[pA] : 20000.00;
+        let sB = comptesComplets[pB] !== undefined ? comptesComplets[pB] : 20000.00;
+        return sB - sA;
+      });
 
-      players.sort((a, b) => b.solde - a.solde);
+      usersFiltres.forEach((u, index) => {
+        let prenom = ObtenirPrenomUser(u);
+        let solde = comptesComplets[prenom] !== undefined ? comptesComplets[prenom] : 20000.00;
+        let badgeInfo = ObtenirInfosBadge(solde);
 
-      players.forEach((p, rank) => {
         let div = document.createElement('div');
         div.className = "dark-card-item";
-        div.onclick = () => { joueurSelectionneVueDetail = p.prenom; afficherClassementEtPossessions(); };
+        div.onclick = () => ouvrirDetailJoueur(prenom);
 
-        let medaille = rank === 0 ? "🥇 " : rank === 1 ? "🥈 " : rank === 2 ? "🥉 " : `#${rank + 1} `;
+        let medal = index === 0 ? "🥇 " : index === 1 ? "🥈 " : index === 2 ? "🥉 " : `#${index+1} `;
+        let badgeTag = badgeInfo.badgeActuel ? `<span class="badge-tag">${badgeInfo.badgeActuel.nom}</span>` : "";
 
         div.innerHTML = `
           <div>
-            <div class="dark-card-name">${medaille}${p.prenom}</div>
-            <div class="dark-card-sub">Groupe : ${p.groupe} • Cliquez pour voir ses biens 🔍</div>
+            <div class="dark-card-name">${medal}${prenom} ${badgeTag}</div>
+            <div class="dark-card-sub">Cliquez pour voir les acquisitions</div>
           </div>
-          <div class="dark-card-amount ${p.solde < 0 ? 'deficit' : ''}">${p.solde.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €</div>
+          <div class="dark-card-amount ${solde < 0 ? 'deficit' : ''}">${solde.toLocaleString('fr-FR', {minimumFractionDigits:2})} €</div>
         `;
-
         list.appendChild(div);
       });
+    }
+
+    function ouvrirDetailJoueur(prenom) {
+      joueurSelectionneVueDetail = prenom;
+      afficherDetailJoueur(prenom);
+    }
+
+    function afficherDetailJoueur(prenom) {
+      const list = document.getElementById('historiqueList');
+      if (!list) return;
+
+      document.getElementById('historiqueTitle').innerText = `Acquisitions : ${prenom}`;
+      document.getElementById('tabsClassementGroupe').style.display = "none";
+
+      list.innerHTML = `
+        <button class="btn-back" onclick="joueurSelectionneVueDetail=null; afficherClassementEtPossessions();">← Retour au classement</button>
+      `;
+
+      const userBiens = possessionsImmo[prenom] || {};
+      let auMoinsUn = false;
+
+      Object.keys(userBiens).forEach(immoKey => {
+        const dataBien = userBiens[immoKey];
+        if (!dataBien || !dataBien.achats || dataBien.achats.length === 0) return;
+
+        const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
+        if (!catalogueRef) return;
+
+        auMoinsUn = true;
+
+        dataBien.achats.forEach((dateAchat, idx) => {
+          let div = document.createElement('div');
+          div.className = "possession-pill";
+
+          let estRevendable = (catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel");
+          let infoCalcul = estRevendable ? calculerPrixReventeImmo(dateAchat, catalogueRef.prix) : { prix: catalogueRef.prix, augmente: false };
+          let prixAffichage = infoCalcul.prix;
+
+          let btnVendreHtml = estRevendable 
+            ? `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${prenom}', '${immoKey}', ${idx}, ${catalogueRef.prix}, '${catalogueRef.nom.replace(/'/g, "\\'")}')">🏷️ Vendre (${prixAffichage.toLocaleString('fr-FR')} €)</button>`
+            : `<span style="font-size:11px; color:#a0aec0;">Non revendable</span>`;
+
+          div.innerHTML = `
+            <div>
+              <div style="font-weight:bold; color:white;">${catalogueRef.emoji} ${catalogueRef.nom}</div>
+              <div style="font-size:11px; color:#a0aec0;">Acheté le ${new Date(dateAchat).toLocaleDateString('fr-FR')}</div>
+              ${btnVendreHtml}
+            </div>
+            <div class="possession-badge-green">${catalogueRef.prix.toLocaleString('fr-FR')} €</div>
+          `;
+          list.appendChild(div);
+        });
+      });
+
+      if (!auMoinsUn) {
+        list.innerHTML += `<div style="text-align:center; color:#a0aec0; margin-top:30px;">Aucun bien possédé par ${prenom}.</div>`;
+      }
     }
   </script>
 </body>
