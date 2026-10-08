@@ -264,7 +264,7 @@
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v4.8.0 (Code PIN Sécurisé • Sans Bouton Réglage)</div>
+    <div class="version-tag">v4.9.0 (Code PIN Sécurisé • Sans Bouton Réglage)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -289,12 +289,12 @@
 
         <div class="aide-section">
           <div class="aide-section-title">🧮 Calcul Mental (Gains & Pertes)</div>
-          Résolvez des calculs mathématiques sous un délai strict de <strong>10 secondes</strong> par question. Une erreur fait perdre <strong>10 000 €</strong> quel que soit le niveau :<br>
-          • 🟢 <strong>Facile</strong> : Multiplications | Gain : +30 000 € | Perte : -10 000 €<br>
-          • 🟠 <strong>Intermédiaire</strong> : Multiplications | Gain : +50 000 € | Perte : -10 000 €<br>
-          • 🔴 <strong>Difficile</strong> : Multiplications | Gain : +100 000 € | Perte : -10 000 €<br>
-          • 💀 <strong>Extrême (QCM)</strong> : Tables de 4 à 10 (3 choix, Min 10 questions) | Gain : +100 000 € | Perte : -10 000 €<br>
-          • 🔥 <strong>ULTIME</strong> : Additions & Soustractions à 2 chiffres (ex: 45+56) | Gain : +500 000 € | Perte : -10 000 €
+          Résolvez des calculs mathématiques sous un délai strict de <strong>10 secondes</strong> par question. Une erreur fait perdre <strong>50 000 €</strong> quel que soit le niveau, et abandonner avant d'avoir fait 10 questions fait perdre <strong>500 000 €</strong> :<br>
+          • 🟢 <strong>Facile</strong> : Multiplications | Gain : +30 000 € | Perte : -50 000 €<br>
+          • 🟠 <strong>Intermédiaire</strong> : Multiplications | Gain : +50 000 € | Perte : -50 000 €<br>
+          • 🔴 <strong>Difficile</strong> : Multiplications | Gain : +100 000 € | Perte : -50 000 €<br>
+          • 💀 <strong>Extrême (QCM)</strong> : Tables de 4 à 10 (3 choix, Min 10 questions) | Gain : +100 000 € | Perte : -50 000 €<br>
+          • 🔥 <strong>ULTIME</strong> : Additions & Soustractions à 2 chiffres (ex: 45+56) | Gain : +500 000 € | Perte : -50 000 €
         </div>
 
         <div class="aide-section">
@@ -380,7 +380,7 @@
   <div class="quiz-level-overlay" id="quizLevelOverlay">
     <div class="level-card">
       <div class="level-title">Niveau de difficulté 🧮</div>
-      <div class="level-subtitle">Tous les niveaux : 10 secondes par question ! Erreur : -10 000 €</div>
+      <div class="level-subtitle">Tous les niveaux : 10 sec/question | Erreur : -50 000 € | Abandon (< 10 questions) : -500 000 €</div>
 
       <div class="level-btn-group">
         <button class="btn-level btn-level-facile" onclick="demarrerQuizAvecNiveau('facile')">
@@ -410,7 +410,7 @@
         <button class="btn-level btn-level-extreme" onclick="demarrerQuizAvecNiveau('extreme')">
           <div>
             <div class="level-name">💀 Extrême (QCM 3 Choix)</div>
-            <div class="level-desc">10s / Tables de 4 à 10. Min 10 questions. Err: -10k€</div>
+            <div class="level-desc">10s / Tables de 4 à 10. Min 10 questions. Err: -50k€</div>
           </div>
           <div class="level-name">+100 000 €</div>
         </button>
@@ -439,7 +439,7 @@
       <div class="quiz-question-box">
         <div class="quiz-matiere" id="quizMatiere">Calcul Mental</div>
         <div class="quiz-enonce" id="quizEnonce">Chargement...</div>
-        <div class="quiz-reward-info" id="quizRewardInfo">+30 000 € / -10 000 €</div>
+        <div class="quiz-reward-info" id="quizRewardInfo">+30 000 € / -50 000 €</div>
         
         <div id="vueQuizMaths">
           <input type="text" id="quizReponseInput" class="quiz-input" placeholder="?" readonly>
@@ -625,7 +625,7 @@
 
     let niveauQuizActif = "facile";
     let gainParQuestion = 30000;
-    let perteParQuestion = 10000;
+    let perteParQuestion = 50000;
     let questionsJoueesDansSession = 0;
     let gainsSessionQuiz = 0;
     let questionActiveCourante = null;
@@ -1420,10 +1420,10 @@
       else if (niveau === 'extreme') { gainParQuestion = 100000; }
       else if (niveau === 'ultime') { gainParQuestion = 500000; }
 
-      perteParQuestion = 10000;
+      perteParQuestion = 50000;
 
       document.getElementById('quizUserBadge').innerText = lastUserValide;
-      document.getElementById('quizRewardInfo').innerText = `Gain : +${gainParQuestion.toLocaleString('fr-FR')} € | Perte : -${perteParQuestion.toLocaleString('fr-FR')} €`;
+      document.getElementById('quizRewardInfo').innerText = `Gain : +${gainParQuestion.toLocaleString('fr-FR')} € | Perte : -${perteParQuestion.toLocaleString('fr-FR')} € | Validées : ${questionsJoueesDansSession}/10`;
 
       document.getElementById('quizOverlay').classList.add('active');
       prochaineQuestionQuiz();
@@ -1434,6 +1434,7 @@
       tempsRestant = 10;
       mettreAJourChronoUI();
 
+      document.getElementById('quizRewardInfo').innerText = `Gain : +${gainParQuestion.toLocaleString('fr-FR')} € | Perte : -${perteParQuestion.toLocaleString('fr-FR')} € | Validées : ${questionsJoueesDansSession}/10`;
       document.getElementById('quizReponseInput').value = "";
 
       if (niveauQuizActif === 'extreme') {
@@ -1570,12 +1571,19 @@
       let nouveauSolde = Math.round((soldeActuel - perteParQuestion) * 100) / 100;
       db.ref(`banques/${lastUserValide}`).set(nouveauSolde);
 
-      alert(`${msg}\nPénalité de -${perteParQuestion.toLocaleString('fr-FR')} € appliquée.`);
+      alert(`${msg}\nPénalité d'erreur de -${perteParQuestion.toLocaleString('fr-FR')} € appliquée.`);
       document.getElementById('quizOverlay').classList.remove('active');
     }
 
     function quitterQuizManuel() {
       clearInterval(intervalChrono);
+      if (questionsJoueesDansSession < 10) {
+        let soldeActuel = comptesComplets[lastUserValide] !== undefined ? comptesComplets[lastUserValide] : 20000.00;
+        let penaltyAbandon = 500000;
+        let nouveauSolde = Math.round((soldeActuel - penaltyAbandon) * 100) / 100;
+        db.ref(`banques/${lastUserValide}`).set(nouveauSolde);
+        alert(`⚠️ Abandon avant 10 questions (${questionsJoueesDansSession}/10) !\nPénalité d'abandon de -500 000 € appliquée.`);
+      }
       document.getElementById('quizOverlay').classList.remove('active');
     }
 
