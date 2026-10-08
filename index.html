@@ -93,29 +93,20 @@
     .btn-quiz-mode { background: #6b46c1; color: #fff; border: none; border-radius: 14px; padding: 12px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; }
     .btn-reset { background: none; border: none; color: #e53e3e; font-weight: bold; cursor: pointer; padding: 6px; font-size: 12px; width: 100%; text-align: center; }
 
-    .pin-overlay, .banque-overlay, .historique-overlay, .reglages-overlay, .quiz-level-overlay, .quiz-overlay, .apple-pay-overlay, .creer-ecole-overlay, .aide-overlay, .arrondissement-overlay {
+    .pin-overlay, .banque-overlay, .historique-overlay, .reglages-overlay, .quiz-level-overlay, .quiz-overlay, .apple-pay-overlay, .creer-ecole-overlay, .aide-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85);
       backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center;
       opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 9998;
     }
-    .pin-overlay.active, .banque-overlay.active, .historique-overlay.active, .reglages-overlay.active, .quiz-level-overlay.active, .quiz-overlay.active, .apple-pay-overlay.active, .creer-ecole-overlay.active, .aide-overlay.active, .arrondissement-overlay.active {
+    .pin-overlay.active, .banque-overlay.active, .historique-overlay.active, .reglages-overlay.active, .quiz-level-overlay.active, .quiz-overlay.active, .apple-pay-overlay.active, .creer-ecole-overlay.active, .aide-overlay.active {
       opacity: 1; pointer-events: auto;
     }
     
-    .banque-card, .historique-card, .reglages-card, .level-card, .quiz-card, .creer-ecole-card, .aide-card, .arrondissement-card {
-      background: #121820; width: 92%; max-width: 460px; border-radius: 24px; padding: 22px; color: white;
+    .banque-card, .historique-card, .reglages-card, .level-card, .quiz-card, .creer-ecole-card, .aide-card {
+      background: #121820; width: 92%; max-width: 440px; border-radius: 24px; padding: 22px; color: white;
       text-align: left; box-shadow: 0 20px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08);
       max-height: 90vh; display: flex; flex-direction: column;
     }
-
-    .grid-arrondissements {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; max-height: 50vh; overflow-y: auto;
-    }
-    .btn-arr-choice {
-      background: #1a222d; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; border-radius: 12px;
-      padding: 12px 6px; font-size: 13px; font-weight: bold; cursor: pointer; text-align: center;
-    }
-    .btn-arr-choice:active { background: #3182ce; color: white; }
 
     .pin-card { background: #1c1c1e; width: 90%; max-width: 400px; border-radius: 28px; padding: 22px; color: white; text-align: center; }
     .pin-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
@@ -191,7 +182,7 @@
     .quiz-matiere { font-size: 11px; text-transform: uppercase; color: #a0aec0; font-weight: bold; margin-bottom: 4px; }
     .quiz-enonce { font-size: 22px; font-weight: bold; color: #ffffff; margin-bottom: 8px; line-height: 1.3; }
     .quiz-reward-info { font-size: 12px; color: #38ef7d; font-weight: bold; margin-bottom: 6px; }
-    .quiz-input { width: 100%; padding: 10px; font-size: 24px; font-weight: bold; border: 2px solid #4a5568; background: #0d1117; color: #38ef7d; border-radius: 12px; text-align: center; margin-bottom: 4px; pointer-events: none; }
+    .quiz-input { width: 100%; padding: 10px; font-size: 24px; font-weight: bold; border: 2px solid #4a5568; background: #0d1117; color: #38ef7d; border-radius: 12px; text-align: center; margin-bottom: 4px; }
 
     .apple-pay-card { background: #1c1c1e; width: 100%; max-width: 440px; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; color: white; text-align: center; }
     .ap-amount { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
@@ -232,7 +223,6 @@
         </select>
         <button class="btn-quick-add" onclick="ouvrirModalCreerEcole()">🏫 + Joueur École</button>
         <button class="btn-icon" onclick="ouvrirBanque()" title="Comptes Bancaires">🏦</button>
-        <button class="btn-icon" onclick="ouvrirHistorique()" title="Acquisitions">🧾</button>
         <button class="btn-icon" onclick="ouvrirAide()" title="Règles du jeu">❓</button>
       </div>
     </div>
@@ -273,39 +263,7 @@
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v5.0.0 (Arrondissements & Royalties)</div>
-  </div>
-
-  <!-- MODAL SELECTION ARRONDISSEMENT -->
-  <div class="arrondissement-overlay" id="arrondissementOverlay">
-    <div class="arrondissement-card">
-      <div class="reglages-header">
-        <span class="reglages-title">📍 Arrondissement de Marseille</span>
-        <button class="btn-close" onclick="fermerModalArrondissement()">✕</button>
-      </div>
-      <p style="font-size: 13px; color: #a0aec0; margin-bottom: 8px;">
-        Tout achat de bien doit être situé dans un arrondissement de Marseille.
-      </p>
-      <div id="articleEnCoursSelection" style="font-size: 15px; font-weight: bold; color: #38ef7d; margin-bottom: 12px; text-align: center;"></div>
-      <div class="grid-arrondissements">
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(1)">1er Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(2)">2ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(3)">3ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(4)">4ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(5)">5ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(6)">6ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(7)">7ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(8)">8ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(9)">9ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(10)">10ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(11)">11ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(12)">12ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(13)">13ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(14)">14ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(15)">15ème Arr.</button>
-        <button class="btn-arr-choice" onclick="choisirArrondissementEtAjouter(16)">16ème Arr.</button>
-      </div>
-    </div>
+    <div class="version-tag">v5.0.0 (Propriété unique Entreprises & Clavier Quiz)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -318,17 +276,7 @@
       <div class="aide-content">
         <div class="aide-section">
           <div class="aide-section-title">🎮 Principe Général</div>
-          Accumulez de la fortune, achetez des arrondissements, des biens immobiliers, des automobiles d'exception et des entreprises internationales. Gérez votre compte bancaire via la caisse enregistreuse !
-        </div>
-
-        <div class="aide-section">
-          <div class="aide-section-title">🏛️ Arrondissements de Marseille & Royalties</div>
-          • <strong>Achat des Arrondissements</strong> : Achetez les 16 arrondissements de Marseille (valant chacun plus de 1 000 Milliards d'euros) !<br>
-          • <strong>Localisation des biens</strong> : Tout achat de bien doit obligatoirement être situé dans l'un des 16 arrondissements.<br>
-          • <strong>Royalties d'Arrondissement</strong> : Si vous achetez un bien situé dans un arrondissement appartenant à un autre joueur, ce dernier touche automatiquement **15% de royalties** sur le montant du bien !<br>
-          • <strong>Loyers Horaires (1%/h)</strong> :<br>
-          &nbsp;&nbsp;- Le propriétaire d'un arrondissement touche **1% du prix de l'arrondissement** chaque heure.<br>
-          &nbsp;&nbsp;- Si personne ne possède l'arrondissement, le loyer (1%/h) est **directement intégré au prix d'achat** de l'arrondissement[cite: 1] !
+          Accumulez de la fortune, achetez des biens immobiliers, des automobiles d'exception et des entreprises internationales. Gérez votre compte bancaire via la caisse enregistreuse !
         </div>
 
         <div class="aide-section">
@@ -340,7 +288,7 @@
 
         <div class="aide-section">
           <div class="aide-section-title">🧮 Calcul Mental (Gains & Pertes)</div>
-          Résolvez des calculs mathématiques sous un délai strict de <strong>10 secondes</strong> par question[cite: 1]. Une mauvaise réponse fait perdre <strong>25 000 €</strong> et abandonner avant 10 questions fait perdre <strong>20% de sa cagnotte</strong> (sauf pour Jassem, Ilyan et HDM : pas d'handicap)[cite: 1]. Passage automatique à la question suivante en cas d'erreur[cite: 1] !
+          Résolvez des calculs mathématiques sous un délai strict de <strong>10 secondes</strong> par question. Une mauvaise réponse fait perdre <strong>25 000 €</strong> et abandonner avant 10 questions fait perdre <strong>20% de sa cagnotte</strong> (sauf pour Jassem, Ilyan et HDM : pas d'handicap)[cite: 1]. Passage automatique à la question suivante en cas d'erreur[cite: 1] !
         </div>
 
         <div class="aide-section">
@@ -352,8 +300,10 @@
         <div class="aide-section">
           <div class="aide-section-title">🏢 Immobilier, Hôtels & Entreprises</div>
           • <strong>Revenus passifs</strong> : Snacks (+1 000€/h), Hôtels, Malls et Entreprises rapportent <strong>20%/h</strong> automatiquement 2 heures après l'achat !<br>
-          • <strong>Royalties Entreprises / Hôtels</strong> : Si vous achetez une entreprise ou un hôtel déjà possédé, vous devez verser des **royalties de 15%** au propriétaire initial.<br>
-          • <strong>Revente de Biens</strong> : Seuls les biens de la section <em>Immobilier Marseille</em> peuvent être revendus.
+          • <strong>Règles de Possession & Royalties</strong> :<br>
+          &nbsp;&nbsp;- 👑 <strong>Entreprises</strong> : Les entreprises ne peuvent avoir qu'<strong>un seul propriétaire</strong>. Une fois achetée par un joueur, l'entreprise est grisée et ne peut plus être achetée par d'autres[cite: 1].<br>
+          &nbsp;&nbsp;- 🏨 <strong>Hôtels</strong> : Limité à <strong>10 hôtels maximum par gamme/joueur</strong>. Si vous achetez un hôtel alors qu'un autre joueur en possède déjà, vous devez verser des <strong>royalties de 15%</strong> du montant de l'hôtel au(x) propriétaire(s).<br>
+          • <strong>Revente de Biens</strong> : Seuls les biens de la section <em>Immobilier Marseille</em> peuvent être revendus (les Hôtels ne sont pas revendables).
         </div>
       </div>
     </div>
@@ -424,7 +374,7 @@
   <div class="quiz-level-overlay" id="quizLevelOverlay">
     <div class="level-card">
       <div class="level-title">Niveau de difficulté 🧮</div>
-      <div class="level-subtitle">10 sec/question | Erreur : -25 000 € | Abandon (< 10 questions) : -20% cagnotte</div>
+      <div class="level-subtitle">10 sec/question | Erreur : -25 000 € | Abandon (< 10 questions) : -20% cagnotte (Pas d'handicap pour Jassem, Ilyan, HDM)</div>
 
       <div class="level-btn-group">
         <button class="btn-level btn-level-facile" onclick="demarrerQuizAvecNiveau('facile')">
@@ -486,7 +436,7 @@
         <div class="quiz-reward-info" id="quizRewardInfo">+30 000 € / -25 000 €</div>
         
         <div id="vueQuizMaths">
-          <input type="text" id="quizReponseInput" class="quiz-input" placeholder="?" readonly>
+          <input type="text" id="quizReponseInput" class="quiz-input" placeholder="?" oninput="testerReponseClavierQuiz()" onkeydown="gererSaisieClavierQuiz(event)">
           <div class="quiz-numpad">
             <button class="btn-num" onclick="taperQuizChiffre('1')">1</button>
             <button class="btn-num" onclick="taperQuizChiffre('2')">2</button>
@@ -665,7 +615,6 @@
     let filtreClassementActif = "tous";
 
     let marcheImmoPct = 0;
-    let articleEnAttenteArrondissement = null;
 
     let niveauQuizActif = "facile";
     let gainParQuestion = 30000;
@@ -726,32 +675,14 @@
       { id: 910, cat: "Entreprises Connues", emoji: "✨", nom: "Walt Disney Company", prix: 210000000000.00, immoKey: "ent_disney", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 911, cat: "Entreprises Connues", emoji: "🥤", nom: "Coca-Cola", prix: 290000000000.00, immoKey: "ent_ko", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 912, cat: "Entreprises Connues", emoji: "🍟", nom: "McDonald's", prix: 220000000000.00, immoKey: "ent_mcd", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 913, cat: "Entreprises Connues", emoji: "👟", nom: "Nike", prix: 1300000000000.00, immoKey: "ent_nike", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
+      { id: 913, cat: "Entreprises Connues", emoji: "👟", nom: "Nike", prix: 130000000000.00, immoKey: "ent_nike", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 914, cat: "Entreprises Connues", emoji: "☕", nom: "Starbucks", prix: 110000000000.00, immoKey: "ent_sbux", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 915, cat: "Entreprises Connues", emoji: "🧬", nom: "Eli Lilly", prix: 850000000000.00, immoKey: "ent_lly", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 916, cat: "Entreprises Connues", emoji: "💊", nom: "Novo Nordisk", prix: 550000000000.00, immoKey: "ent_nvo", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 917, cat: "Entreprises Connues", emoji: "💉", nom: "Pfizer", prix: 160000000000.00, immoKey: "ent_pfe", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 918, cat: "Entreprises Connues", emoji: "💳", nom: "Visa", prix: 570000000000.00, immoKey: "ent_v", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
       { id: 919, cat: "Entreprises Connues", emoji: "💳", nom: "Mastercard", prix: 4500000000000.00, immoKey: "ent_ma", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-      { id: 920, cat: "Entreprises Connues", emoji: "🏦", nom: "JPMorgan Chase", prix: 590000000000.00, immoKey: "ent_jpm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true },
-
-      // ARRONDISSEMENTS MARSEILLE (Prix > 1 000 Milliards d'Euros | Loyer 1%/h)
-      { id: 1001, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "1er Arrondissement", prix: 1100000000000.00, immoKey: "arr_1", estArrondissement: true, numArr: 1, tauxPourcentHeure: 0.01 },
-      { id: 1002, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "2ème Arrondissement", prix: 1200000000000.00, immoKey: "arr_2", estArrondissement: true, numArr: 2, tauxPourcentHeure: 0.01 },
-      { id: 1003, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "3ème Arrondissement", prix: 1300000000000.00, immoKey: "arr_3", estArrondissement: true, numArr: 3, tauxPourcentHeure: 0.01 },
-      { id: 1004, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "4ème Arrondissement", prix: 1400000000000.00, immoKey: "arr_4", estArrondissement: true, numArr: 4, tauxPourcentHeure: 0.01 },
-      { id: 1005, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "5ème Arrondissement", prix: 1500000000000.00, immoKey: "arr_5", estArrondissement: true, numArr: 5, tauxPourcentHeure: 0.01 },
-      { id: 1006, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "6ème Arrondissement", prix: 1800000000000.00, immoKey: "arr_6", estArrondissement: true, numArr: 6, tauxPourcentHeure: 0.01 },
-      { id: 1007, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "7ème Arrondissement", prix: 2200000000000.00, immoKey: "arr_7", estArrondissement: true, numArr: 7, tauxPourcentHeure: 0.01 },
-      { id: 1008, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "8ème Arrondissement", prix: 3500000000000.00, immoKey: "arr_8", estArrondissement: true, numArr: 8, tauxPourcentHeure: 0.01 },
-      { id: 1009, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "9ème Arrondissement", prix: 2500000000000.00, immoKey: "arr_9", estArrondissement: true, numArr: 9, tauxPourcentHeure: 0.01 },
-      { id: 1010, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "10ème Arrondissement", prix: 1600000000000.00, immoKey: "arr_10", estArrondissement: true, numArr: 10, tauxPourcentHeure: 0.01 },
-      { id: 1011, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "11ème Arrondissement", prix: 1700000000000.00, immoKey: "arr_11", estArrondissement: true, numArr: 11, tauxPourcentHeure: 0.01 },
-      { id: 1012, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "12ème Arrondissement", prix: 2100000000000.00, immoKey: "arr_12", estArrondissement: true, numArr: 12, tauxPourcentHeure: 0.01 },
-      { id: 1013, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "13ème Arrondissement", prix: 1450000000000.00, immoKey: "arr_13", estArrondissement: true, numArr: 13, tauxPourcentHeure: 0.01 },
-      { id: 1014, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "14ème Arrondissement", prix: 1250000000000.00, immoKey: "arr_14", estArrondissement: true, numArr: 14, tauxPourcentHeure: 0.01 },
-      { id: 1015, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "15ème Arrondissement", prix: 1150000000000.00, immoKey: "arr_15", estArrondissement: true, numArr: 15, tauxPourcentHeure: 0.01 },
-      { id: 1016, cat: "Arrondissements Marseille", emoji: "🏛️", nom: "16ème Arrondissement", prix: 1350000000000.00, immoKey: "arr_16", estArrondissement: true, numArr: 16, tauxPourcentHeure: 0.01 }
+      { id: 920, cat: "Entreprises Connues", emoji: "🏦", nom: "JPMorgan Chase", prix: 590000000000.00, immoKey: "ent_jpm", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estEntreprise: true }
     ];
 
     let categorieActive = "Automobiles";
@@ -765,26 +696,7 @@
       initialiserEtEcouterComptes();
       ecouterPossessionsImmo();
       ecouterMarcheImmobilier();
-      ecouterPrixArrondissements();
       setInterval(traiterRevenusHorairesImmo, 10000);
-    }
-
-    function ecouterPrixArrondissements() {
-      db.ref('arrondissements_prix').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          Object.keys(data).forEach(immoKey => {
-            let art = baseArticles.find(a => a.immoKey === immoKey);
-            if (art) {
-              art.prix = data[immoKey];
-            }
-          });
-          if (categorieActive === "Arrondissements Marseille" || categorieActive === "🏠 Mes Biens") {
-            afficherArticles();
-          }
-          MettreAJourEcran();
-        }
-      });
     }
 
     function remplirSelectJoueursMenu() {
@@ -1081,7 +993,19 @@
         afficherSoldesBanque();
         afficherClassementEtPossessions();
         if (categorieActive === "🏠 Mes Biens") afficherArticles();
+        else afficherArticles();
       });
+    }
+
+    // OBTENIR LE PROPRIÉTAIRE D'UNE ENTREPRISE
+    function obtenirProprietaireEntreprise(immoKey) {
+      if (!possessionsImmo) return null;
+      for (let user in possessionsImmo) {
+        if (possessionsImmo[user] && possessionsImmo[user][immoKey] && possessionsImmo[user][immoKey].quantite > 0) {
+          return user;
+        }
+      }
+      return null;
     }
 
     function traiterRevenusHorairesImmo() {
@@ -1089,9 +1013,7 @@
       const maintenant = Date.now();
       let updatesBanque = {};
       let updatesImmo = {};
-      let updatesPrixArr = {};
 
-      // 1. REVENUS PASSIFS BIENS & ENTREPRISES
       Object.keys(possessionsImmo).forEach(user => {
         const biens = possessionsImmo[user];
         if (!biens) return;
@@ -1110,7 +1032,7 @@
             let gainParHeure = 0;
 
             if (catalogueRef && catalogueRef.tauxPourcentHeure) {
-              delaiMin = (catalogueRef.delaiActivationHeures || 0) * 3600 * 1000;
+              delaiMin = (catalogueRef.delaiActivationHeures || 2) * 3600 * 1000;
               gainParHeure = catalogueRef.prix * catalogueRef.tauxPourcentHeure;
             } else if (immoKey === 'snack') {
               delaiMin = 2 * 3600 * 1000;
@@ -1136,55 +1058,13 @@
         });
 
         if (deltaTotalARecup > 0) {
-          let soldeActuel = updatesBanque[`banques/${user}`] !== undefined ? updatesBanque[`banques/${user}`] : (comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00);
+          let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
           updatesBanque[`banques/${user}`] = Math.round((soldeActuel + deltaTotalARecup) * 100) / 100;
         }
       });
 
-      // 2. GESTION DES LOYERS DES ARRONDISSEMENTS (1%/h aux propriétaires OU intégrés au prix si non possédés)
-      for (let i = 1; i <= 16; i++) {
-        let arrKey = `arr_${i}`;
-        let artArr = baseArticles.find(a => a.immoKey === arrKey);
-        if (!artArr) continue;
-
-        let owner = Object.keys(possessionsImmo).find(u => possessionsImmo[u] && possessionsImmo[u][arrKey] && possessionsImmo[u][arrKey].quantite > 0);
-
-        if (owner) {
-          // Quelqu'un possède l'arrondissement -> touche 1% du prix par heure
-          let arrData = possessionsImmo[owner][arrKey];
-          let dateAchat = (arrData && arrData.achats && arrData.achats[0]) ? arrData.achats[0] : maintenant;
-          let dernierPaiement = (arrData && arrData.derniersPaiements && arrData.derniersPaiements[0]) ? arrData.derniersPaiements[0] : dateAchat;
-
-          if (maintenant > dernierPaiement) {
-            let heuresCompletes = Math.floor((maintenant - dernierPaiement) / (3600 * 1000));
-            if (heuresCompletes >= 1) {
-              let gainHeure = artArr.prix * 0.01;
-              let gainTotal = heuresCompletes * gainHeure;
-              let soldeOwner = updatesBanque[`banques/${owner}`] !== undefined ? updatesBanque[`banques/${owner}`] : (comptesComplets[owner] !== undefined ? comptesComplets[owner] : 20000.00);
-              updatesBanque[`banques/${owner}`] = Math.round((soldeOwner + gainTotal) * 100) / 100;
-
-              if (!updatesImmo[`immobilier/${owner}/${arrKey}/derniersPaiements`]) {
-                updatesImmo[`immobilier/${owner}/${arrKey}/derniersPaiements`] = [...(arrData.derniersPaiements || arrData.achats)];
-              }
-              updatesImmo[`immobilier/${owner}/${arrKey}/derniersPaiements`][0] = dernierPaiement + (heuresCompletes * 3600 * 1000);
-            }
-          }
-        } else {
-          // Personne ne possède l'arrondissement -> Les loyers de 1%/h sont directement intégrés au prix de l'arrondissement !
-          let lastCheck = artArr.lastUnownedCheck || maintenant;
-          let heuresEcoulees = Math.floor((maintenant - lastCheck) / (3600 * 1000));
-          if (heuresEcoulees >= 1) {
-            let nouveauPrix = Math.round(artArr.prix * Math.pow(1.01, heuresEcoulees) * 100) / 100;
-            artArr.prix = nouveauPrix;
-            artArr.lastUnownedCheck = lastCheck + (heuresEcoulees * 3600 * 1000);
-            updatesPrixArr[`arrondissements_prix/${arrKey}`] = nouveauPrix;
-          }
-        }
-      }
-
       if (Object.keys(updatesBanque).length > 0) db.ref().update(updatesBanque);
       if (Object.keys(updatesImmo).length > 0) db.ref().update(updatesImmo);
-      if (Object.keys(updatesPrixArr).length > 0) db.ref().update(updatesPrixArr);
     }
 
     function ajouterPossessionImmo(user, item) {
@@ -1269,37 +1149,20 @@
         return;
       }
 
-      if (article.cat === "Arrondissements Marseille") {
-        ajouterAuPanierDirect(article, null);
-        return;
+      // VÉRIFICATION PROPRIÉTAIRE UNIQUE ENTREPRISES
+      if (article.cat === "Entreprises Connues" || article.estEntreprise) {
+        let prop = obtenirProprietaireEntreprise(article.immoKey);
+        if (prop) {
+          alert(`🏢 L'entreprise "${article.nom}" appartient déjà à ${prop} !`);
+          return;
+        }
+        let dejaDansPanier = panier.some(p => p.immoKey === article.immoKey);
+        if (dejaDansPanier) {
+          alert(`🏢 L'entreprise "${article.nom}" est déjà dans votre panier !`);
+          return;
+        }
       }
 
-      // Tout achat de bien doit obligatoirement être situé dans un des 16 arrondissements !
-      articleEnAttenteArrondissement = article;
-      ouvrirModalArrondissement(article);
-    }
-
-    function ouvrirModalArrondissement(article) {
-      const modal = document.getElementById('arrondissementOverlay');
-      const title = document.getElementById('articleEnCoursSelection');
-      if (title) title.innerText = `${article.emoji} ${article.nom}`;
-      if (modal) modal.classList.add('active');
-    }
-
-    function fermerModalArrondissement() {
-      articleEnAttenteArrondissement = null;
-      const modal = document.getElementById('arrondissementOverlay');
-      if (modal) modal.classList.remove('active');
-    }
-
-    function choisirArrondissementEtAjouter(numArr) {
-      if (!articleEnAttenteArrondissement) return;
-      let artCopy = { ...articleEnAttenteArrondissement, arrondissement: numArr, arrondissementNom: `${numArr}${numArr === 1 ? 'er' : 'ème'} Arr.` };
-      fermerModalArrondissement();
-      ajouterAuPanierDirect(artCopy, numArr);
-    }
-
-    function ajouterAuPanierDirect(article, numArr) {
       if (article.cat === "Automobiles") {
         let capaciteTotale = 0;
         const userImmo = possessionsImmo[joueurActif] || {};
@@ -1330,7 +1193,7 @@
         }
       }
 
-      let index = panier.findIndex(p => p.id === article.id && p.arrondissement === article.arrondissement);
+      let index = panier.findIndex(p => p.id === article.id);
       if (index >= 0) {
         panier[index].qte += 1;
       } else {
@@ -1374,10 +1237,9 @@
           let html = '';
           panier.forEach((item, idx) => {
             let st = item.prix * item.qte;
-            let locTag = item.arrondissementNom ? ` <span style="font-size:11px; color:#3182ce; font-weight:bold;">(${item.arrondissementNom})</span>` : '';
             html += `
               <div class="ligne-ticket">
-                <span>${item.emoji} ${item.nom}${locTag} x${item.qte}</span>
+                <span>${item.emoji} ${item.nom} x${item.qte}</span>
                 <div>
                   <span style="font-weight:bold;">${st.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €</span>
                   <button class="btn-suppr-ligne" onclick="retirerDuPanier(${idx})">✕</button>
@@ -1436,23 +1298,11 @@
 
           panier.forEach(item => {
             for (let i = 0; i < item.qte; i++) {
-              // 1. Royalties sur l'Arrondissement (15% au propriétaire de l'arrondissement)
-              if (item.arrondissement) {
-                let arrKey = `arr_${item.arrondissement}`;
-                let arrOwner = Object.keys(possessionsImmo).find(u => possessionsImmo[u] && possessionsImmo[u][arrKey] && possessionsImmo[u][arrKey].quantite > 0);
-                if (arrOwner && arrOwner !== lastUserValide) {
-                  let royaltyArr = Math.round(item.prix * 0.15 * 100) / 100;
-                  let ownerSolde = updates[`banques/${arrOwner}`] !== undefined ? updates[`banques/${arrOwner}`] : (comptesComplets[arrOwner] !== undefined ? comptesComplets[arrOwner] : 20000.00);
-                  updates[`banques/${arrOwner}`] = ownerSolde + royaltyArr;
-                }
-              }
-
-              // 2. Royalties Entreprises / Hôtels (15%)
-              if (item.cat === "Entreprises Connues" || item.immoKey === "hotel") {
+              if (item.immoKey === "hotel") {
                 Object.keys(possessionsImmo).forEach(owner => {
                   if (owner !== lastUserValide && possessionsImmo[owner] && possessionsImmo[owner][item.immoKey] && possessionsImmo[owner][item.immoKey].quantite > 0) {
                     let royalty = Math.round(item.prix * 0.15 * 100) / 100;
-                    let ownerSolde = updates[`banques/${owner}`] !== undefined ? updates[`banques/${owner}`] : (comptesComplets[owner] !== undefined ? comptesComplets[owner] : 20000.00);
+                    let ownerSolde = comptesComplets[owner] !== undefined ? comptesComplets[owner] : 20000.00;
                     updates[`banques/${owner}`] = ownerSolde + royalty;
                   }
                 });
@@ -1474,284 +1324,114 @@
       const container = document.getElementById('categoriesTabs');
       if (!container) return;
 
-      const categories = ["Automobiles", "Immobilier Marseille", "Entreprises Connues", "🏛️ Arrondissements", "🏠 Mes Biens"];
+      const categories = ["Automobiles", "Immobilier Marseille", "Entreprises Connues", "🏠 Mes Biens"];
       container.innerHTML = "";
 
       categories.forEach(cat => {
         let btn = document.createElement('button');
         btn.className = `tab-btn ${cat === categorieActive ? 'active' : ''}`;
         btn.innerText = cat;
-        btn.onclick = () => {
-          categorieActive = cat;
-          afficherOnglets();
-          afficherArticles();
-        };
+        btn.onclick = () => changerCategorie(cat);
         container.appendChild(btn);
       });
+    }
+
+    function changerCategorie(cat) {
+      categorieActive = cat;
+      afficherOnglets();
+      afficherArticles();
     }
 
     function afficherArticles() {
       const grid = document.getElementById('articlesGrid');
       if (!grid) return;
+
       grid.innerHTML = "";
 
       if (categorieActive === "🏠 Mes Biens") {
-        afficherMesBiensEnGrid(grid);
+        if (!joueurActif) {
+          grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#a0aec0; padding:20px; font-style:italic;">Veuillez sélectionner un joueur pour voir ses biens.</div>`;
+          return;
+        }
+
+        const userBiens = possessionsImmo[joueurActif] || {};
+        let nbBiensAffiches = 0;
+
+        Object.keys(userBiens).forEach(immoKey => {
+          const dataBien = userBiens[immoKey];
+          if (!dataBien || !dataBien.achats || dataBien.achats.length === 0) return;
+
+          const article = baseArticles.find(a => a.immoKey === immoKey);
+          if (!article) return;
+
+          dataBien.achats.forEach((dateAchat, idx) => {
+            nbBiensAffiches++;
+            const btn = document.createElement('div');
+            btn.className = "btn-article mes-biens-card";
+
+            const estRevendable = (article.cat === "Immobilier Marseille" && immoKey !== "hotel");
+            let infoCalcul = estRevendable ? calculerPrixReventeImmo(dateAchat, article.prix) : { prix: article.prix, augmente: false };
+            let prixAffichage = infoCalcul.prix;
+
+            let htmlRevendre = estRevendable 
+              ? `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${joueurActif}', '${immoKey}', ${idx}, ${article.prix}, '${article.nom.replace(/'/g, "\\'")}')">🏷️ Vendre (${prixAffichage.toLocaleString('fr-FR')} €)</button>`
+              : `<span style="font-size:10px; color:#a0aec0; margin-top:4px;">Non revendable</span>`;
+
+            btn.innerHTML = `
+              <div style="font-size:24px;">${article.emoji}</div>
+              <div style="font-weight:bold; font-size:13px; line-height:1.2;">${article.nom}</div>
+              <div class="prix-tag" style="background:rgba(255,255,255,0.1); color:#38ef7d; font-size:10px; border:1px solid rgba(56,239,125,0.3); margin-top:2px;">Valeur: ${article.prix.toLocaleString('fr-FR')} €</div>
+              ${htmlRevendre}
+            `;
+            grid.appendChild(btn);
+          });
+        });
+
+        if (nbBiensAffiches === 0) {
+          grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#a0aec0; padding:20px; font-style:italic;">Aucun bien possédé par ${joueurActif}.</div>`;
+        }
         return;
       }
 
-      let articlesFiltres = baseArticles.filter(a => a.cat === (categorieActive === "🏛️ Arrondissements" ? "Arrondissements Marseille" : categorieActive));
+      // AFFICHAGE DES ARTICLES STANDARD (AVEC VERROUILLAGE DES ENTREPRISES DÉJÀ ACHETÉES)
+      let articlesFiltres = baseArticles.filter(a => a.cat === categorieActive);
 
-      articlesFiltres.forEach(item => {
+      articlesFiltres.forEach(art => {
         let btn = document.createElement('button');
         btn.className = "btn-article";
-        btn.onclick = () => ajouterAuPanier(item);
 
-        let sousTitre = `${item.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €`;
-        if (item.tauxPourcentHeure) {
-          sousTitre += ` (${item.tauxPourcentHeure * 100}%/h)`;
-        } else if (item.revenuHeure) {
-          sousTitre += ` (+${item.revenuHeure}€/h)`;
+        let estEntreprise = (art.cat === "Entreprises Connues" || art.estEntreprise);
+        let prop = estEntreprise ? obtenirProprietaireEntreprise(art.immoKey) : null;
+
+        if (prop) {
+          btn.style.opacity = '0.55';
+          btn.style.backgroundColor = '#1e293b';
+          btn.style.borderColor = '#475569';
+          btn.style.cursor = 'not-allowed';
+          btn.onclick = () => {
+            alert(`🔒 L'entreprise "${art.nom}" appartient déjà à ${prop}.`);
+          };
+
+          btn.innerHTML = `
+            <span class="emoji">${art.emoji}</span>
+            <span style="line-height:1.2; text-decoration: line-through;">${art.nom}</span>
+            <span class="prix-tag" style="background:#334155; color:#94a3b8;">${art.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
+            <span style="font-size:10px; color:#f87171; font-weight:bold; margin-top:2px;">🔒 ${prop}</span>
+          `;
+        } else {
+          btn.onclick = () => ajouterAuPanier(art);
+          btn.innerHTML = `
+            <span class="emoji">${art.emoji}</span>
+            <span style="line-height:1.2;">${art.nom}</span>
+            <span class="prix-tag">${art.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
+          `;
         }
 
-        btn.innerHTML = `
-          <span class="emoji">${item.emoji}</span>
-          <span>${item.nom}</span>
-          <span class="prix-tag">${sousTitre}</span>
-        `;
         grid.appendChild(btn);
       });
     }
 
-    function afficherMesBiensEnGrid(grid) {
-      if (!joueurActif) {
-        grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:#a0aec0; padding:20px;">Veuillez d\'abord choisir un joueur.</div>';
-        return;
-      }
-
-      const userBiens = possessionsImmo[joueurActif] || {};
-      let auMoinsUnBien = false;
-
-      Object.keys(userBiens).forEach(immoKey => {
-        let dataBien = userBiens[immoKey];
-        if (!dataBien || !dataBien.quantite || dataBien.quantite <= 0) return;
-
-        auMoinsUnBien = true;
-        let catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
-        let emoji = catalogueRef ? catalogueRef.emoji : '📦';
-        let nom = catalogueRef ? catalogueRef.nom : immoKey;
-        let estRevendable = catalogueRef && catalogueRef.cat === "Immobilier Marseille" && immoKey !== 'hotel';
-
-        dataBien.achats.forEach((dateAchat, indexAchat) => {
-          let card = document.createElement('div');
-          card.className = "btn-article mes-biens-card";
-
-          let calculVal = catalogueRef ? calculerPrixReventeImmo(dateAchat, catalogueRef.prix) : { prix: 0, augmente: false };
-          let prixAffichage = calculVal.prix;
-
-          let htmlHtml = `
-            <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
-              <span class="emoji">${emoji}</span>
-              <span style="font-weight:bold; font-size:12px;">${nom}</span>
-            </div>
-          `;
-
-          if (estRevendable) {
-            htmlHtml += `
-              <button class="btn-vente-immo" onclick="revendreBienImmobilier('${joueurActif}', '${immoKey}', ${indexAchat}, ${catalogueRef.prix}, '${nom}')">
-                Vendre ${prixAffichage.toLocaleString('fr-FR')} €
-              </button>
-            `;
-          } else {
-            htmlHtml += `<span style="font-size:10px; color:#8b98a5; margin-top:4px;">Non revendable</span>`;
-          }
-
-          card.innerHTML = htmlHtml;
-          grid.appendChild(card);
-        });
-      });
-
-      if (!auMoinsUnBien) {
-        grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:#a0aec0; padding:20px;">Aucun bien possédé pour le moment.</div>';
-      }
-    }
-
-    function ouvrirBanque() {
-      afficherSoldesBanque();
-      document.getElementById('banqueOverlay').classList.add('active');
-    }
-
-    function fermerBanque() {
-      document.getElementById('banqueOverlay').classList.remove('active');
-    }
-
-    function afficherSoldesBanque() {
-      const container = document.getElementById('soldesList');
-      if (!container) return;
-      container.innerHTML = "";
-
-      USERS_LIST.forEach(u => {
-        let prenom = ObtenirPrenomUser(u);
-        let groupe = ObtenirGroupeUser(prenom);
-        let solde = comptesComplets[prenom] !== undefined ? comptesComplets[prenom] : 20000.00;
-
-        let div = document.createElement('div');
-        div.className = "dark-card-item";
-        div.innerHTML = `
-          <div>
-            <div class="dark-card-name">${prenom}</div>
-            <div class="dark-card-sub">${groupe}</div>
-          </div>
-          <div class="dark-card-amount ${solde < 0 ? 'deficit' : ''}">${solde.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</div>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function ouvrirHistorique() {
-      afficherClassementEtPossessions();
-      document.getElementById('historiqueOverlay').classList.add('active');
-    }
-
-    function fermerHistorique() {
-      joueurSelectionneVueDetail = null;
-      document.getElementById('historiqueOverlay').classList.remove('active');
-    }
-
-    function changerOngletClassement(groupe) {
-      filtreClassementActif = groupe;
-      document.querySelectorAll('#tabsClassementGroupe .tab-btn').forEach(b => b.classList.remove('active'));
-      if (groupe === 'tous') document.getElementById('btnTabClassementTous').classList.add('active');
-      if (groupe === 'famille') document.getElementById('btnTabClassementFamille').classList.add('active');
-      if (groupe === 'ecole') document.getElementById('btnTabClassementEcole').classList.add('active');
-      afficherClassementEtPossessions();
-    }
-
-    function calculerValeurPatrimoineGlobal(user) {
-      let soldeCash = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
-      let valImmo = 0;
-      const userBiens = possessionsImmo[user] || {};
-
-      Object.keys(userBiens).forEach(immoKey => {
-        let data = userBiens[immoKey];
-        if (data && data.quantite && data.achats) {
-          let catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
-          if (catalogueRef) {
-            data.achats.forEach(dateAchat => {
-              if (catalogueRef.cat === "Immobilier Marseille" && immoKey !== 'hotel') {
-                valImmo += calculerPrixReventeImmo(dateAchat, catalogueRef.prix).prix;
-              } else {
-                valImmo += catalogueRef.prix;
-              }
-            });
-          }
-        }
-      });
-
-      return { total: soldeCash + valImmo, cash: soldeCash, immo: valImmo };
-    }
-
-    function afficherClassementEtPossessions() {
-      const container = document.getElementById('historiqueList');
-      if (!container) return;
-
-      if (joueurSelectionneVueDetail) {
-        afficherDetailJoueur(joueurSelectionneVueDetail);
-        return;
-      }
-
-      container.innerHTML = "";
-
-      let classements = USERS_LIST.map(u => {
-        let p = ObtenirPrenomUser(u);
-        let g = ObtenirGroupeUser(p);
-        let pat = calculerValeurPatrimoineGlobal(p);
-        return { nom: p, groupe: g, ...pat };
-      });
-
-      if (filtreClassementActif === 'famille') {
-        classements = classements.filter(c => c.groupe === 'Famille');
-      } else if (filtreClassementActif === 'ecole') {
-        classements = classements.filter(c => c.groupe === 'École');
-      }
-
-      classements.sort((a, b) => b.total - a.total);
-
-      classements.forEach((item, index) => {
-        let div = document.createElement('div');
-        div.className = "dark-card-item";
-        div.onclick = () => { joueurSelectionneVueDetail = item.nom; afficherDetailJoueur(item.nom); };
-
-        let badgeInfo = ObtenirInfosBadge(item.cash);
-        let badgeTagHtml = badgeInfo.badgeActuel ? `<span class="badge-tag">${badgeInfo.badgeActuel.nom}</span>` : '';
-
-        div.innerHTML = `
-          <div>
-            <div class="dark-card-name">#${index + 1} ${item.nom} ${badgeTagHtml}</div>
-            <div class="dark-card-sub">Cash: ${item.cash.toLocaleString('fr-FR')} € | Immo: ${item.immo.toLocaleString('fr-FR')} €</div>
-          </div>
-          <div class="dark-card-amount">${item.total.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €</div>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function afficherDetailJoueur(nom) {
-      const container = document.getElementById('historiqueList');
-      if (!container) return;
-
-      let pat = calculerValeurPatrimoineGlobal(nom);
-      const userBiens = possessionsImmo[nom] || {};
-
-      let badgeInfo = ObtenirInfosBadge(pat.cash);
-      let badgeHtml = badgeInfo.badgeActuel ? `<div style="font-size:13px; color:#38ef7d; font-weight:bold; margin-top:4px;">RANG : ${badgeInfo.badgeActuel.nom}</div>` : '';
-
-      let html = `
-        <button class="btn-back" onclick="joueurSelectionneVueDetail=null; afficherClassementEtPossessions();">← Retour au classement</button>
-        <div style="background:#1a222d; padding:14px; border-radius:16px; margin-bottom:12px; border:1px solid rgba(255,255,255,0.08);">
-          <div style="font-size:18px; font-weight:bold; color:white;">${nom}</div>
-          ${badgeHtml}
-          <div style="font-size:13px; color:#a0aec0; margin-top:4px;">
-            Patrimoine Total : <strong style="color:#38ef7d;">${pat.total.toLocaleString('fr-FR')} €</strong><br>
-            Solde Cash : ${pat.cash.toLocaleString('fr-FR')} € | Valeur Biens : ${pat.immo.toLocaleString('fr-FR')} €
-          </div>
-        </div>
-        <div style="font-size:13px; font-weight:bold; color:#8b98a5; margin-bottom:8px; text-transform:uppercase;">Liste des possessions :</div>
-      `;
-
-      let auMoinsUn = false;
-      Object.keys(userBiens).forEach(immoKey => {
-        let data = userBiens[immoKey];
-        if (data && data.quantite && data.quantite > 0) {
-          auMoinsUn = true;
-          let catRef = baseArticles.find(a => a.immoKey === immoKey);
-          let emoji = catRef ? catRef.emoji : '📦';
-          let nomBien = catRef ? catRef.nom : immoKey;
-
-          data.achats.forEach((dateAchat, idx) => {
-            let prixAffiche = catRef ? catRef.prix : 0;
-            if (catRef && catRef.cat === "Immobilier Marseille" && immoKey !== 'hotel') {
-              prixAffiche = calculerPrixReventeImmo(dateAchat, catRef.prix).prix;
-            }
-
-            html += `
-              <div class="possession-pill">
-                <span>${emoji} ${nomBien}</span>
-                <span class="possession-badge-green">${prixAffiche.toLocaleString('fr-FR')} €</span>
-              </div>
-            `;
-          });
-        }
-      });
-
-      if (!auMoinsUn) {
-        html += `<div style="color:#a0aec0; font-style:italic; font-size:13px; text-align:center; padding:10px;">Aucune possession.</div>`;
-      }
-
-      container.innerHTML = html;
-    }
-
-    // CALCUL MENTAL / QUIZ
+    /* QUIZ & CALCUL MENTAL */
     function ouvrirSelectionNiveauQuiz() {
       document.getElementById('quizLevelOverlay').classList.add('active');
     }
@@ -1768,147 +1448,391 @@
       else if (niveau === 'ultime') { gainParQuestion = 500000; perteParQuestion = 25000; }
 
       document.getElementById('quizLevelOverlay').classList.remove('active');
-      document.getElementById('quizUserBadge').innerText = lastUserValide;
+      document.getElementById('quizUserBadge').innerText = joueurActif;
+      document.getElementById('quizHeaderTitle').innerText = `Calcul Mental - ${niveau.toUpperCase()}`;
       document.getElementById('quizRewardInfo').innerText = `+${gainParQuestion.toLocaleString('fr-FR')} € / -${perteParQuestion.toLocaleString('fr-FR')} €`;
-      document.getElementById('quizOverlay').classList.add('active');
 
-      genererQuestionQuiz();
+      document.getElementById('quizOverlay').classList.add('active');
+      genererNouvelleQuestionQuiz();
     }
 
-    function genererQuestionQuiz() {
-      if (intervalChrono) clearInterval(intervalChrono);
-
+    function genererNouvelleQuestionQuiz() {
+      clearInterval(intervalChrono);
       tempsRestant = 10;
       mettreAJourChronoDisplay();
+
+      const vueMaths = document.getElementById('vueQuizMaths');
+      const vueQCM = document.getElementById('vueQuizQCM');
+      const repInput = document.getElementById('quizReponseInput');
+
+      if (repInput) repInput.value = "";
+
+      let n1, n2, reponseExacte, enonce;
+
+      if (niveauQuizActif === 'facile') {
+        n1 = Math.floor(Math.random() * 9) + 2;
+        n2 = Math.floor(Math.random() * 9) + 2;
+        reponseExacte = n1 * n2;
+        enonce = `${n1} × ${n2}`;
+        vueMaths.style.display = 'block';
+        vueQCM.style.display = 'none';
+      } else if (niveauQuizActif === 'intermediaire') {
+        n1 = Math.floor(Math.random() * 12) + 3;
+        n2 = Math.floor(Math.random() * 12) + 3;
+        reponseExacte = n1 * n2;
+        enonce = `${n1} × ${n2}`;
+        vueMaths.style.display = 'block';
+        vueQCM.style.display = 'none';
+      } else if (niveauQuizActif === 'difficile') {
+        n1 = Math.floor(Math.random() * 15) + 5;
+        n2 = Math.floor(Math.random() * 15) + 5;
+        reponseExacte = n1 * n2;
+        enonce = `${n1} × ${n2}`;
+        vueMaths.style.display = 'block';
+        vueQCM.style.display = 'none';
+      } else if (niveauQuizActif === 'ultime') {
+        let op = Math.random() < 0.5 ? '+' : '-';
+        n1 = Math.floor(Math.random() * 89) + 10;
+        n2 = Math.floor(Math.random() * 89) + 10;
+        if (op === '-') {
+          if (n1 < n2) { let temp = n1; n1 = n2; n2 = temp; }
+          reponseExacte = n1 - n2;
+        } else {
+          reponseExacte = n1 + n2;
+        }
+        enonce = `${n1} ${op} ${n2}`;
+        vueMaths.style.display = 'block';
+        vueQCM.style.display = 'none';
+      } else if (niveauQuizActif === 'extreme') {
+        n1 = Math.floor(Math.random() * 7) + 4;
+        n2 = Math.floor(Math.random() * 7) + 4;
+        reponseExacte = n1 * n2;
+        enonce = `${n1} × ${n2}`;
+
+        vueMaths.style.display = 'none';
+        vueQCM.style.display = 'block';
+
+        let faux1 = reponseExacte + (Math.random() < 0.5 ? 2 : -2);
+        let faux2 = reponseExacte + (Math.random() < 0.5 ? 4 : -4);
+        if (faux1 === reponseExacte) faux1 += 3;
+        if (faux2 === reponseExacte || faux2 === faux1) faux2 += 5;
+
+        let choix = [reponseExacte, faux1, faux2].sort(() => Math.random() - 0.5);
+
+        const qcmContainer = document.getElementById('qcmContainer');
+        qcmContainer.innerHTML = "";
+        choix.forEach(c => {
+          let b = document.createElement('button');
+          b.className = "btn-qcm";
+          b.innerText = c;
+          b.onclick = () => verifierReponseQuiz(c);
+          qcmContainer.appendChild(b);
+        });
+      }
+
+      questionActiveCourante = { enonce, reponseExacte };
+      document.getElementById('quizEnonce').innerText = enonce;
+
+      setTimeout(() => {
+        if (repInput && vueMaths.style.display !== 'none') {
+          repInput.focus();
+        }
+      }, 100);
 
       intervalChrono = setInterval(() => {
         tempsRestant--;
         mettreAJourChronoDisplay();
         if (tempsRestant <= 0) {
           clearInterval(intervalChrono);
-          traiterReponseQuiz(false, true);
+          sancionErreurQuiz("⏳ Temps écoulé ! (-25 000 €)");
         }
       }, 1000);
-
-      document.getElementById('quizReponseInput').value = "";
-
-      if (niveauQuizActif === 'extreme') {
-        document.getElementById('vueQuizMaths').style.display = 'none';
-        document.getElementById('vueQuizQCM').style.display = 'block';
-
-        let a = Math.floor(Math.random() * 7) + 4;
-        let b = Math.floor(Math.random() * 7) + 4;
-        let reponseJuste = a * b;
-
-        questionActiveCourante = { reponse: reponseJuste };
-        document.getElementById('quizEnonce').innerText = `${a} × ${b} = ?`;
-
-        let choix = [reponseJuste, reponseJuste + (Math.random() < 0.5 ? 2 : -2), reponseJuste + (Math.random() < 0.5 ? 5 : -5)];
-        choix.sort(() => Math.random() - 0.5);
-
-        const qcmContainer = document.getElementById('qcmContainer');
-        qcmContainer.innerHTML = "";
-        choix.forEach(val => {
-          let btn = document.createElement('button');
-          btn.className = "btn-qcm";
-          btn.innerText = val;
-          btn.onclick = () => {
-            if (val === reponseJuste) traiterReponseQuiz(true);
-            else traiterReponseQuiz(false);
-          };
-          qcmContainer.appendChild(btn);
-        });
-
-      } else {
-        document.getElementById('vueQuizMaths').style.display = 'block';
-        document.getElementById('vueQuizQCM').style.display = 'none';
-
-        let enonce = "";
-        let rep = 0;
-
-        if (niveauQuizActif === 'facile') {
-          let a = Math.floor(Math.random() * 5) + 2;
-          let b = Math.floor(Math.random() * 5) + 2;
-          enonce = `${a} × ${b} = ?`; rep = a * b;
-        } else if (niveauQuizActif === 'intermediaire') {
-          let a = Math.floor(Math.random() * 6) + 4;
-          let b = Math.floor(Math.random() * 6) + 4;
-          enonce = `${a} × ${b} = ?`; rep = a * b;
-        } else if (niveauQuizActif === 'difficile') {
-          let a = Math.floor(Math.random() * 8) + 5;
-          let b = Math.floor(Math.random() * 8) + 5;
-          enonce = `${a} × ${b} = ?`; rep = a * b;
-        } else if (niveauQuizActif === 'ultime') {
-          let op = Math.random() < 0.5 ? '+' : '-';
-          let a = Math.floor(Math.random() * 50) + 20;
-          let b = Math.floor(Math.random() * 40) + 10;
-          if (op === '-') { if (a < b) { let tmp = a; a = b; b = tmp; } rep = a - b; }
-          else { rep = a + b; }
-          enonce = `${a} ${op} ${b} = ?`;
-        }
-
-        questionActiveCourante = { reponse: rep };
-        document.getElementById('quizEnonce').innerText = enonce;
-      }
     }
 
     function mettreAJourChronoDisplay() {
       const box = document.getElementById('quizTimerBox');
-      box.innerText = `⏳ ${tempsRestant}s`;
-      if (tempsRestant <= 3) box.className = "quiz-timer-box danger";
-      else box.className = "quiz-timer-box";
+      if (box) {
+        box.innerText = `⏳ ${tempsRestant}s`;
+        if (tempsRestant <= 3) box.classList.add('danger');
+        else box.classList.remove('danger');
+      }
     }
 
-    function taperQuizChiffre(chiffre) {
+    function taperQuizChiffre(c) {
       const input = document.getElementById('quizReponseInput');
-      input.value += chiffre;
-      if (parseInt(input.value) === questionActiveCourante.reponse) {
-        traiterReponseQuiz(true);
+      if (input) {
+        input.value += c;
+        if (parseInt(input.value) === questionActiveCourante.reponseExacte) {
+          verifierReponseQuiz(parseInt(input.value));
+        }
+      }
+    }
+
+    function testerReponseClavierQuiz() {
+      const input = document.getElementById('quizReponseInput');
+      if (input && questionActiveCourante && parseInt(input.value) === questionActiveCourante.reponseExacte) {
+        verifierReponseQuiz(parseInt(input.value));
+      }
+    }
+
+    function gererSaisieClavierQuiz(e) {
+      if (e.key === 'Enter') {
+        const input = document.getElementById('quizReponseInput');
+        if (input && input.value.trim() !== '') {
+          verifierReponseQuiz(parseInt(input.value));
+        }
       }
     }
 
     function effacerQuizChiffre() {
       const input = document.getElementById('quizReponseInput');
-      input.value = input.value.slice(0, -1);
+      if (input) input.value = input.value.slice(0, -1);
     }
 
-    function traiterReponseQuiz(succes, estTempsEcoule = false) {
-      if (intervalChrono) clearInterval(intervalChrono);
-      questionsJoueesDansSession++;
-
-      let user = lastUserValide;
-      let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
-
-      if (succes) {
-        let nouveauSolde = soldeActuel + gainParQuestion;
-        db.ref(`banques/${user}`).set(nouveauSolde);
+    function verifierReponseQuiz(valSaisie) {
+      clearInterval(intervalChrono);
+      if (parseInt(valSaisie) === questionActiveCourante.reponseExacte) {
+        questionsJoueesDansSession++;
         gainsSessionQuiz += gainParQuestion;
-        genererQuestionQuiz();
+
+        let soldeActuel = comptesComplets[joueurActif] !== undefined ? comptesComplets[joueurActif] : 20000.00;
+        let nouveauSolde = Math.round((soldeActuel + gainParQuestion) * 100) / 100;
+
+        db.ref(`banques/${joueurActif}`).set(nouveauSolde).then(() => {
+          mettreAJourSoldeJoueurActif();
+          genererNouvelleQuestionQuiz();
+        });
       } else {
-        let nouveauSolde = soldeActuel - perteParQuestion;
-        db.ref(`banques/${user}`).set(nouveauSolde);
-        gainsSessionQuiz -= perteParQuestion;
-        alert(estTempsEcoule ? "⏱ Temps écoulé ! (-25 000 €)" : "❌ Mauvaise réponse ! (-25 000 €)");
-        genererQuestionQuiz();
+        sancionErreurQuiz(`❌ Mauvaise réponse ! (${questionActiveCourante.reponseExacte}) -25 000 €`);
       }
+    }
+
+    function sancionErreurQuiz(msg) {
+      clearInterval(intervalChrono);
+      alert(msg);
+      
+      let joueursSansHandicap = ["jassem", "ilyan", "hdm"];
+      let aHandicap = !joueursSansHandicap.includes(joueurActif.toLowerCase().trim());
+
+      let soldeActuel = comptesComplets[joueurActif] !== undefined ? comptesComplets[joueurActif] : 20000.00;
+      let nouveauSolde = soldeActuel;
+
+      if (aHandicap) {
+        nouveauSolde = Math.round((soldeActuel - perteParQuestion) * 100) / 100;
+      }
+
+      db.ref(`banques/${joueurActif}`).set(nouveauSolde).then(() => {
+        mettreAJourSoldeJoueurActif();
+        // Passage automatique à la question suivante
+        genererNouvelleQuestionQuiz();
+      });
     }
 
     function quitterQuizManuel() {
-      if (intervalChrono) clearInterval(intervalChrono);
+      clearInterval(intervalChrono);
+      if (questionsJoueesDansSession < 10) {
+        let joueursSansHandicap = ["jassem", "ilyan", "hdm"];
+        let aHandicap = !joueursSansHandicap.includes(joueurActif.toLowerCase().trim());
 
-      let exempts = ["Jassem", "Ilyan", "HDM"];
-      let user = lastUserValide;
+        let msgConfirm = aHandicap 
+          ? `⚠️ Abandonner avant 10 questions entraîne une pénalité de 20% de votre cagnotte !\nQuestions complétées : ${questionsJoueesDansSession}/10\nConfirmer l'abandon ?`
+          : `⚠️ Abandonner avant 10 questions (Pas d'handicap pour vous).\nQuestions complétées : ${questionsJoueesDansSession}/10\nQuitter le quiz ?`;
 
-      if (questionsJoueesDansSession < 10 && !exempts.includes(user)) {
-        let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
-        let penalite = Math.round(soldeActuel * 0.20);
-        let nouveauSolde = soldeActuel - penalite;
-        db.ref(`banques/${user}`).set(nouveauSolde);
-        alert(`⚠️ Abandon avant 10 questions (${questionsJoueesDansSession}/10) !\nPénalité de 20% appliquée (-${penalite.toLocaleString('fr-FR')} €).`);
+        if (confirm(msgConfirm)) {
+          let soldeActuel = comptesComplets[joueurActif] !== undefined ? comptesComplets[joueurActif] : 20000.00;
+          let nouveauSolde = soldeActuel;
+
+          if (aHandicap) {
+            let penalite = soldeActuel * 0.20;
+            nouveauSolde = Math.round((soldeActuel - penalite) * 100) / 100;
+          }
+
+          db.ref(`banques/${joueurActif}`).set(nouveauSolde).then(() => {
+            mettreAJourSoldeJoueurActif();
+            quitterQuizAutomatique();
+          });
+        } else {
+          // Reprendre le quiz si l'utilisateur annule l'abandon
+          genererNouvelleQuestionQuiz();
+        }
+      } else {
+        quitterQuizAutomatique();
+      }
+    }
+
+    function quitterQuizAutomatique() {
+      clearInterval(intervalChrono);
+      document.getElementById('quizOverlay').classList.remove('active');
+    }
+
+    /* GESTION COMPTES BANCAIRES & CLASSEMENT */
+    function ouvrirBanque() {
+      document.getElementById('banqueOverlay').classList.add('active');
+      afficherSoldesBanque();
+    }
+
+    function fermerBanque() {
+      document.getElementById('banqueOverlay').classList.remove('active');
+    }
+
+    function afficherSoldesBanque() {
+      const list = document.getElementById('soldesList');
+      if (!list) return;
+
+      list.innerHTML = "";
+
+      let usersPries = USERS_LIST.slice().sort((a,b) => {
+        let pA = ObtenirPrenomUser(a);
+        let pB = ObtenirPrenomUser(b);
+        let sA = comptesComplets[pA] !== undefined ? comptesComplets[pA] : 20000.00;
+        let sB = comptesComplets[pB] !== undefined ? comptesComplets[pB] : 20000.00;
+        return sB - sA;
+      });
+
+      usersPries.forEach(u => {
+        let prenom = ObtenirPrenomUser(u);
+        let solde = comptesComplets[prenom] !== undefined ? comptesComplets[prenom] : 20000.00;
+        let groupe = ObtenirGroupeUser(prenom);
+
+        let div = document.createElement('div');
+        div.className = "dark-card-item";
+        div.onclick = () => { fermerBanque(); ouvrirDetailJoueur(prenom); };
+
+        div.innerHTML = `
+          <div>
+            <div class="dark-card-name">${prenom}</div>
+            <div class="dark-card-sub">Groupe : ${groupe}</div>
+          </div>
+          <div class="dark-card-amount ${solde < 0 ? 'deficit' : ''}">${solde.toLocaleString('fr-FR', {minimumFractionDigits:2})} €</div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function ouvrirHistorique() {
+      joueurSelectionneVueDetail = null;
+      document.getElementById('historiqueOverlay').classList.add('active');
+      afficherClassementEtPossessions();
+    }
+
+    function fermerHistorique() {
+      document.getElementById('historiqueOverlay').classList.remove('active');
+    }
+
+    function changerOngletClassement(f) {
+      filtreClassementActif = f;
+      document.getElementById('btnTabClassementTous').className = `tab-btn ${f === 'tous' ? 'active' : ''}`;
+      document.getElementById('btnTabClassementFamille').className = `tab-btn ${f === 'famille' ? 'active' : ''}`;
+      document.getElementById('btnTabClassementEcole').className = `tab-btn ${f === 'ecole' ? 'active' : ''}`;
+      afficherClassementEtPossessions();
+    }
+
+    function afficherClassementEtPossessions() {
+      const list = document.getElementById('historiqueList');
+      if (!list) return;
+
+      if (joueurSelectionneVueDetail) {
+        afficherDetailJoueur(joueurSelectionneVueDetail);
+        return;
       }
 
-      document.getElementById('quizOverlay').classList.remove('active');
-      mettreAJourSoldeJoueurActif();
+      document.getElementById('historiqueTitle').innerText = "Classement Général 🧾";
+      document.getElementById('tabsClassementGroupe').style.display = "flex";
+      list.innerHTML = "";
+
+      let usersFiltres = USERS_LIST.filter(u => {
+        let grp = ObtenirGroupeUser(ObtenirPrenomUser(u));
+        if (filtreClassementActif === 'famille') return grp === 'Famille';
+        if (filtreClassementActif === 'ecole') return grp === 'École';
+        return true;
+      });
+
+      usersFiltres.sort((a,b) => {
+        let pA = ObtenirPrenomUser(a);
+        let pB = ObtenirPrenomUser(b);
+        let sA = comptesComplets[pA] !== undefined ? comptesComplets[pA] : 20000.00;
+        let sB = comptesComplets[pB] !== undefined ? comptesComplets[pB] : 20000.00;
+        return sB - sA;
+      });
+
+      usersFiltres.forEach((u, index) => {
+        let prenom = ObtenirPrenomUser(u);
+        let solde = comptesComplets[prenom] !== undefined ? comptesComplets[prenom] : 20000.00;
+        let badgeInfo = ObtenirInfosBadge(solde);
+
+        let div = document.createElement('div');
+        div.className = "dark-card-item";
+        div.onclick = () => ouvrirDetailJoueur(prenom);
+
+        let medal = index === 0 ? "🥇 " : index === 1 ? "🥈 " : index === 2 ? "🥉 " : `#${index+1} `;
+        let badgeTag = badgeInfo.badgeActuel ? `<span class="badge-tag">${badgeInfo.badgeActuel.nom}</span>` : "";
+
+        div.innerHTML = `
+          <div>
+            <div class="dark-card-name">${medal}${prenom} ${badgeTag}</div>
+            <div class="dark-card-sub">Cliquez pour voir les acquisitions</div>
+          </div>
+          <div class="dark-card-amount ${solde < 0 ? 'deficit' : ''}">${solde.toLocaleString('fr-FR', {minimumFractionDigits:2})} €</div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function ouvrirDetailJoueur(prenom) {
+      joueurSelectionneVueDetail = prenom;
+      afficherDetailJoueur(prenom);
+    }
+
+    function afficherDetailJoueur(prenom) {
+      const list = document.getElementById('historiqueList');
+      if (!list) return;
+
+      document.getElementById('historiqueTitle').innerText = `Acquisitions : ${prenom}`;
+      document.getElementById('tabsClassementGroupe').style.display = "none";
+
+      list.innerHTML = `
+        <button class="btn-back" onclick="joueurSelectionneVueDetail=null; afficherClassementEtPossessions();">← Retour au classement</button>
+      `;
+
+      const userBiens = possessionsImmo[prenom] || {};
+      let auMoinsUn = false;
+
+      Object.keys(userBiens).forEach(immoKey => {
+        const dataBien = userBiens[immoKey];
+        if (!dataBien || !dataBien.achats || dataBien.achats.length === 0) return;
+
+        const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
+        if (!catalogueRef) return;
+
+        auMoinsUn = true;
+
+        dataBien.achats.forEach((dateAchat, idx) => {
+          let div = document.createElement('div');
+          div.className = "possession-pill";
+
+          let estRevendable = (catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel");
+          let infoCalcul = estRevendable ? calculerPrixReventeImmo(dateAchat, catalogueRef.prix) : { prix: catalogueRef.prix, augmente: false };
+          let prixAffichage = infoCalcul.prix;
+
+          let btnVendreHtml = estRevendable 
+            ? `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${prenom}', '${immoKey}', ${idx}, ${catalogueRef.prix}, '${catalogueRef.nom.replace(/'/g, "\\'")}')">🏷️ Vendre (${prixAffichage.toLocaleString('fr-FR')} €)</button>`
+            : `<span style="font-size:11px; color:#a0aec0;">Non revendable</span>`;
+
+          div.innerHTML = `
+            <div>
+              <div style="font-weight:bold; color:white;">${catalogueRef.emoji} ${catalogueRef.nom}</div>
+              <div style="font-size:11px; color:#a0aec0;">Acheté le ${new Date(dateAchat).toLocaleDateString('fr-FR')}</div>
+              ${btnVendreHtml}
+            </div>
+            <div class="possession-badge-green">${catalogueRef.prix.toLocaleString('fr-FR')} €</div>
+          `;
+          list.appendChild(div);
+        });
+      });
+
+      if (!auMoinsUn) {
+        list.innerHTML += `<div style="text-align:center; color:#a0aec0; margin-top:30px;">Aucun bien possédé par ${prenom}.</div>`;
+      }
     }
   </script>
 </body>
