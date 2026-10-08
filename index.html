@@ -32,10 +32,17 @@
       font-size: 11px; font-weight: 600; color: #a0aec0; font-family: monospace; z-index: 10;
     }
 
-    .header-caisse { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0; }
+    .header-caisse { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0; gap: 8px; flex-wrap: wrap; }
     h1 { color: #1a202c; margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-    .header-actions { display: flex; gap: 8px; }
+    .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     
+    .select-joueur {
+      background: #1a222d; color: #38ef7d; border: 1.5px solid rgba(56, 239, 125, 0.5);
+      border-radius: 12px; padding: 0 10px; font-size: 13px; font-weight: bold;
+      height: 44px; cursor: pointer; outline: none; max-width: 180px;
+    }
+    .select-joueur option { background: #121820; color: white; }
+
     .btn-quick-add {
       background: #2b6cb0; color: white; border: none; border-radius: 12px;
       padding: 0 12px; font-size: 13px; font-weight: bold; cursor: pointer;
@@ -76,6 +83,7 @@
     .articles-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .btn-article { background: #f7fafc; border: 1.5px solid #cbd5e0; border-radius: 14px; padding: 10px 6px; font-size: 12px; font-weight: 600; color: #2d3748; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 72px; text-align: center; }
     .btn-article:active { background-color: #e2e8f0; transform: scale(0.98); }
+    .btn-article.mes-biens-card { background: #1a222d; border: 1px solid rgba(255, 255, 255, 0.12); color: white; justify-content: space-between; }
     .emoji { font-size: 22px; }
     .prix-tag { font-weight: 800; color: #2b6cb0; font-size: 11px; background: #ebf8ff; padding: 2px 6px; border-radius: 8px; }
 
@@ -209,6 +217,10 @@
     <div class="header-caisse">
       <h1>Marseille Monopoly 🎲</h1>
       <div class="header-actions">
+        <!-- MENU DEROULANT JOUEURS (ACCES PAGE JOUEUR) -->
+        <select id="selectJoueurMenu" class="select-joueur" onchange="changerJoueurActif(this.value)">
+          <option value="">👤 Choisir un Joueur</option>
+        </select>
         <button class="btn-quick-add" onclick="ouvrirModalCreerEcole()">🏫 + Joueur École</button>
         <button class="btn-icon" onclick="ouvrirBanque()" title="Comptes Bancaires">🏦</button>
         <button class="btn-icon" onclick="ouvrirHistorique()" title="Acquisitions">🧾</button>
@@ -219,9 +231,13 @@
     
     <div class="layout-ipad">
       <div class="col-gauche">
+        <!-- ECRAN TOTAL ET SOLDE JOUEUR EN GROS -->
         <div class="ecran">
           <div class="total-label">Total à payer</div>
           <div class="total-montant" id="totalDisplay">0,00 €</div>
+          <div style="border-top: 1px solid rgba(255,255,255,0.15); margin: 8px 0 6px 0;"></div>
+          <div class="total-label">Solde Joueur : <span id="joueurActifNomDisplay" style="color: #38ef7d; font-weight: bold;">Aucun</span></div>
+          <div class="total-montant" id="joueurSoldeDisplay" style="color: #38bdf8; font-size: 26px; margin-top: 2px;">0,00 €</div>
         </div>
 
         <div class="section-title">Détail du panier</div>
@@ -232,6 +248,7 @@
 
       <div class="col-droite">
         <div class="section-title">Catalogue</div>
+        <!-- ONGLETS AVEC ONGLET MES BIENS -->
         <div class="categories-tabs" id="categoriesTabs"></div>
 
         <div class="articles-scroll">
@@ -242,13 +259,13 @@
 
     <div class="actions-section">
       <div class="actions-grid">
-        <button class="btn-validation" onclick="demanderCodePin('paiement')">Payer</button>
-        <button class="btn-quiz-mode" onclick="demanderCodePin('quiz_login')">Calcul Mental 🧮</button>
+        <button class="btn-validation" onclick="lancerPaiementJoueur()">Payer</button>
+        <button class="btn-quiz-mode" onclick="lancerQuizJoueur()">Calcul Mental 🧮</button>
       </div>
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v4.6.0 (Royalties 15% Entreprises & Hôtels • Mots de Passe Sans Limite)</div>
+    <div class="version-tag">v4.7.0 (Page Joueur • Solde sous le Total • Onglet Mes Biens)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -266,8 +283,8 @@
 
         <div class="aide-section">
           <div class="aide-section-title">🔑 Mots de passe & Connexion</div>
+          • Sélectionnez votre profil dans le menu déroulant en haut pour jouer directement depuis votre page.<br>
           • Chaque joueur dispose d'un mot de passe / code PIN.<br>
-          • Les mots de passe peuvent contenir des mots, des lettres ou des chiffres sans aucune limite de longueur.<br>
           • Pour créer un joueur École, cliquez sur <strong>🏫 + Joueur École</strong> (solde de départ : 20 000 €).
         </div>
 
@@ -293,15 +310,7 @@
           • <strong>Règles de Possession & Royalties</strong> :<br>
           &nbsp;&nbsp;- 👑 <strong>Entreprises</strong> : Les entreprises peuvent être acquises par un seul joueur principal. Si un autre joueur en achète une déjà possédée, il doit automatiquement verser des <strong>royalties de 15%</strong> du montant de l'entreprise au propriétaire initial.<br>
           &nbsp;&nbsp;- 🏨 <strong>Hôtels</strong> : Limité à <strong>10 hôtels maximum par gamme/joueur</strong>. Si vous achetez un hôtel alors qu'un autre joueur en possède déjà, vous devez verser des <strong>royalties de 15%</strong> du montant de l'hôtel au(x) propriétaire(s).<br>
-          • <strong>Revente de Biens</strong> : Seuls les biens de la section <em>Immobilier Marseille</em> peuvent être revendus (les Hôtels ne sont pas revendables).<br>
-          • <strong>Prise de Valeur</strong> : L'immobilier augmente sa valeur à partir de <strong>3 heures</strong> après l'acquisition.<br>
-          • <strong>Marché Immobilier Dynamique</strong> : Toutes les 30 minutes, le taux du marché immobilier varie aléatoirement entre <strong>+5% et +10 000 000%</strong> (attention, le marché peut également baisser !).
-        </div>
-
-        <div class="aide-section">
-          <div class="aide-section-title">🏆 Badges Cash</div>
-          Débloquez des insignes prestigieux au fur et à mesure que votre compte bancaire augmente :<br>
-          🥉 Bronze (100 Mrd) | 🥈 Argent (1 Trillon) | 🥇 Or (10 Trillons) | 💎 Platine (100 Trillons) | 👑 Ultima (1 Quadrillon).
+          • <strong>Revente de Biens</strong> : Seuls les biens de la section <em>Immobilier Marseille</em> peuvent être revendus (les Hôtels ne sont pas revendables).
         </div>
       </div>
     </div>
@@ -314,7 +323,7 @@
         <span class="reglages-title">Nouveau Joueur École 🏫</span>
         <button class="btn-close" onclick="fermerModalCreerEcole()">✕</button>
       </div>
-      <p style="font-size: 13px; color: #a0aec0; margin-bottom: 16px;">Saisissez le prénom et le mot de passe du joueur (sans limite de caractères). Solde initial : 20 000 €.</p>
+      <p style="font-size: 13px; color: #a0aec0; margin-bottom: 16px;">Saisissez le prénom et le mot de passe du joueur. Solde initial : 20 000 €.</p>
       <div class="item-editor" style="margin-bottom: 10px;">
         <input type="text" id="ecoleNomInput" class="nom-input" placeholder="Prénom" style="width:100%; padding:12px; font-size:15px;">
       </div>
@@ -663,6 +672,7 @@
     }
 
     let pinSaisi = "";
+    let joueurActif = ""; // Joueur sélectionné depuis le menu déroulant
     let lastUserValide = "";
     let lastPinValide = "";
     let blocageSaisie = false;
@@ -861,6 +871,72 @@
       setInterval(traiterRevenusHorairesImmo, 10000);
     }
 
+    /* GESTION DU MENU DEROULANT JOUEUR & DE SA PAGE */
+    function remplirSelectJoueursMenu() {
+      const select = document.getElementById('selectJoueurMenu');
+      if (!select) return;
+      const valActuelle = select.value || joueurActif;
+      select.innerHTML = '<option value="">👤 Choisir un Joueur</option>';
+      USERS_LIST.forEach(u => {
+        let prenom = ObtenirPrenomUser(u);
+        let groupe = ObtenirGroupeUser(prenom);
+        let opt = document.createElement('option');
+        opt.value = prenom;
+        opt.innerText = `${prenom} (${groupe})`;
+        if (prenom === valActuelle) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function changerJoueurActif(nom) {
+      joueurActif = nom;
+      lastUserValide = nom;
+      mettreAJourSoldeJoueurActif();
+      if (categorieActive === "🏠 Mes Biens") {
+        afficherArticles();
+      }
+    }
+
+    function mettreAJourSoldeJoueurActif() {
+      const nomDisplay = document.getElementById('joueurActifNomDisplay');
+      const soldeDisplay = document.getElementById('joueurSoldeDisplay');
+      if (!nomDisplay || !soldeDisplay) return;
+
+      if (joueurActif) {
+        nomDisplay.innerText = joueurActif;
+        let solde = comptesComplets[joueurActif] !== undefined ? comptesComplets[joueurActif] : 20000.00;
+        soldeDisplay.innerText = solde.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+        if (solde < 0) {
+          soldeDisplay.style.color = '#ff453a';
+        } else {
+          soldeDisplay.style.color = '#38bdf8';
+        }
+      } else {
+        nomDisplay.innerText = "Aucun";
+        soldeDisplay.innerText = "0,00 €";
+        soldeDisplay.style.color = '#38bdf8';
+      }
+    }
+
+    function lancerPaiementJoueur() {
+      if (!joueurActif) {
+        demanderCodePin('paiement');
+      } else {
+        lastUserValide = joueurActif;
+        actionApresPin = 'paiement';
+        validerPaiement();
+      }
+    }
+
+    function lancerQuizJoueur() {
+      if (!joueurActif) {
+        demanderCodePin('quiz_login');
+      } else {
+        lastUserValide = joueurActif;
+        ouvrirSelectionNiveauQuiz();
+      }
+    }
+
     /* SYNCHRONISATION MARCHE IMMOBILIER EN TEMPS REEL (30 MIN) */
     function ecouterMarcheImmobilier() {
       db.ref('marche_immobilier').on('value', (snapshot) => {
@@ -884,6 +960,9 @@
           afficherIndicateurMarche();
           if (joueurSelectionneVueDetail) {
             afficherDetailJoueur(joueurSelectionneVueDetail);
+          }
+          if (categorieActive === "🏠 Mes Biens") {
+            afficherArticles();
           }
         }
       });
@@ -941,6 +1020,7 @@
           db.ref('utilisateurs_v2').set(USERS_LIST); 
         } else { 
           USERS_LIST = Array.isArray(data) ? data : Object.values(data); 
+          remplirSelectJoueursMenu();
           afficherClassementEtPossessions(); 
         }
       });
@@ -959,6 +1039,7 @@
           banquesRef.set(initialData);
         } else {
           comptesComplets = data;
+          mettreAJourSoldeJoueurActif();
           afficherSoldesBanque();
           afficherClassementEtPossessions();
         }
@@ -1003,6 +1084,9 @@
         traiterRevenusHorairesImmo();
         afficherSoldesBanque();
         afficherClassementEtPossessions();
+        if (categorieActive === "🏠 Mes Biens") {
+          afficherArticles();
+        }
       });
     }
 
@@ -1190,7 +1274,7 @@
     }
 
     function afficherOnglets() {
-      const categories = ["Automobiles", "Immobilier Marseille", "Entreprises Connues"];
+      const categories = ["🏠 Mes Biens", "Automobiles", "Immobilier Marseille", "Entreprises Connues"];
       const container = document.getElementById('categoriesTabs');
       container.innerHTML = "";
       categories.forEach(cat => {
@@ -1205,6 +1289,73 @@
     function afficherArticles() {
       const grid = document.getElementById('articlesGrid');
       grid.innerHTML = "";
+
+      // VUE ONGLET MES BIENS
+      if (categorieActive === "🏠 Mes Biens") {
+        if (!joueurActif) {
+          grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #a0aec0; padding: 20px; font-style: italic;">Veuillez sélectionner un joueur dans le menu déroulant ci-dessus pour afficher ses biens.</div>`;
+          return;
+        }
+
+        const userBiens = possessionsImmo[joueurActif] || {};
+        let possessionsArray = [];
+
+        Object.keys(userBiens).forEach(immoKey => {
+          if (immoKey === 'dernierePartie30k') return;
+          const dataBien = userBiens[immoKey];
+          if (!dataBien || !dataBien.achats || dataBien.achats.length === 0) return;
+
+          const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
+          const nomBien = catalogueRef ? catalogueRef.nom : immoKey;
+          const emojiBien = catalogueRef ? catalogueRef.emoji : '🏠';
+          const prixBase = catalogueRef ? catalogueRef.prix : 0;
+          const estImmobilier = catalogueRef ? (catalogueRef.cat === "Immobilier Marseille") : false;
+          const estHotel = (immoKey === 'hotel');
+          const peutEtreVendu = estImmobilier && !estHotel;
+
+          dataBien.achats.forEach((dateAchat, indexAchat) => {
+            let calculVal = calculerPrixReventeImmo(dateAchat, prixBase);
+            possessionsArray.push({
+              immoKey: immoKey,
+              nom: nomBien,
+              emoji: emojiBien,
+              prixBase: prixBase,
+              prixActuel: calculVal.prix,
+              augmente: calculVal.augmente,
+              heuresRestantes: calculVal.heuresRestantes,
+              peutEtreVendu: peutEtreVendu,
+              indexAchat: indexAchat,
+              dateAchat: dateAchat
+            });
+          });
+        });
+
+        if (possessionsArray.length === 0) {
+          grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #a0aec0; padding: 20px; font-style: italic;">Aucun bien immobilier ou entreprise en possession pour ${joueurActif}.</div>`;
+          return;
+        }
+
+        possessionsArray.forEach(p => {
+          const card = document.createElement('div');
+          card.className = "btn-article mes-biens-card";
+          let btnVenteHtml = p.peutEtreVendu
+            ? `<button class="btn-vente-immo" style="width:100%; margin-top:4px;" onclick="revendreBienImmobilier('${joueurActif}', '${p.immoKey}', ${p.indexAchat}, ${p.prixBase}, '${p.nom.replace(/'/g, "\\'")}')">💰 Revendre (${p.prixActuel.toLocaleString('fr-FR')} €)</button>`
+            : `<span style="font-size:10px; color:#a0aec0; margin-top:4px;">🔒 Possession conservée</span>`;
+
+          card.innerHTML = `
+            <span class="emoji">${p.emoji}</span>
+            <span style="font-weight:bold; font-size:12px;">${p.nom}</span>
+            <span class="prix-tag">${p.prixBase.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
+            ${p.augmente ? `<span style="font-size:10px; color:#38ef7d;">📈 Market: ${p.prixActuel.toLocaleString('fr-FR')} €</span>` : `<span style="font-size:10px; color:#a0aec0;">⏳ Prise val : ${p.heuresRestantes}h</span>`}
+            ${btnVenteHtml}
+          `;
+          grid.appendChild(card);
+        });
+
+        return;
+      }
+
+      // ARTICLES STANDARD CATALOGUE
       const articlesFiltres = baseArticles.filter(item => item.cat === categorieActive);
       articlesFiltres.forEach(item => {
         const btn = document.createElement('button');
@@ -1309,6 +1460,7 @@
       if (PIN_HASH_MAP[hashSaisi]) {
         lastPinValide = pinSaisi;
         lastUserValide = PIN_HASH_MAP[hashSaisi];
+        changerJoueurActif(lastUserValide);
         fermerCodePin();
         executerActionPostPin();
         return;
@@ -1319,6 +1471,7 @@
       if (joueursCorrespondants.length === 1) {
         lastPinValide = pinSaisi;
         lastUserValide = joueursCorrespondants[0].nom;
+        changerJoueurActif(lastUserValide);
         fermerCodePin();
         executerActionPostPin();
       } else if (joueursCorrespondants.length > 1) {
@@ -1343,6 +1496,7 @@
       if (nomChoisi) {
         lastPinValide = pinSaisi;
         lastUserValide = nomChoisi;
+        changerJoueurActif(nomChoisi);
         fermerCodePin();
         executerActionPostPin();
       }
@@ -1380,7 +1534,13 @@
 
     function validerPaiement() {
       let totalPaye = listeArticles.reduce((acc, item) => acc + item.prix, 0);
-      let user = lastUserValide;
+      let user = lastUserValide || joueurActif;
+
+      if (!user) {
+        alert("Veuillez sélectionner un joueur dans le menu déroulant !");
+        return;
+      }
+
       let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
 
       if (soldeActuel < totalPaye) {
@@ -1463,7 +1623,7 @@
       listeArticles.forEach(item => { if (item.immoKey) { ajouterPossessionImmo(user, item); } });
 
       // Enregistrement du ticket
-      enregistrerTicketFirebase(lastPinValide, user, listeArticles, totalPaye);
+      enregistrerTicketFirebase(lastPinValide || "MENU", user, listeArticles, totalPaye);
 
       // Animation de confirmation
       const apOverlay = document.getElementById('applePayOverlay');
@@ -1767,7 +1927,7 @@
       else if (niveau === 'ultime') { gainParQuestion = 500000; }
 
       document.getElementById('quizLevelOverlay').classList.remove('active');
-      document.getElementById('quizUserBadge').innerText = lastUserValide;
+      document.getElementById('quizUserBadge').innerText = lastUserValide || joueurActif || "Joueur";
       document.getElementById('quizOverlay').classList.add('active');
 
       genererNouvelleQuestionQuiz();
@@ -1899,7 +2059,7 @@
       questionsJoueesDansSession++;
       gainsSessionQuiz += gainParQuestion;
 
-      let user = lastUserValide;
+      let user = lastUserValide || joueurActif;
       let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
       db.ref(`banques/${user}`).set(Math.round((soldeActuel + gainParQuestion) * 100) / 100);
 
@@ -1910,7 +2070,7 @@
       questionsJoueesDansSession++;
       gainsSessionQuiz -= perteParQuestion;
 
-      let user = lastUserValide;
+      let user = lastUserValide || joueurActif;
       let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
       db.ref(`banques/${user}`).set(Math.round((soldeActuel - perteParQuestion) * 100) / 100);
 
