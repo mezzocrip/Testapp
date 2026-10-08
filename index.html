@@ -264,7 +264,7 @@
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v4.9.1 (Mes Biens & Vente Directe)</div>
+    <div class="version-tag">v4.9.2 (Quiz Handicaps & Automatisme)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -289,12 +289,7 @@
 
         <div class="aide-section">
           <div class="aide-section-title">🧮 Calcul Mental (Gains & Pertes)</div>
-          Résolvez des calculs mathématiques sous un délai strict de <strong>10 secondes</strong> par question. Une erreur fait perdre <strong>50 000 €</strong> quel que soit le niveau, et abandonner avant d'avoir fait 10 questions fait perdre <strong>500 000 €</strong> :<br>
-          • 🟢 <strong>Facile</strong> : Multiplications | Gain : +30 000 € | Perte : -50 000 €<br>
-          • 🟠 <strong>Intermédiaire</strong> : Multiplications | Gain : +50 000 € | Perte : -50 000 €<br>
-          • 🔴 <strong>Difficile</strong> : Multiplications | Gain : +100 000 € | Perte : -50 000 €<br>
-          • 💀 <strong>Extrême (QCM)</strong> : Tables de 4 à 10 (3 choix, Min 10 questions) | Gain : +100 000 € | Perte : -50 000 €<br>
-          • 🔥 <strong>ULTIME</strong> : Additions & Soustractions à 2 chiffres (ex: 45+56) | Gain : +500 000 € | Perte : -50 000 €
+          Résolvez des calculs mathématiques sous un délai strict de <strong>10 secondes</strong> par question. Une mauvaise réponse fait perdre <strong>25 000 €</strong> et abandonner avant 10 questions fait perdre <strong>20% de sa cagnotte</strong> (sauf pour Jassem, Ilyan et HDM : pas d'handicap)[cite: 1]. Passage automatique à la question suivante en cas d'erreur[cite: 1] !
         </div>
 
         <div class="aide-section">
@@ -380,7 +375,7 @@
   <div class="quiz-level-overlay" id="quizLevelOverlay">
     <div class="level-card">
       <div class="level-title">Niveau de difficulté 🧮</div>
-      <div class="level-subtitle">Tous les niveaux : 10 sec/question | Erreur : -50 000 € | Abandon (< 10 questions) : -500 000 €</div>
+      <div class="level-subtitle">10 sec/question | Erreur : -25 000 € | Abandon (< 10 questions) : -20% cagnotte (Pas d'handicap pour Jassem, Ilyan, HDM)</div>
 
       <div class="level-btn-group">
         <button class="btn-level btn-level-facile" onclick="demarrerQuizAvecNiveau('facile')">
@@ -410,7 +405,7 @@
         <button class="btn-level btn-level-extreme" onclick="demarrerQuizAvecNiveau('extreme')">
           <div>
             <div class="level-name">💀 Extrême (QCM 3 Choix)</div>
-            <div class="level-desc">10s / Tables de 4 à 10. Min 10 questions. Err: -50k€</div>
+            <div class="level-desc">10s / Tables de 4 à 10. Min 10 questions.</div>
           </div>
           <div class="level-name">+100 000 €</div>
         </button>
@@ -439,7 +434,7 @@
       <div class="quiz-question-box">
         <div class="quiz-matiere" id="quizMatiere">Calcul Mental</div>
         <div class="quiz-enonce" id="quizEnonce">Chargement...</div>
-        <div class="quiz-reward-info" id="quizRewardInfo">+30 000 € / -50 000 €</div>
+        <div class="quiz-reward-info" id="quizRewardInfo">+30 000 € / -25 000 €</div>
         
         <div id="vueQuizMaths">
           <input type="text" id="quizReponseInput" class="quiz-input" placeholder="?" readonly>
@@ -624,7 +619,7 @@
 
     let niveauQuizActif = "facile";
     let gainParQuestion = 30000;
-    let perteParQuestion = 50000;
+    let perteParQuestion = 25000;
     let questionsJoueesDansSession = 0;
     let gainsSessionQuiz = 0;
     let questionActiveCourante = null;
@@ -1401,11 +1396,11 @@
       questionsJoueesDansSession = 0;
       gainsSessionQuiz = 0;
 
-      if (niveau === 'facile') { gainParQuestion = 30000; perteParQuestion = 50000; }
-      else if (niveau === 'intermediaire') { gainParQuestion = 50000; perteParQuestion = 50000; }
-      else if (niveau === 'difficile') { gainParQuestion = 100000; perteParQuestion = 50000; }
-      else if (niveau === 'extreme') { gainParQuestion = 100000; perteParQuestion = 50000; }
-      else if (niveau === 'ultime') { gainParQuestion = 500000; perteParQuestion = 50000; }
+      if (niveau === 'facile') { gainParQuestion = 30000; perteParQuestion = 25000; }
+      else if (niveau === 'intermediaire') { gainParQuestion = 50000; perteParQuestion = 25000; }
+      else if (niveau === 'difficile') { gainParQuestion = 100000; perteParQuestion = 25000; }
+      else if (niveau === 'extreme') { gainParQuestion = 100000; perteParQuestion = 25000; }
+      else if (niveau === 'ultime') { gainParQuestion = 500000; perteParQuestion = 25000; }
 
       document.getElementById('quizLevelOverlay').classList.remove('active');
       document.getElementById('quizUserBadge').innerText = joueurActif;
@@ -1498,7 +1493,7 @@
         mettreAJourChronoDisplay();
         if (tempsRestant <= 0) {
           clearInterval(intervalChrono);
-          sancionErreurQuiz("⏳ Temps écoulé ! (-50 000 €)");
+          sancionErreurQuiz("⏳ Temps écoulé ! (-25 000 €)");
         }
       }, 1000);
     }
@@ -1541,32 +1536,57 @@
           genererNouvelleQuestionQuiz();
         });
       } else {
-        sancionErreurQuiz(`❌ Mauvaise réponse ! (${questionActiveCourante.reponseExacte}) -50 000 €`);
+        sancionErreurQuiz(`❌ Mauvaise réponse ! (${questionActiveCourante.reponseExacte}) -25 000 €`);
       }
     }
 
     function sancionErreurQuiz(msg) {
       clearInterval(intervalChrono);
       alert(msg);
+      
+      let joueursSansHandicap = ["jassem", "ilyan", "hdm"];
+      let aHandicap = !joueursSansHandicap.includes(joueurActif.toLowerCase().trim());
+
       let soldeActuel = comptesComplets[joueurActif] !== undefined ? comptesComplets[joueurActif] : 20000.00;
-      let nouveauSolde = Math.round((soldeActuel - perteParQuestion) * 100) / 100;
+      let nouveauSolde = soldeActuel;
+
+      if (aHandicap) {
+        nouveauSolde = Math.round((soldeActuel - perteParQuestion) * 100) / 100;
+      }
 
       db.ref(`banques/${joueurActif}`).set(nouveauSolde).then(() => {
         mettreAJourSoldeJoueurActif();
-        quitterQuizAutomatique();
+        // Passage automatique à la question suivante
+        genererNouvelleQuestionQuiz();
       });
     }
 
     function quitterQuizManuel() {
       clearInterval(intervalChrono);
       if (questionsJoueesDansSession < 10) {
-        if (confirm(`⚠️ Abandonner avant 10 questions entraîne une pénalité de 500 000 € !\nQuestions complétées : ${questionsJoueesDansSession}/10\nConfirmer l'abandon ?`)) {
+        let joueursSansHandicap = ["jassem", "ilyan", "hdm"];
+        let aHandicap = !joueursSansHandicap.includes(joueurActif.toLowerCase().trim());
+
+        let msgConfirm = aHandicap 
+          ? `⚠️ Abandonner avant 10 questions entraîne une pénalité de 20% de votre cagnotte !\nQuestions complétées : ${questionsJoueesDansSession}/10\nConfirmer l'abandon ?`
+          : `⚠️ Abandonner avant 10 questions (Pas d'handicap pour vous).\nQuestions complétées : ${questionsJoueesDansSession}/10\nQuitter le quiz ?`;
+
+        if (confirm(msgConfirm)) {
           let soldeActuel = comptesComplets[joueurActif] !== undefined ? comptesComplets[joueurActif] : 20000.00;
-          let nouveauSolde = Math.round((soldeActuel - 500000) * 100) / 100;
+          let nouveauSolde = soldeActuel;
+
+          if (aHandicap) {
+            let penalite = soldeActuel * 0.20;
+            nouveauSolde = Math.round((soldeActuel - penalite) * 100) / 100;
+          }
+
           db.ref(`banques/${joueurActif}`).set(nouveauSolde).then(() => {
             mettreAJourSoldeJoueurActif();
             quitterQuizAutomatique();
           });
+        } else {
+          // Reprendre le quiz si l'utilisateur annule l'abandon
+          genererNouvelleQuestionQuiz();
         }
       } else {
         quitterQuizAutomatique();
