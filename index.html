@@ -263,7 +263,7 @@
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v5.2.0 (Arrondissements de Marseille & Revente Unique)</div>
+    <div class="version-tag">v5.3.0 (+50 Entreprises et Groupes Internationaux)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -302,7 +302,7 @@
           • <strong>Revenus passifs</strong> : Snacks (+1 000€/h), Hôtels et Malls rapportent <strong>20%/h</strong> automatiquement 2 heures après l'achat.<br>
           • <strong>Entreprises en Bourse & Arrondissements (Toutes les heures)</strong> : Les entreprises et arrondissements rapportent ou font perdre de l'argent toutes les heures selon leur valeur réelle / marché.<br>
           • <strong>Règles de Possession & Propriétaire Unique</strong> :<br>
-          &nbsp;&nbsp;- 👑 <strong>Arrondissements & Entreprises</strong> : Les arrondissements de Marseille (prix de 100 000 000 000 000 000 € à 900 000 000 000 000 000 €) et les entreprises ne peuvent avoir qu'<strong>un seul propriétaire</strong>[cite: 1]. Une fois achetés par un joueur, ils sont grisés et ne peuvent plus être achetés par d'autres[cite: 1].<br>
+          &nbsp;&nbsp;- 👑 <strong>Arrondissements & Entreprises</strong> : Les arrondissements de Marseille et les entreprises (70 entreprises disponibles) ne peuvent avoir qu'<strong>un seul propriétaire</strong>[cite: 1]. Une fois achetés par un joueur, ils sont grisés et ne peuvent plus être achetés par d'autres[cite: 1].<br>
           &nbsp;&nbsp;- 🏨 <strong>Hôtels</strong> : Limité à <strong>10 hôtels maximum par gamme/joueur</strong>. Si vous achetez un hôtel alors qu'un autre joueur en possède déjà, vous devez verser des <strong>royalties de 15%</strong> du montant de l'hôtel au(x) propriétaire(s).<br>
           • <strong>Revente de Biens</strong> : Seuls les biens de la section <em>Immobilier Marseille</em> (hors Hôtels), les <strong>Arrondissements</strong> et les <strong>Entreprises</strong> peuvent être revendus pour récupérer leur valeur actualisée.
         </div>
@@ -621,7 +621,7 @@
     let filtreClassementActif = "tous";
 
     let marcheImmoPct = 0;
-    let marcheBoursePct = 0; // pourcentage réel de la bourse/marché unique
+    let marcheBoursePct = 0;
 
     let niveauQuizActif = "facile";
     let gainParQuestion = 30000;
@@ -669,7 +669,7 @@
       { id: 513, cat: "Immobilier Marseille", emoji: "🚘", nom: "Garage 5 voitures", prix: 50000.00, immoKey: "garage5", capaciteGarage: 5 },
       { id: 514, cat: "Immobilier Marseille", emoji: "🏎", nom: "Garage 20 voitures", prix: 150000.00, immoKey: "garage20", capaciteGarage: 20 },
 
-      // ARRONDISSEMENTS DE MARSEILLE (Prix entre 10^17 et 9*10^17 € - Propriétaire Unique)
+      // ARRONDISSEMENTS DE MARSEILLE
       { id: 701, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "1er Arrondissement", prix: 100000000000000000.00, immoKey: "arr_1", delaiActivationHeures: 2, estUniqueProprietaire: true },
       { id: 702, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "2ème Arrondissement", prix: 150000000000000000.00, immoKey: "arr_2", delaiActivationHeures: 2, estUniqueProprietaire: true },
       { id: 703, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "3ème Arrondissement", prix: 200000000000000000.00, immoKey: "arr_3", delaiActivationHeures: 2, estUniqueProprietaire: true },
@@ -687,7 +687,7 @@
       { id: 715, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "15ème Arrondissement", prix: 800000000000000000.00, immoKey: "arr_15", delaiActivationHeures: 2, estUniqueProprietaire: true },
       { id: 716, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "16ème Arrondissement", prix: 900000000000000000.00, immoKey: "arr_16", delaiActivationHeures: 2, estUniqueProprietaire: true },
 
-      // ENTREPRISES CONNUES
+      // ENTREPRISES CONNUES (Base Initiale : 20 entreprises)
       { id: 901, cat: "Entreprises Connues", emoji: "🍎", nom: "Apple Inc.", prix: 3400000000000.00, immoKey: "ent_apple", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
       { id: 902, cat: "Entreprises Connues", emoji: "💻", nom: "Microsoft", prix: 3100000000000.00, immoKey: "ent_msft", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
       { id: 903, cat: "Entreprises Connues", emoji: "👁️", nom: "NVIDIA", prix: 3200000000000.00, immoKey: "ent_nvda", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
@@ -707,7 +707,59 @@
       { id: 917, cat: "Entreprises Connues", emoji: "💉", nom: "Pfizer", prix: 160000000000.00, immoKey: "ent_pfe", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
       { id: 918, cat: "Entreprises Connues", emoji: "💳", nom: "Visa", prix: 570000000000.00, immoKey: "ent_v", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
       { id: 919, cat: "Entreprises Connues", emoji: "💳", nom: "Mastercard", prix: 4500000000000.00, immoKey: "ent_ma", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 920, cat: "Entreprises Connues", emoji: "🏦", nom: "JPMorgan Chase", prix: 590000000000.00, immoKey: "ent_jpm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true }
+      { id: 920, cat: "Entreprises Connues", emoji: "🏦", nom: "JPMorgan Chase", prix: 590000000000.00, immoKey: "ent_jpm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+
+      // +50 NOUVELLES ENTREPRISES ET GROUPES INTERNATIONAUX AJOUTÉS (IDs 921 à 970)
+      { id: 921, cat: "Entreprises Connues", emoji: "📱", nom: "Samsung Electronics", prix: 400000000000.00, immoKey: "ent_samsung", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 922, cat: "Entreprises Connues", emoji: "🎮", nom: "Tencent Holdings", prix: 450000000000.00, immoKey: "ent_tencent", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 923, cat: "Entreprises Connues", emoji: "🛒", nom: "Alibaba Group", prix: 200000000000.00, immoKey: "ent_alibaba", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 924, cat: "Entreprises Connues", emoji: "🛒", nom: "Walmart", prix: 500000000000.00, immoKey: "ent_walmart", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 925, cat: "Entreprises Connues", emoji: "⛽", nom: "ExxonMobil", prix: 450000000000.00, immoKey: "ent_exxon", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 926, cat: "Entreprises Connues", emoji: "⛽", nom: "Chevron", prix: 300000000000.00, immoKey: "ent_chevron", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 927, cat: "Entreprises Connues", emoji: "⛽", nom: "Shell plc", prix: 220000000000.00, immoKey: "ent_shell", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 928, cat: "Entreprises Connues", emoji: "⛽", nom: "TotalEnergies", prix: 150000000000.00, immoKey: "ent_total", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 929, cat: "Entreprises Connues", emoji: "⛽", nom: "BP", prix: 100000000000.00, immoKey: "ent_bp", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 930, cat: "Entreprises Connues", emoji: "🍫", nom: "Nestlé", prix: 250000000000.00, immoKey: "ent_nestle", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 931, cat: "Entreprises Connues", emoji: "🧴", nom: "Procter & Gamble", prix: 380000000000.00, immoKey: "ent_pg", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 932, cat: "Entreprises Connues", emoji: "🧼", nom: "Unilever", prix: 130000000000.00, immoKey: "ent_unilever", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 933, cat: "Entreprises Connues", emoji: "🥤", nom: "PepsiCo", prix: 230000000000.00, immoKey: "ent_pepsico", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 934, cat: "Entreprises Connues", emoji: "💻", nom: "IBM", prix: 180000000000.00, immoKey: "ent_ibm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 935, cat: "Entreprises Connues", emoji: "💻", nom: "Intel Corporation", prix: 100000000000.00, immoKey: "ent_intel", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 936, cat: "Entreprises Connues", emoji: "💻", nom: "AMD", prix: 230000000000.00, immoKey: "ent_amd", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 937, cat: "Entreprises Connues", emoji: "📱", nom: "Qualcomm", prix: 180000000000.00, immoKey: "ent_qualcomm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 938, cat: "Entreprises Connues", emoji: "🔌", nom: "Broadcom", prix: 700000000000.00, immoKey: "ent_broadcom", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 939, cat: "Entreprises Connues", emoji: "🌐", nom: "Cisco Systems", prix: 220000000000.00, immoKey: "ent_cisco", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 940, cat: "Entreprises Connues", emoji: "🗄️", nom: "Oracle Corporation", prix: 350000000000.00, immoKey: "ent_oracle", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 941, cat: "Entreprises Connues", emoji: "☁️", nom: "Salesforce", prix: 270000000000.00, immoKey: "ent_salesforce", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 942, cat: "Entreprises Connues", emoji: "🎨", nom: "Adobe", prix: 230000000000.00, immoKey: "ent_adobe", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 943, cat: "Entreprises Connues", emoji: "💳", nom: "PayPal", prix: 60000000000.00, immoKey: "ent_paypal", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 944, cat: "Entreprises Connues", emoji: "🚗", nom: "Uber Technologies", prix: 150000000000.00, immoKey: "ent_uber", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 945, cat: "Entreprises Connues", emoji: "🏠", nom: "Airbnb", prix: 80000000000.00, immoKey: "ent_airbnb", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 946, cat: "Entreprises Connues", emoji: "✈️", nom: "Booking Holdings", prix: 140000000000.00, immoKey: "ent_booking", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 947, cat: "Entreprises Connues", emoji: "🎮", nom: "Sony Group", prix: 110000000000.00, immoKey: "ent_sony", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 948, cat: "Entreprises Connues", emoji: "🍄", nom: "Nintendo", prix: 70000000000.00, immoKey: "ent_nintendo", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 949, cat: "Entreprises Connues", emoji: "🚗", nom: "Toyota Motor", prix: 250000000000.00, immoKey: "ent_toyota", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 950, cat: "Entreprises Connues", emoji: "🚗", nom: "Volkswagen Group", prix: 60000000000.00, immoKey: "ent_vw", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 951, cat: "Entreprises Connues", emoji: "⭐", nom: "Mercedes-Benz Group", prix: 70000000000.00, immoKey: "ent_mercedes", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 952, cat: "Entreprises Connues", emoji: "🚗", nom: "BMW Group", prix: 60000000000.00, immoKey: "ent_bmw", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 953, cat: "Entreprises Connues", emoji: "🚗", nom: "Stellantis", prix: 40000000000.00, immoKey: "ent_stellantis", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 954, cat: "Entreprises Connues", emoji: "🚙", nom: "Ford Motor", prix: 45000000000.00, immoKey: "ent_ford", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 955, cat: "Entreprises Connues", emoji: "🚙", nom: "General Motors", prix: 50000000000.00, immoKey: "ent_gm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 956, cat: "Entreprises Connues", emoji: "🏍️", nom: "Honda Motor", prix: 50000000000.00, immoKey: "ent_honda", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 957, cat: "Entreprises Connues", emoji: "⚙️", nom: "Siemens", prix: 140000000000.00, immoKey: "ent_siemens", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 958, cat: "Entreprises Connues", emoji: "⚡", nom: "Schneider Electric", prix: 130000000000.00, immoKey: "ent_schneider", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 959, cat: "Entreprises Connues", emoji: "✈️", nom: "Airbus", prix: 120000000000.00, immoKey: "ent_airbus", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 960, cat: "Entreprises Connues", emoji: "✈️", nom: "Boeing", prix: 100000000000.00, immoKey: "ent_boeing", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 961, cat: "Entreprises Connues", emoji: "🛒", nom: "Costco Wholesale", prix: 350000000000.00, immoKey: "ent_costco", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 962, cat: "Entreprises Connues", emoji: "🔨", nom: "Home Depot", prix: 380000000000.00, immoKey: "ent_homedepot", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 963, cat: "Entreprises Connues", emoji: "🏥", nom: "UnitedHealth Group", prix: 500000000000.00, immoKey: "ent_unitedhealth", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 964, cat: "Entreprises Connues", emoji: "🩹", nom: "Johnson & Johnson", prix: 380000000000.00, immoKey: "ent_jnj", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 965, cat: "Entreprises Connues", emoji: "🏦", nom: "Bank of America", prix: 300000000000.00, immoKey: "ent_bofa", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 966, cat: "Entreprises Connues", emoji: "💰", nom: "Goldman Sachs", prix: 150000000000.00, immoKey: "ent_goldman", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 967, cat: "Entreprises Connues", emoji: "📊", nom: "BlackRock", prix: 130000000000.00, immoKey: "ent_blackrock", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 968, cat: "Entreprises Connues", emoji: "📞", nom: "AT&T", prix: 130000000000.00, immoKey: "ent_att", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 969, cat: "Entreprises Connues", emoji: "🎧", nom: "Spotify", prix: 70000000000.00, immoKey: "ent_spotify", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 970, cat: "Entreprises Connues", emoji: "💻", nom: "SAP SE", prix: 200000000000.00, immoKey: "ent_sap", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true }
     ];
 
     let categorieActive = "Automobiles";
@@ -1055,7 +1107,6 @@
       });
     }
 
-    // OBTENIR LE PROPRIÉTAIRE D'UN ÉLÉMENT À PROPRIÉTAIRE UNIQUE (ENTREPRISES & ARRONDISSEMENTS)
     function obtenirProprietaireUnique(immoKey) {
       if (!possessionsImmo) return null;
       for (let user in possessionsImmo) {
@@ -1226,7 +1277,6 @@
         return;
       }
 
-      // VÉRIFICATION PROPRIÉTAIRE UNIQUE (ENTREPRISES & ARRONDISSEMENTS)
       if (article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire) {
         let prop = obtenirProprietaireUnique(article.immoKey);
         if (prop) {
