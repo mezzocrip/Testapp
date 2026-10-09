@@ -263,7 +263,7 @@
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v5.1.0 (Revente Entreprises & Bourse Horaire)</div>
+    <div class="version-tag">v5.2.0 (Arrondissements de Marseille & Revente Unique)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -276,7 +276,7 @@
       <div class="aide-content">
         <div class="aide-section">
           <div class="aide-section-title">🎮 Principe Général</div>
-          Accumulez de la fortune, achetez des biens immobiliers, des automobiles d'exception et des entreprises internationales. Gérez votre compte bancaire via la caisse enregistreuse !
+          Accumulez de la fortune, achetez des biens immobiliers, des arrondissements de Marseille, des automobiles d'exception et des entreprises internationales. Gérez votre compte bancaire via la caisse enregistreuse !
         </div>
 
         <div class="aide-section">
@@ -298,13 +298,13 @@
         </div>
 
         <div class="aide-section">
-          <div class="aide-section-title">🏢 Immobilier, Hôtels & Entreprises</div>
+          <div class="aide-section-title">🏢 Immobilier, Arrondissements & Entreprises</div>
           • <strong>Revenus passifs</strong> : Snacks (+1 000€/h), Hôtels et Malls rapportent <strong>20%/h</strong> automatiquement 2 heures après l'achat.<br>
-          • <strong>Entreprises en Bourse (Toutes les heures)</strong> : Les entreprises rapportent ou font perdre de l'argent toutes les heures selon leur valeur réelle en bourse (1% réel = 10% dans le jeu). Si la bourse baisse, vous perdez de l'argent sur votre compte !<br>
-          • <strong>Règles de Possession & Royalties</strong> :<br>
-          &nbsp;&nbsp;- 👑 <strong>Entreprises</strong> : Les entreprises ne peuvent avoir qu'<strong>un seul propriétaire</strong>. Une fois achetée par un joueur, l'entreprise est grisée et ne peut plus être achetée par d'autres[cite: 1].<br>
+          • <strong>Entreprises en Bourse & Arrondissements (Toutes les heures)</strong> : Les entreprises et arrondissements rapportent ou font perdre de l'argent toutes les heures selon leur valeur réelle / marché.<br>
+          • <strong>Règles de Possession & Propriétaire Unique</strong> :<br>
+          &nbsp;&nbsp;- 👑 <strong>Arrondissements & Entreprises</strong> : Les arrondissements de Marseille (prix de 100 000 000 000 000 000 € à 900 000 000 000 000 000 €) et les entreprises ne peuvent avoir qu'<strong>un seul propriétaire</strong>[cite: 1]. Une fois achetés par un joueur, ils sont grisés et ne peuvent plus être achetés par d'autres[cite: 1].<br>
           &nbsp;&nbsp;- 🏨 <strong>Hôtels</strong> : Limité à <strong>10 hôtels maximum par gamme/joueur</strong>. Si vous achetez un hôtel alors qu'un autre joueur en possède déjà, vous devez verser des <strong>royalties de 15%</strong> du montant de l'hôtel au(x) propriétaire(s).<br>
-          • <strong>Revente de Biens</strong> : Seuls les biens de la section <em>Immobilier Marseille</em> (hors Hôtels) et les <strong>Entreprises</strong> peuvent être revendus pour récupérer leur valeur actualisée.
+          • <strong>Revente de Biens</strong> : Seuls les biens de la section <em>Immobilier Marseille</em> (hors Hôtels), les <strong>Arrondissements</strong> et les <strong>Entreprises</strong> peuvent être revendus pour récupérer leur valeur actualisée.
         </div>
       </div>
     </div>
@@ -490,7 +490,7 @@
       </div>
 
       <div class="marche-immo-ticker" id="marcheBourseTicker">
-        <span>📊 Tendance Bourse Entreprises (1h) :</span>
+        <span>📊 Tendance Bourse Entreprises & Arrondissements (1h) :</span>
         <span id="marcheBourseValDisplay" class="marche-immo-hausse">+0%</span>
       </div>
 
@@ -621,7 +621,7 @@
     let filtreClassementActif = "tous";
 
     let marcheImmoPct = 0;
-    let marcheBoursePct = 0; // pourcentage réel de la bourse
+    let marcheBoursePct = 0; // pourcentage réel de la bourse/marché unique
 
     let niveauQuizActif = "facile";
     let gainParQuestion = 30000;
@@ -669,27 +669,45 @@
       { id: 513, cat: "Immobilier Marseille", emoji: "🚘", nom: "Garage 5 voitures", prix: 50000.00, immoKey: "garage5", capaciteGarage: 5 },
       { id: 514, cat: "Immobilier Marseille", emoji: "🏎", nom: "Garage 20 voitures", prix: 150000.00, immoKey: "garage20", capaciteGarage: 20 },
 
+      // ARRONDISSEMENTS DE MARSEILLE (Prix entre 10^17 et 9*10^17 € - Propriétaire Unique)
+      { id: 701, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "1er Arrondissement", prix: 100000000000000000.00, immoKey: "arr_1", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 702, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "2ème Arrondissement", prix: 150000000000000000.00, immoKey: "arr_2", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 703, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "3ème Arrondissement", prix: 200000000000000000.00, immoKey: "arr_3", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 704, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "4ème Arrondissement", prix: 250000000000000000.00, immoKey: "arr_4", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 705, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "5ème Arrondissement", prix: 300000000000000000.00, immoKey: "arr_5", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 706, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "6ème Arrondissement", prix: 350000000000000000.00, immoKey: "arr_6", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 707, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "7ème Arrondissement", prix: 400000000000000000.00, immoKey: "arr_7", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 708, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "8ème Arrondissement", prix: 450000000000000000.00, immoKey: "arr_8", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 709, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "9ème Arrondissement", prix: 500000000000000000.00, immoKey: "arr_9", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 710, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "10ème Arrondissement", prix: 550000000000000000.00, immoKey: "arr_10", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 711, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "11ème Arrondissement", prix: 600000000000000000.00, immoKey: "arr_11", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 712, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "12ème Arrondissement", prix: 650000000000000000.00, immoKey: "arr_12", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 713, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "13ème Arrondissement", prix: 700000000000000000.00, immoKey: "arr_13", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 714, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "14ème Arrondissement", prix: 750000000000000000.00, immoKey: "arr_14", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 715, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "15ème Arrondissement", prix: 800000000000000000.00, immoKey: "arr_15", delaiActivationHeures: 2, estUniqueProprietaire: true },
+      { id: 716, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "16ème Arrondissement", prix: 900000000000000000.00, immoKey: "arr_16", delaiActivationHeures: 2, estUniqueProprietaire: true },
+
       // ENTREPRISES CONNUES
-      { id: 901, cat: "Entreprises Connues", emoji: "🍎", nom: "Apple Inc.", prix: 3400000000000.00, immoKey: "ent_apple", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 902, cat: "Entreprises Connues", emoji: "💻", nom: "Microsoft", prix: 3100000000000.00, immoKey: "ent_msft", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 903, cat: "Entreprises Connues", emoji: "👁️", nom: "NVIDIA", prix: 3200000000000.00, immoKey: "ent_nvda", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 904, cat: "Entreprises Connues", emoji: "🔍", nom: "Alphabet (Google)", prix: 2100000000000.00, immoKey: "ent_goog", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 905, cat: "Entreprises Connues", emoji: "📦", nom: "Amazon", prix: 2200000000000.00, immoKey: "ent_amzn", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 906, cat: "Entreprises Connues", emoji: "♾️", nom: "Meta Platforms", prix: 1400000000000.00, immoKey: "ent_meta", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 907, cat: "Entreprises Connues", emoji: "⚡", nom: "Tesla", prix: 800000000000.00, immoKey: "ent_tsla", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 908, cat: "Entreprises Connues", emoji: "👜", nom: "LVMH", prix: 3500000000000.00, immoKey: "ent_lvmh", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 909, cat: "Entreprises Connues", emoji: "🎬", nom: "Netflix", prix: 280000000000.00, immoKey: "ent_nflx", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 910, cat: "Entreprises Connues", emoji: "✨", nom: "Walt Disney Company", prix: 210000000000.00, immoKey: "ent_disney", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 911, cat: "Entreprises Connues", emoji: "🥤", nom: "Coca-Cola", prix: 290000000000.00, immoKey: "ent_ko", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 912, cat: "Entreprises Connues", emoji: "🍟", nom: "McDonald's", prix: 220000000000.00, immoKey: "ent_mcd", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 913, cat: "Entreprises Connues", emoji: "👟", nom: "Nike", prix: 130000000000.00, immoKey: "ent_nike", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 914, cat: "Entreprises Connues", emoji: "☕", nom: "Starbucks", prix: 110000000000.00, immoKey: "ent_sbux", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 915, cat: "Entreprises Connues", emoji: "🧬", nom: "Eli Lilly", prix: 850000000000.00, immoKey: "ent_lly", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 916, cat: "Entreprises Connues", emoji: "💊", nom: "Novo Nordisk", prix: 550000000000.00, immoKey: "ent_nvo", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 917, cat: "Entreprises Connues", emoji: "💉", nom: "Pfizer", prix: 160000000000.00, immoKey: "ent_pfe", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 918, cat: "Entreprises Connues", emoji: "💳", nom: "Visa", prix: 570000000000.00, immoKey: "ent_v", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 919, cat: "Entreprises Connues", emoji: "💳", nom: "Mastercard", prix: 4500000000000.00, immoKey: "ent_ma", delaiActivationHeures: 2, estEntreprise: true },
-      { id: 920, cat: "Entreprises Connues", emoji: "🏦", nom: "JPMorgan Chase", prix: 590000000000.00, immoKey: "ent_jpm", delaiActivationHeures: 2, estEntreprise: true }
+      { id: 901, cat: "Entreprises Connues", emoji: "🍎", nom: "Apple Inc.", prix: 3400000000000.00, immoKey: "ent_apple", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 902, cat: "Entreprises Connues", emoji: "💻", nom: "Microsoft", prix: 3100000000000.00, immoKey: "ent_msft", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 903, cat: "Entreprises Connues", emoji: "👁️", nom: "NVIDIA", prix: 3200000000000.00, immoKey: "ent_nvda", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 904, cat: "Entreprises Connues", emoji: "🔍", nom: "Alphabet (Google)", prix: 2100000000000.00, immoKey: "ent_goog", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 905, cat: "Entreprises Connues", emoji: "📦", nom: "Amazon", prix: 2200000000000.00, immoKey: "ent_amzn", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 906, cat: "Entreprises Connues", emoji: "♾️", nom: "Meta Platforms", prix: 1400000000000.00, immoKey: "ent_meta", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 907, cat: "Entreprises Connues", emoji: "⚡", nom: "Tesla", prix: 800000000000.00, immoKey: "ent_tsla", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 908, cat: "Entreprises Connues", emoji: "👜", nom: "LVMH", prix: 3500000000000.00, immoKey: "ent_lvmh", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 909, cat: "Entreprises Connues", emoji: "🎬", nom: "Netflix", prix: 280000000000.00, immoKey: "ent_nflx", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 910, cat: "Entreprises Connues", emoji: "✨", nom: "Walt Disney Company", prix: 210000000000.00, immoKey: "ent_disney", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 911, cat: "Entreprises Connues", emoji: "🥤", nom: "Coca-Cola", prix: 290000000000.00, immoKey: "ent_ko", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 912, cat: "Entreprises Connues", emoji: "🍟", nom: "McDonald's", prix: 220000000000.00, immoKey: "ent_mcd", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 913, cat: "Entreprises Connues", emoji: "👟", nom: "Nike", prix: 130000000000.00, immoKey: "ent_nike", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 914, cat: "Entreprises Connues", emoji: "☕", nom: "Starbucks", prix: 110000000000.00, immoKey: "ent_sbux", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 915, cat: "Entreprises Connues", emoji: "🧬", nom: "Eli Lilly", prix: 850000000000.00, immoKey: "ent_lly", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 916, cat: "Entreprises Connues", emoji: "💊", nom: "Novo Nordisk", prix: 550000000000.00, immoKey: "ent_nvo", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 917, cat: "Entreprises Connues", emoji: "💉", nom: "Pfizer", prix: 160000000000.00, immoKey: "ent_pfe", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 918, cat: "Entreprises Connues", emoji: "💳", nom: "Visa", prix: 570000000000.00, immoKey: "ent_v", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 919, cat: "Entreprises Connues", emoji: "💳", nom: "Mastercard", prix: 4500000000000.00, immoKey: "ent_ma", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 920, cat: "Entreprises Connues", emoji: "🏦", nom: "JPMorgan Chase", prix: 590000000000.00, immoKey: "ent_jpm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true }
     ];
 
     let categorieActive = "Automobiles";
@@ -924,10 +942,9 @@
       db.ref('marche_bourse').on('value', (snapshot) => {
         const data = snapshot.val();
         const maintenant = Date.now();
-        const trancheHeure = Math.floor(maintenant / (3600 * 1000)); // Mis à jour toutes les heures
+        const trancheHeure = Math.floor(maintenant / (3600 * 1000));
 
         if (!data || data.tranche !== trancheHeure) {
-          // Variation réelle entre -4% et +6%
           const estPerte = Math.random() < 0.35;
           let pctReel = estPerte ? - (Math.floor(Math.random() * 40) / 10 + 0.5) : (Math.floor(Math.random() * 50) / 10 + 0.5);
           db.ref('marche_bourse').set({ tranche: trancheHeure, pourcentageReel: pctReel });
@@ -955,7 +972,7 @@
     function afficherIndicateurBourse() {
       const display = document.getElementById('marcheBourseValDisplay');
       if (!display) return;
-      let jeuPct = marcheBoursePct * 10; // 1% réel = 10% dans le jeu
+      let jeuPct = marcheBoursePct * 10;
       if (jeuPct >= 0) {
         display.className = "marche-immo-hausse";
         display.innerText = `+${jeuPct.toFixed(1)}% (${marcheBoursePct >= 0 ? '+' : ''}${marcheBoursePct.toFixed(1)}% réel) 📈`;
@@ -1038,8 +1055,8 @@
       });
     }
 
-    // OBTENIR LE PROPRIÉTAIRE D'UNE ENTREPRISE
-    function obtenirProprietaireEntreprise(immoKey) {
+    // OBTENIR LE PROPRIÉTAIRE D'UN ÉLÉMENT À PROPRIÉTAIRE UNIQUE (ENTREPRISES & ARRONDISSEMENTS)
+    function obtenirProprietaireUnique(immoKey) {
       if (!possessionsImmo) return null;
       for (let user in possessionsImmo) {
         if (possessionsImmo[user] && possessionsImmo[user][immoKey] && possessionsImmo[user][immoKey].quantite > 0) {
@@ -1071,11 +1088,10 @@
             let dernierPaiementIndiv = (dataBien.derniersPaiements && dataBien.derniersPaiements[index]) ? dataBien.derniersPaiements[index] : dateAchat;
             let delaiMin = 0;
             let gainOuPerteHeure = 0;
-            let estEntrepriseItem = (catalogueRef && (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise));
+            let estElementUnique = (catalogueRef && (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire));
 
-            if (estEntrepriseItem) {
+            if (estElementUnique) {
               delaiMin = (catalogueRef.delaiActivationHeures || 2) * 3600 * 1000;
-              // 1% réel = 10% dans le jeu -> taux = marcheBoursePct * 0.10
               let tauxJeu = marcheBoursePct * 0.10;
               gainOuPerteHeure = catalogueRef.prix * tauxJeu;
             } else if (catalogueRef && catalogueRef.tauxPourcentHeure) {
@@ -1131,15 +1147,15 @@
       });
     }
 
-    function calculerPrixReventeBien(dateAchat, prixBase, isEntreprise) {
+    function calculerPrixReventeBien(dateAchat, prixBase, isElementUnique) {
       const maintenant = Date.now();
       const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
 
-      if (heuresEcoulees < 3 && !isEntreprise) {
+      if (heuresEcoulees < 3 && !isElementUnique) {
         return { prix: prixBase, augmente: false };
       }
 
-      let pctMarche = isEntreprise ? (marcheBoursePct * 10) : marcheImmoPct;
+      let pctMarche = isElementUnique ? (marcheBoursePct * 10) : marcheImmoPct;
       let multMarche = 1 + (pctMarche / 100);
       if (multMarche < 0.1) multMarche = 0.1;
 
@@ -1150,10 +1166,10 @@
       const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
       
       let estImmoRevendable = (catalogueRef && catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel");
-      let estEntRevendable = (catalogueRef && (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise));
+      let estElementRevendable = (catalogueRef && (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire));
 
-      if (!catalogueRef || (!estImmoRevendable && !estEntRevendable)) {
-        alert("🚫 Seuls les biens de la section Immobilier Marseille (hors Hôtels) et les Entreprises peuvent être revendus !");
+      if (!catalogueRef || (!estImmoRevendable && !estElementRevendable)) {
+        alert("🚫 Seuls les biens de la section Immobilier Marseille (hors Hôtels), les Arrondissements et les Entreprises peuvent être revendus !");
         return;
       }
 
@@ -1163,10 +1179,10 @@
         if (!data || !data.achats || data.achats[indexAchat] === undefined) return;
 
         const dateAchat = data.achats[indexAchat];
-        const calculVal = calculerPrixReventeBien(dateAchat, prixBase, estEntRevendable);
+        const calculVal = calculerPrixReventeBien(dateAchat, prixBase, estElementRevendable);
         const prixRevente = calculVal.prix;
 
-        let pctRefAffiche = estEntRevendable ? (marcheBoursePct * 10) : marcheImmoPct;
+        let pctRefAffiche = estElementRevendable ? (marcheBoursePct * 10) : marcheImmoPct;
         let msg = calculVal.augmente
           ? `Voulez-vous revendre ${nomBien} pour ${prixRevente.toLocaleString('fr-FR')} € (Selon le marché : ${pctRefAffiche >= 0 ? '+' : ''}${pctRefAffiche.toFixed(1)}%) ?`
           : `Ce bien a moins de 3h d'ancienneté. Voulez-vous le revendre à son prix initial de ${prixBase.toLocaleString('fr-FR')} € ?`;
@@ -1210,16 +1226,16 @@
         return;
       }
 
-      // VÉRIFICATION PROPRIÉTAIRE UNIQUE ENTREPRISES
-      if (article.cat === "Entreprises Connues" || article.estEntreprise) {
-        let prop = obtenirProprietaireEntreprise(article.immoKey);
+      // VÉRIFICATION PROPRIÉTAIRE UNIQUE (ENTREPRISES & ARRONDISSEMENTS)
+      if (article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire) {
+        let prop = obtenirProprietaireUnique(article.immoKey);
         if (prop) {
-          alert(`🏢 L'entreprise "${article.nom}" appartient déjà à ${prop} !`);
+          alert(`🚫 "${article.nom}" appartient déjà à ${prop} !`);
           return;
         }
         let dejaDansPanier = panier.some(p => p.immoKey === article.immoKey);
         if (dejaDansPanier) {
-          alert(`🏢 L'entreprise "${article.nom}" est déjà dans votre panier !`);
+          alert(`🚫 "${article.nom}" est déjà dans votre panier !`);
           return;
         }
       }
@@ -1385,7 +1401,7 @@
       const container = document.getElementById('categoriesTabs');
       if (!container) return;
 
-      const categories = ["Automobiles", "Immobilier Marseille", "Entreprises Connues", "🏠 Mes Biens"];
+      const categories = ["Automobiles", "Immobilier Marseille", "Arrondissements Marseille", "Entreprises Connues", "🏠 Mes Biens"];
       container.innerHTML = "";
 
       categories.forEach(cat => {
@@ -1430,8 +1446,8 @@
             const btn = document.createElement('div');
             btn.className = "btn-article mes-biens-card";
 
-            let estRevendable = ((article.cat === "Immobilier Marseille" && immoKey !== "hotel") || article.cat === "Entreprises Connues" || article.estEntreprise);
-            let infoCalcul = estRevendable ? calculerPrixReventeBien(dateAchat, article.prix, (article.cat === "Entreprises Connues" || article.estEntreprise)) : { prix: article.prix, augmente: false };
+            let estRevendable = ((article.cat === "Immobilier Marseille" && immoKey !== "hotel") || article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire);
+            let infoCalcul = estRevendable ? calculerPrixReventeBien(dateAchat, article.prix, (article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire)) : { prix: article.prix, augmente: false };
             let prixAffichage = infoCalcul.prix;
 
             let htmlRevendre = estRevendable 
@@ -1454,15 +1470,14 @@
         return;
       }
 
-      // AFFICHAGE DES ARTICLES STANDARD (AVEC VERROUILLAGE DES ENTREPRISES DÉJÀ ACHETÉES)
       let articlesFiltres = baseArticles.filter(a => a.cat === categorieActive);
 
       articlesFiltres.forEach(art => {
         let btn = document.createElement('button');
         btn.className = "btn-article";
 
-        let estEntreprise = (art.cat === "Entreprises Connues" || art.estEntreprise);
-        let prop = estEntreprise ? obtenirProprietaireEntreprise(art.immoKey) : null;
+        let estUnique = (art.cat === "Entreprises Connues" || art.estEntreprise || art.cat === "Arrondissements Marseille" || art.estUniqueProprietaire);
+        let prop = estUnique ? obtenirProprietaireUnique(art.immoKey) : null;
 
         if (prop) {
           btn.style.opacity = '0.55';
@@ -1470,7 +1485,7 @@
           btn.style.borderColor = '#475569';
           btn.style.cursor = 'not-allowed';
           btn.onclick = () => {
-            alert(`🔒 L'entreprise "${art.nom}" appartient déjà à ${prop}.`);
+            alert(`🔒 "${art.nom}" appartient déjà à ${prop}.`);
           };
 
           btn.innerHTML = `
@@ -1869,8 +1884,8 @@
           let div = document.createElement('div');
           div.className = "possession-pill";
 
-          let estRevendable = ((catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel") || catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise);
-          let infoCalcul = estRevendable ? calculerPrixReventeBien(dateAchat, catalogueRef.prix, (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise)) : { prix: catalogueRef.prix, augmente: false };
+          let estRevendable = ((catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel") || catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire);
+          let infoCalcul = estRevendable ? calculerPrixReventeBien(dateAchat, catalogueRef.prix, (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire)) : { prix: catalogueRef.prix, augmente: false };
           let prixAffichage = infoCalcul.prix;
 
           let btnVendreHtml = estRevendable 
