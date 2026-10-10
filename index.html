@@ -1,3 +1,6 @@
+Voici le code HTML mis à jour selon vos instructions : suppression du bouton de remise à zéro, ajout du choix de l'arrondissement lors des achats avec application de la taxe de 5 % (versée au propriétaire ou stockée dans le compte de l'arrondissement si aucun propriétaire), crédit automatique du solde accumulé de l'arrondissement lors de son acquisition, et affichage de l'état des comptes de l'arrondissement en haut à gauche de sa vignette.
+
+```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -89,7 +92,6 @@
 
     .actions-section { flex-shrink: 0; margin-top: 4px; }
     .btn-validation { background: #000; color: #fff; border: none; border-radius: 14px; padding: 12px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; margin-bottom: 6px; }
-    .btn-reset { background: none; border: none; color: #e53e3e; font-weight: bold; cursor: pointer; padding: 6px; font-size: 12px; width: 100%; text-align: center; }
 
     .pin-overlay, .banque-overlay, .historique-overlay, .reglages-overlay, .creer-ecole-overlay, .aide-overlay, .vente-quantite-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85);
@@ -195,6 +197,13 @@
           <div class="total-label">Total à payer</div>
           <div class="total-montant" id="totalDisplay">0,00 €</div>
           <div style="border-top: 1px solid rgba(255,255,255,0.15); margin: 8px 0 6px 0;"></div>
+          
+          <!-- SELECTION ARRONDISSEMENT ACHAT (TAXE 5%) -->
+          <div style="margin-bottom: 8px; text-align: left;">
+            <label style="font-size: 11px; color: #a0aec0; font-weight: bold; display: block; margin-bottom: 4px;">Arrondissement de l'achat (Taxe 5%)</label>
+            <select id="selectArrondissementAchat" class="select-joueur" style="width: 100%; max-width: 100%; height: 38px; font-size: 12px;"></select>
+          </div>
+
           <div class="total-label">Solde Joueur : <span id="joueurActifNomDisplay" style="color: #38ef7d; font-weight: bold;">Aucun</span></div>
           <div class="total-montant" id="joueurSoldeDisplay" style="color: #38bdf8; font-size: 26px; margin-top: 2px;">0,00 €</div>
         </div>
@@ -218,10 +227,9 @@
 
     <div class="actions-section">
       <button class="btn-validation" onclick="lancerPaiementJoueur()">Payer</button>
-      <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v5.8.0 (Revente immo 2h & Investissements)</div>
+    <div class="version-tag">v5.9.0 (Arrondissements & Taxes 5%)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -242,6 +250,13 @@
           • Sélectionnez votre profil dans le menu déroulant en haut et saisissez votre mot de passe pour jouer.<br>
           • Chaque joueur dispose d'un mot de passe / code PIN requis avant chaque action de paiement.<br>
           • Pour créer un joueur École, cliquez sur <strong>🏫 + Joueur École</strong> (solde de départ : 20 000 €).
+        </div>
+
+        <div class="aide-section">
+          <div class="aide-section-title">🏙️ Arrondissements & Taxes (5%)</div>
+          • Lors de l'achat d'un bien ou d'une entreprise, vous devez choisir l'arrondissement concerné.<br>
+          • <strong>5% du montant</strong> de l'achat est versé au propriétaire de l'arrondissement.<br>
+          • Si l'arrondissement n'a pas de propriétaire, l'argent va dans le <strong>compte de l'arrondissement</strong> (visible en haut à gauche de sa vignette) et sera crédité directement au futur propriétaire lors de son achat.
         </div>
 
         <div class="aide-section">
@@ -487,6 +502,7 @@
     let panier = [];
     let comptesComplets = {};
     let possessionsImmo = {};
+    let arrondissementSoldes = {};
     let joueurSelectionneVueDetail = null;
     let filtreClassementActif = "tous";
 
@@ -628,6 +644,8 @@
 
     function initApp() {
       ecouterJoueursFirebase();
+      ecouterArrondissementSoldes();
+      remplirSelectArrondissements();
       afficherOnglets();
       afficherArticles();
       MettreAJourEcran();
@@ -650,6 +668,18 @@
         opt.value = prenom;
         opt.innerText = `${prenom} (${groupe})`;
         if (prenom === joueurActif) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function remplirSelectArrondissements() {
+      const select = document.getElementById('selectArrondissementAchat');
+      if (!select) return;
+      select.innerHTML = '';
+      baseArticles.filter(a => a.cat === "Arrondissements Marseille").forEach(arr => {
+        let opt = document.createElement('option');
+        opt.value = arr.immoKey;
+        opt.innerText = arr.nom;
         select.appendChild(opt);
       });
     }
@@ -819,6 +849,13 @@
         return;
       }
       demanderCodePin('paiement');
+    }
+
+    function ecouterArrondissementSoldes() {
+      db.ref('arrondissement_soldes').on('value', (snapshot) => {
+        arrondissementSoldes = snapshot.val() || {};
+        if (categorieActive === "Arrondissements Marseille") afficherArticles();
+      });
     }
 
     function ecouterMarcheImmobilier() {
@@ -1428,6 +1465,20 @@
           let updates = {};
           updates[`banques/${lastUserValide}`] = nouveauSolde;
 
+          // Taxe 5% pour l'arrondissement choisi
+          let selectArr = document.getElementById('selectArrondissementAchat');
+          let selectedArrKey = selectArr ? selectArr.value : 'arr_1';
+          let taxeMontant = Math.round(total * 0.05 * 100) / 100;
+          let proprietaireArr = obtenirProprietaireUnique(selectedArrKey);
+
+          if (proprietaireArr) {
+            let soldeProprietaire = comptesComplets[proprietaireArr] !== undefined ? comptesComplets[proprietaireArr] : 20000.00;
+            updates[`banques/${proprietaireArr]`] = Math.round((soldeProprietaire + taxeMontant) * 100) / 100;
+          } else {
+            let soldeActuelArr = arrondissementSoldes[selectedArrKey] || 0;
+            updates[`arrondissement_soldes/${selectedArrKey}`] = Math.round((soldeActuelArr + taxeMontant) * 100) / 100;
+          }
+
           panier.forEach(item => {
             for (let i = 0; i < item.qte; i++) {
               if (item.immoKey === "hotel") {
@@ -1439,12 +1490,20 @@
                   }
                 });
               }
+              if (item.cat === "Arrondissements Marseille" || item.estUniqueProprietaire) {
+                let soldeArr = arrondissementSoldes[item.immoKey] || 0;
+                if (soldeArr > 0) {
+                  let soldeActuelAcheteur = updates[`banques/${lastUserValide}`] !== undefined ? updates[`banques/${lastUserValide}`] : (comptesComplets[lastUserValide] !== undefined ? comptesComplets[lastUserValide] : 20000.00);
+                  updates[`banques/${lastUserValide}`] = soldeActuelAcheteur + soldeArr;
+                  updates[`arrondissement_soldes/${item.immoKey}`] = 0;
+                }
+              }
               ajouterPossessionImmo(lastUserValide, item);
             }
           });
 
           db.ref().update(updates).then(() => {
-            alert(`✅ Paiement de ${total.toLocaleString('fr-FR')} € effectué avec succès pour ${lastUserValide} !`);
+            alert(`✅ Paiement de ${total.toLocaleString('fr-FR')} € effectué avec succès pour ${lastUserValide} ! (Taxe 5% versée)`);
             reinitialiser();
             mettreAJourSoldeJoueurActif();
           });
@@ -1571,12 +1630,20 @@
       articlesFiltres.forEach(art => {
         let btn = document.createElement('button');
         btn.className = "btn-article";
+        btn.style.position = "relative";
 
         let estUnique = (art.cat === "Entreprises Connues" || art.estEntreprise || art.cat === "Arrondissements Marseille" || art.estUniqueProprietaire);
         let prop = estUnique ? obtenirProprietaireUnique(art.immoKey) : null;
         
         let entObj = (art.cat === "Entreprises Connues" || art.estEntreprise) ? (bourseEntreprisesData[art.immoKey] || { pourcentageReel: 0 }) : null;
         let pctTexte = entObj ? `${entObj.pourcentageReel >= 0 ? '+' : ''}${entObj.pourcentageReel.toFixed(1)}%` : '';
+
+        // Compte de l'arrondissement en haut à gauche
+        let soldeArrondissement = 0;
+        if (art.cat === "Arrondissements Marseille") {
+          soldeArrondissement = arrondissementSoldes[art.immoKey] || 0;
+        }
+        let htmlSoldeArr = art.cat === "Arrondissements Marseille" ? `<div style="position: absolute; top: 6px; left: 8px; font-size: 10px; font-family: monospace; font-weight: bold; color: #38ef7d; background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 6px;" title="Compte de l'arrondissement">🏦 ${soldeArrondissement.toLocaleString('fr-FR', {minimumFractionDigits:0, maximumFractionDigits:0})} €</div>` : '';
 
         if (prop) {
           btn.style.opacity = '0.55';
@@ -1588,7 +1655,8 @@
           };
 
           btn.innerHTML = `
-            <span class="emoji">${art.emoji}</span>
+            ${htmlSoldeArr}
+            <span class="emoji" style="${art.cat === 'Arrondissements Marseille' ? 'margin-top:12px;' : ''}">${art.emoji}</span>
             <span style="line-height:1.2; text-decoration: line-through;">${art.nom}</span>
             <span class="prix-tag" style="background:#334155; color:#94a3b8;">${art.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
             <span style="font-size:10px; color:#f87171; font-weight:bold; margin-top:2px;">🔒 ${prop}</span>
@@ -1597,7 +1665,8 @@
           btn.onclick = () => ajouterAuPanier(art);
           let badgeGainHtml = entObj ? `<span style="font-size:10px; color:${entObj.pourcentageReel >= 0 ? '#38ef7d' : '#ff453a'}; font-weight:bold; margin-top:2px;">Bourse: ${pctTexte}/h</span>` : '';
           btn.innerHTML = `
-            <span class="emoji">${art.emoji}</span>
+            ${htmlSoldeArr}
+            <span class="emoji" style="${art.cat === 'Arrondissements Marseille' ? 'margin-top:12px;' : ''}">${art.emoji}</span>
             <span style="line-height:1.2;">${art.nom}</span>
             <span class="prix-tag">${art.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
             ${badgeGainHtml}
@@ -1798,3 +1867,4 @@
   </script>
 </body>
 </html>
+```
