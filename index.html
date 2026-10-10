@@ -90,16 +90,16 @@
     .actions-section { flex-shrink: 0; margin-top: 4px; }
     .btn-validation { background: #000; color: #fff; border: none; border-radius: 14px; padding: 12px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; margin-bottom: 6px; }
 
-    .pin-overlay, .banque-overlay, .historique-overlay, .reglages-overlay, .creer-ecole-overlay, .aide-overlay, .vente-quantite-overlay {
+    .pin-overlay, .banque-overlay, .historique-overlay, .reglages-overlay, .creer-ecole-overlay, .aide-overlay, .vente-quantite-overlay, .arrondissement-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85);
       backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center;
       opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 9998;
     }
-    .pin-overlay.active, .banque-overlay.active, .historique-overlay.active, .reglages-overlay.active, .creer-ecole-overlay.active, .aide-overlay.active, .vente-quantite-overlay.active {
+    .pin-overlay.active, .banque-overlay.active, .historique-overlay.active, .reglages-overlay.active, .creer-ecole-overlay.active, .aide-overlay.active, .vente-quantite-overlay.active, .arrondissement-overlay.active {
       opacity: 1; pointer-events: auto;
     }
     
-    .banque-card, .historique-card, .reglages-card, .creer-ecole-card, .aide-card, .vente-card {
+    .banque-card, .historique-card, .reglages-card, .creer-ecole-card, .aide-card, .vente-card, .arrondissement-card {
       background: #121820; width: 92%; max-width: 440px; border-radius: 24px; padding: 22px; color: white;
       text-align: left; box-shadow: 0 20px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08);
       max-height: 90vh; display: flex; flex-direction: column;
@@ -194,13 +194,352 @@
           <div class="total-label">Total à payer</div>
           <div class="total-montant" id="totalDisplay">0,00 €</div>
           <div style="border-top: 1px solid rgba(255,255,255,0.15); margin: 8px 0 6px 0;"></div>
-          
-          <!-- SELECTION ARRONDISSEMENT ACHAT (TAXE 5%) -->
-          <div style="margin-bottom: 8px; text-align: left;">
-            <label style="font-size: 11px; color: #a0aec0; font-weight: bold; display: block; margin-bottom: 4px;">Arrondissement de l'achat (Taxe 5%)</label>
-            <select id="selectArrondissementAchat" class="select-joueur" style="width: 100%; max-width: 100%; height: 38px; font-size: 12px;"></select>
-          </div>
+          <div class="total-label">Solde Joueur : <span id="joueurActifNomDisplay" style="color: #38ef7d; font-weight: bold;">Aucun</span></div>
+          <div class="total-montant" id="joueurSoldeDisplay" style="color: #38bdf8; font-size: 26px; margin-top: 2px;">0,00 €</div>
+        </div>
 
+        <div class="section-title">Détail du panier</div>
+        <div class="ticket-container" id="ticketList">
+          <div class="ticket-vide">Aucun article ajouté</div>
+        </div>
+      </div>
+
+      <div class="col-droite">
+        <div class="section-title">Catalogue</div>
+        <!-- ONGLETS -->
+        <div class="categories-tabs" id="categoriesTabs"></div>
+
+        <div class="articles-scroll">
+          <div class="articles-grid" id="articlesGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions-section">
+      <button class="btn-validation" onclick="lancerPaiementJoueur()">Payer</button>
+    </div>
+
+    <div class="version-tag">v5.9.0 (Choix Arrondissement & Taxe 5%)</div>
+  </div>
+
+  <!-- MODAL SELECTION ARRONDISSEMENT -->
+  <div class="arrondissement-overlay" id="arrondissementOverlay">
+    <div class="arrondissement-card">
+      <div class="reglages-header">
+        <span class="reglages-title">Choisir l'arrondissement 🏙️</span>
+        <button class="btn-close" onclick="fermerModalArrondissement()">✕</button>
+      </div>
+      <p style="font-size: 13px; color: #a0aec0; margin-bottom: 12px;">Sélectionnez l'arrondissement où est situé l'achat. 5 % de la valeur sera versée à son propriétaire s'il existe.</p>
+      <div style="margin-bottom: 16px;">
+        <select id="selectArrondissementAchat" class="select-joueur" style="width: 100%; max-width: none; background: #2c2c2e; border: 1px solid #4a5568; color: white;">
+          <option value="">-- Choisir un arrondissement --</option>
+        </select>
+      </div>
+      <button class="btn-ajouter-article" style="background:#2b6cb0; padding:14px; font-size:15px;" onclick="validerSelectionArrondissement()">Valider l'ajout au panier</button>
+    </div>
+  </div>
+
+  <!-- MODAL AIDE ET REGLES -->
+  <div class="aide-overlay" id="aideOverlay">
+    <div class="aide-card">
+      <div class="reglages-header">
+        <span class="reglages-title">Règles du Jeu & Guide 📜</span>
+        <button class="btn-close" onclick="fermerAide()">✕</button>
+      </div>
+      <div class="aide-content">
+        <div class="aide-section">
+          <div class="aide-section-title">🎮 Principe & Objectif du Jeu</div>
+          Le but du jeu est de devenir le joueur le plus riche de Marseille en investissant judicieusement ! Accumulez de la fortune, achetez des biens immobiliers, des places de parking, des arrondissements, des véhicules d'exception et des entreprises internationales. Gérez votre compte bancaire et faites fructifier vos investissements.
+        </div>
+
+        <div class="aide-section">
+          <div class="aide-section-title">🔑 Mots de passe & Connexion</div>
+          • Sélectionnez votre profil dans le menu déroulant en haut et saisissez votre mot de passe pour jouer.<br>
+          • Chaque joueur dispose d'un mot de passe / code PIN requis avant chaque action de paiement.<br>
+          • Pour créer un joueur École, cliquez sur <strong>🏫 + Joueur École</strong> (solde de départ : 20 000 €).
+        </div>
+
+        <div class="aide-section">
+          <div class="aide-section-title">🚘 Automobiles & Garages</div>
+          • Vous devez posséder au moins un garage (5 ou 20 places) ou des places de parking dans <em>Immobilier Marseille</em> pour acheter des véhicules.<br>
+          • La capacité de vos garages limite le nombre d'automobiles que vous pouvez acheter.
+        </div>
+
+        <div class="aide-section">
+          <div class="aide-section-title">🏢 Immobilier, Arrondissements & Entreprises</div>
+          • <strong>Taxe d'Arrondissement (5%)</strong> : Lors de l'achat d'un bien ou d'une entreprise, vous devez choisir un arrondissement. 5% de la valeur est immédiatement versée au propriétaire de cet arrondissement s'il appartient à un joueur.<br>
+          • <strong>Revenus passifs</strong> : Snacks (+1 000€/h), Hôtels et Malls rapportent <strong>20%/h</strong> automatiquement 2 heures après l'achat.<br>
+          • <strong>Place de Parking</strong> : Disponible à 5 000 € dans l'immobilier marseillais, elle suit le cours de l'immobilier comme les maisons.<br>
+          • <strong>Entreprises en Bourse & Arrondissements</strong> : Chaque entreprise possède son propre cours de bourse indépendant mis à jour toutes les heures. Les arrondissements suivent l'indice global du marché.<br>
+          • <strong>Règles de Possession & Propriétaire Unique</strong> :<br>
+          &nbsp;&nbsp;- 👑 <strong>Arrondissements & Entreprises</strong> : Ils ne peuvent avoir qu'<strong>un seul propriétaire</strong>. Une fois achetés, ils sont grisés et ne peuvent plus être achetés par d'autres.<br>
+          &nbsp;&nbsp;- ⏳ <strong>Délai de revente</strong> :<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;• <em>Immobilier Marseille</em> : Les biens immobiliers peuvent être revendus à partir de **2 heures minimum** après leur acquisition.<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;• <em>Entreprises</em> : Les entreprises acquises ne peuvent être revendues qu'au bout de **24 heures minimum**.<br>
+          &nbsp;&nbsp;- 🏨 <strong>Hôtels</strong> : Limité à <strong>10 hôtels maximum par joueur</strong>. Si vous achetez un hôtel alors qu'un autre joueur en possède déjà, vous versez des <strong>royalties de 15%</strong> au(x) propriétaire(s).<br>
+          • <strong>Revente de Biens</strong> : Vous pouvez choisir la quantité exacte à revendre (méthode FIFO) selon les cours du marché en temps réel.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CHOIX QUANTITE VENTE -->
+  <div class="vente-quantite-overlay" id="venteQuantiteOverlay">
+    <div class="vente-card">
+      <div class="reglages-header">
+        <span class="reglages-title" id="venteModalTitle">Revendre un bien 🏷️</span>
+        <button class="btn-close" onclick="fermerModalVenteQuantite()">✕</button>
+      </div>
+      <div id="venteModalBody" style="font-size: 13px; color: #cbd5e0; margin-bottom: 16px; line-height: 1.5;"></div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-validation" style="background:#2b6cb0; flex:1; margin-bottom:0;" onclick="validerVenteQuantite()">Valider la revente</button>
+        <button class="btn-validation" style="background:#2d3748; color:#cbd5e0; flex:1; margin-bottom:0;" onclick="fermerModalVenteQuantite()">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CREATION JOUEUR ECOLE -->
+  <div class="creer-ecole-overlay" id="creerEcoleOverlay">
+    <div class="creer-ecole-card">
+      <div class="reglages-header">
+        <span class="reglages-title">Nouveau Joueur École 🏫</span>
+        <button class="btn-close" onclick="fermerModalCreerEcole()">✕</button>
+      </div>
+      <p style="font-size: 13px; color: #a0aec0; margin-bottom: 16px;">Saisissez le prénom et le mot de passe du joueur. Solde initial : 20 000 €.</p>
+      <div class="item-editor" style="margin-bottom: 10px;">
+        <input type="text" id="ecoleNomInput" class="nom-input" placeholder="Prénom" style="width:100%; padding:12px; font-size:15px;">
+      </div>
+      <div class="item-editor" style="margin-bottom: 16px;">
+        <input type="text" id="ecolePinInput" class="nom-input" placeholder="Mot de passe / PIN" style="width:100%; padding:12px; font-size:15px;">
+      </div>
+      <button class="btn-ajouter-article" style="background:#2b6cb0; padding:14px; font-size:15px;" onclick="validerCreationJoueurEcole()">Créer le joueur (20 000 €)</button>
+    </div>
+  </div>
+
+  <!-- MODAL CODE PIN / MOT DE PASSE -->
+  <div class="pin-overlay" id="pinOverlay">
+    <div class="pin-card" id="pinCard">
+      <div class="pin-title" id="pinTitleModal">Mot de passe requis</div>
+      <div class="pin-subtitle" id="pinSubtitleModal">Saisissez votre mot de passe ou code PIN</div>
+      
+      <div id="selectionJoueurPinSimilaire" style="display:none; margin-bottom: 14px;">
+        <div style="font-size:13px; color:#f97316; margin-bottom:8px; font-weight:bold;">Plusieurs joueurs ont ce mot de passe !</div>
+        <select id="selectJoueurPinDoublon" style="width:100%; padding:10px; border-radius:10px; background:#2c2c2e; color:white; border:1px solid #4a5568; font-size:14px; font-weight:bold;"></select>
+        <button class="btn-ajouter-article" style="margin-top:10px; background:#38ef7d; color:#000;" onclick="confirmerChoixJoueurDoublon()">Valider mon choix</button>
+      </div>
+
+      <div id="pinBoxContainer">
+        <input type="password" id="pinTextInput" placeholder="Mot de passe / PIN" style="width:100%; padding:14px; font-size:18px;Voici le code HTML complet mis à jour selon vos consignes :
+
+1. **Suppression du bouton « Remise à zéro »** dans la barre d'actions.
+2. **Gestion de la taxe de 5 % sur les arrondissements** :
+   - Lorsque vous choisissez un bien ou une entreprise à acheter, une modale dédiée s'ouvre pour vous demander de sélectionner l'arrondissement dans lequel effectuer l'achat.
+   - Si cet arrondissement a un propriétaire, **5 % du prix total de votre achat** est automatiquement transféré au propriétaire de l'arrondissement lors de la validation du paiement.
+   - Les détails de la taxe sont affichés dans le panier pour une transparence totale.
+
+```html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Marseille Monopoly</title>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Marseille Monopoly">
+  <link rel="apple-touch-icon" href="[https://fav.farm/](https://fav.farm/)🎲">
+
+  <script src="[https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js](https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js)"></script>
+  <script src="[https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js](https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js)"></script>
+
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+    html, body {
+      width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
+      background-color: #0d1117; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .caisse-container {
+      background: white; width: 100vw; height: 100vh; height: 100dvh;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+      position: relative;
+    }
+
+    .version-tag {
+      position: absolute; bottom: calc(5px + env(safe-area-inset-bottom)); right: 15px;
+      font-size: 11px; font-weight: 600; color: #a0aec0; font-family: monospace; z-index: 10;
+    }
+
+    .header-caisse { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0; gap: 8px; flex-wrap: wrap; }
+    h1 { color: #1a202c; margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+    .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    
+    .select-joueur {
+      background: #1a222d; color: #38ef7d; border: 1.5px solid rgba(56, 239, 125, 0.5);
+      border-radius: 12px; padding: 0 10px; font-size: 13px; font-weight: bold;
+      height: 44px; cursor: pointer; outline: none; max-width: 180px;
+    }
+    .select-joueur option { background: #121820; color: white; }
+
+    .btn-quick-add {
+      background: #2b6cb0; color: white; border: none; border-radius: 12px;
+      padding: 0 12px; font-size: 13px; font-weight: bold; cursor: pointer;
+      display: flex; align-items: center; gap: 6px; height: 44px;
+    }
+    .btn-quick-add:active { background: #2c5282; }
+
+    .btn-icon {
+      background: #edf2f7; border: none; border-radius: 12px; width: 44px; height: 44px;
+      font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center;
+    }
+    .btn-icon:active { background: #cbd5e0; }
+
+    .layout-ipad { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; justify-content: space-between; }
+    .col-gauche { display: flex; flex-direction: column; flex-shrink: 0; }
+
+    .ecran { background-color: #1a202c; border-radius: 14px; padding: 10px 14px; margin-bottom: 8px; text-align: center; }
+    .total-label { color: #a0aec0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+    .total-montant { color: #38ef7d; font-size: 28px; font-family: monospace; font-weight: bold; margin-top: 2px; }
+
+    .ticket-container {
+      background: #f8fafc; border: 2px dashed #cbd5e0; border-radius: 12px; padding: 8px 12px;
+      margin-bottom: 10px; max-height: 120px; overflow-y: auto; text-align: left; -webkit-overflow-scrolling: touch;
+    }
+    .ticket-vide { color: #a0aec0; font-size: 13px; text-align: center; margin: 6px 0; font-style: italic; }
+    .ligne-ticket { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #2d3748; padding: 4px 0; border-bottom: 1px solid #edf2f7; }
+    .btn-suppr-ligne { background: #fed7d7; color: #9b2c2c; border: none; border-radius: 8px; font-size: 12px; padding: 2px 6px; cursor: pointer; margin-left: 8px; font-weight: bold; }
+
+    .section-title { font-size: 12px; color: #718096; margin-bottom: 6px; text-align: left; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .col-droite { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; margin-bottom: 8px; }
+
+    .categories-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; scrollbar-width: none; align-items: center; flex-shrink: 0; }
+    .categories-tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { background: #e2e8f0; color: #4a5568; border: none; padding: 8px 14px; border-radius: 22px; font-size: 12px; font-weight: bold; white-space: nowrap; cursor: pointer; flex-shrink: 0; min-height: 38px; display: flex; align-items: center; }
+    .tab-btn.active { background: #3182ce; color: white; }
+
+    .articles-scroll { flex-grow: 1; overflow-y: auto; padding-right: 2px; -webkit-overflow-scrolling: touch; }
+    .articles-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .btn-article { background: #f7fafc; border: 1.5px solid #cbd5e0; border-radius: 14px; padding: 10px 6px; font-size: 12px; font-weight: 600; color: #2d3748; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 72px; text-align: center; }
+    .btn-article:active { background-color: #e2e8f0; transform: scale(0.98); }
+    .btn-article.mes-biens-card { background: #1a222d; border: 1px solid rgba(255, 255, 255, 0.12); color: white; justify-content: space-between; position: relative; }
+    .emoji { font-size: 22px; }
+    .prix-tag { font-weight: 800; color: #2b6cb0; font-size: 11px; background: #ebf8ff; padding: 2px 6px; border-radius: 8px; }
+
+    .actions-section { flex-shrink: 0; margin-top: 4px; }
+    .btn-validation { background: #000; color: #fff; border: none; border-radius: 14px; padding: 12px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; }
+
+    .pin-overlay, .banque-overlay, .historique-overlay, .reglages-overlay, .creer-ecole-overlay, .aide-overlay, .vente-quantite-overlay, .arrondissement-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 9998;
+    }
+    .pin-overlay.active, .banque-overlay.active, .historique-overlay.active, .reglages-overlay.active, .creer-ecole-overlay.active, .aide-overlay.active, .vente-quantite-overlay.active, .arrondissement-overlay.active {
+      opacity: 1; pointer-events: auto;
+    }
+    
+    .banque-card, .historique-card, .reglages-card, .creer-ecole-card, .aide-card, .vente-card, .arrondissement-card {
+      background: #121820; width: 92%; max-width: 440px; border-radius: 24px; padding: 22px; color: white;
+      text-align: left; box-shadow: 0 20px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08);
+      max-height: 90vh; display: flex; flex-direction: column;
+    }
+
+    .pin-card { background: #1c1c1e; width: 90%; max-width: 400px; border-radius: 28px; padding: 22px; color: white; text-align: center; }
+    .pin-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .pin-subtitle { font-size: 14px; color: #8e8e93; margin-bottom: 18px; }
+    .error-msg { color: #ff453a; font-size: 13px; font-weight: 600; min-height: 20px; margin-bottom: 10px; text-align: center; }
+
+    .pin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 10px; }
+    .btn-pin { background: #2c2c2e; color: white; border: none; border-radius: 50%; width: 62px; height: 62px; margin: 0 auto; font-size: 22px; font-weight: 600; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+    .btn-pin.btn-cancel { font-size: 14px; color: #ff453a; background: transparent; font-weight: bold; }
+    .btn-pin.btn-del { font-size: 20px; color: #8e8e93; background: transparent; }
+
+    .dark-card-item {
+      display: flex; justify-content: space-between; align-items: center; padding: 14px 16px;
+      background: #1a222d; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; margin-bottom: 10px; cursor: pointer;
+    }
+    .dark-card-name { font-size: 15px; font-weight: 700; color: #ffffff; }
+    .dark-card-sub { font-size: 12px; color: #8b98a5; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+    .dark-card-amount { font-size: 16px; font-family: monospace; font-weight: bold; color: #38ef7d; text-align: right; }
+    .dark-card-amount.deficit { color: #ff453a; }
+
+    .historique-list { overflow-y: auto; flex-grow: 1; margin-top: 6px; display: flex; flex-direction: column; -webkit-overflow-scrolling: touch; }
+
+    .btn-back { background: #1a222d; color: #38bdf8; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; width: fit-content; }
+
+    .possession-pill { background: #202b38; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #e2e8f0; }
+    .possession-badge-green { background: rgba(56, 239, 125, 0.15); color: #38ef7d; font-weight: bold; padding: 6px 10px; border-radius: 8px; font-size: 12px; font-family: monospace; }
+
+    .btn-vente-immo { background: #2b6cb0; color: white; border: none; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 4px; }
+    .btn-vente-immo.bloque { background: #4a5568; color: #a0aec0; cursor: not-allowed; }
+
+    .reglages-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .reglages-title { font-size: 18px; font-weight: 800; color: #ffffff; }
+    .btn-close { background: #1a222d; border: none; color: #a0aec0; border-radius: 50%; width: 36px; height: 36px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+
+    .item-editor { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .item-editor input { padding: 8px; border-radius: 8px; border: 1px solid #cbd5e0; font-size: 13px; }
+    .item-editor input.nom-input { flex-grow: 1; }
+
+    .btn-ajouter-article { background: #3182ce; color: white; border: none; border-radius: 10px; padding: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; font-size: 13px; min-height: 44px; }
+
+    .apple-pay-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 9999;
+    }
+    .apple-pay-overlay.active { opacity: 1; pointer-events: auto; }
+    .apple-pay-card { background: #1c1c1e; width: 90%; max-width: 400px; border-radius: 24px; padding: 24px; color: white; text-align: center; }
+    .ap-amount { font-size: 32px; font-weight: 700; margin-bottom: 12px; font-family: monospace; }
+    .face-id-icon { width: 56px; height: 56px; margin: 12px auto; border: 3px solid #30d158; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 28px; }
+    .face-id-icon.success { background: #30d158; color: white; }
+
+    .badge-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 2px 8px; border-radius: 10px; background: rgba(255,255,255,0.1); margin-left: 6px; font-weight: bold; }
+
+    .marche-immo-ticker {
+      background: #1e293b; border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px;
+      padding: 8px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; font-weight: bold; color: #e2e8f0;
+    }
+    .marche-immo-hausse { color: #38ef7d; font-family: monospace; font-size: 13px; }
+    .marche-immo-baisse { color: #ff453a; font-family: monospace; font-size: 13px; }
+
+    .aide-content { font-size: 13px; color: #cbd5e0; line-height: 1.5; overflow-y: auto; max-height: 70vh; padding-right: 6px; }
+    .aide-section { background: #1a222d; border-radius: 12px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
+    .aide-section-title { font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+
+    @media (min-width: 600px) { .articles-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 768px) and (orientation: landscape) {
+      .layout-ipad { display: grid; grid-template-columns: 340px 1fr; gap: 16px; }
+      .ticket-container { max-height: 160px; }
+      .articles-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+  </style>
+</head>
+<body onload="initApp()">
+
+  <div class="caisse-container">
+    <div class="header-caisse">
+      <h1>Marseille Monopoly 🎲</h1>
+      <div class="header-actions">
+        <!-- MENU DEROULANT JOUEURS -->
+        <select id="selectJoueurMenu" class="select-joueur" onchange="changerJoueurActif(this.value)">
+          <option value="">👤 Choisir un Joueur</option>
+        </select>
+        <button class="btn-quick-add" onclick="ouvrirModalCreerEcole()">🏫 + Joueur École</button>
+        <button class="btn-icon" onclick="ouvrirBanque()" title="Comptes Bancaires">🏦</button>
+        <button class="btn-icon" onclick="ouvrirAide()" title="Règles du jeu">❓</button>
+      </div>
+    </div>
+    
+    <div class="layout-ipad">
+      <div class="col-gauche">
+        <!-- ECRAN TOTAL ET SOLDE JOUEUR -->
+        <div class="ecran">
+          <div class="total-label">Total à payer</div>
+          <div class="total-montant" id="totalDisplay">0,00 €</div>
+          <div style="border-top: 1px solid rgba(255,255,255,0.15); margin: 8px 0 6px 0;"></div>
           <div class="total-label">Solde Joueur : <span id="joueurActifNomDisplay" style="color: #38ef7d; font-weight: bold;">Aucun</span></div>
           <div class="total-montant" id="joueurSoldeDisplay" style="color: #38bdf8; font-size: 26px; margin-top: 2px;">0,00 €</div>
         </div>
@@ -229,6 +568,25 @@
     <div class="version-tag">v5.9.0 (Arrondissements & Taxes 5%)</div>
   </div>
 
+  <!-- MODAL SELECTION ARRONDISSEMENT ACHAT -->
+  <div class="arrondissement-overlay" id="arrondissementOverlay">
+    <div class="arrondissement-card">
+      <div class="reglages-header">
+        <span class="reglages-title">Choix de l'arrondissement 📍</span>
+        <button class="btn-close" onclick="fermerModalArrondissement()">✕</button>
+      </div>
+      <p style="font-size: 13px; color: #a0aec0; margin-bottom: 12px; line-height: 1.4;">
+        Sélectionnez l'arrondissement où vous souhaitez acheter cet élément.<br>
+        <strong style="color: #f97316;">Note :</strong> Une taxe de 5% du montant sera versée au propriétaire de cet arrondissement (si possédé).
+      </p>
+      <div style="margin-bottom: 16px;">
+        <select id="selectArrondissementAchat" style="width: 100%; padding: 12px; border-radius: 12px; background: #1a222d; color: white; border: 1px solid #38bdf8; font-size: 14px; font-weight: bold; outline: none;">
+        </select>
+      </div>
+      <button class="btn-validation" style="background:#2b6cb0; margin-bottom:0;" onclick="validerChoixArrondissement()">Valider et ajouter au panier</button>
+    </div>
+  </div>
+
   <!-- MODAL AIDE ET REGLES -->
   <div class="aide-overlay" id="aideOverlay">
     <div class="aide-card">
@@ -243,17 +601,15 @@
         </div>
 
         <div class="aide-section">
+          <div class="aide-section-title">📍 Taxe de 5 % sur les Arrondissements</div>
+          Lors de l'achat d'un bien ou d'une entreprise, vous devez obligatoirement choisir l'arrondissement d'implantation. Si un autre joueur possède cet arrondissement, vous devrez lui verser <strong>5% du montant global du bien</strong> à titre de taxe foncière lors du paiement !
+        </div>
+
+        <div class="aide-section">
           <div class="aide-section-title">🔑 Mots de passe & Connexion</div>
           • Sélectionnez votre profil dans le menu déroulant en haut et saisissez votre mot de passe pour jouer.<br>
           • Chaque joueur dispose d'un mot de passe / code PIN requis avant chaque action de paiement.<br>
           • Pour créer un joueur École, cliquez sur <strong>🏫 + Joueur École</strong> (solde de départ : 20 000 €).
-        </div>
-
-        <div class="aide-section">
-          <div class="aide-section-title">🏙️ Arrondissements & Taxes (5%)</div>
-          • Lors de l'achat d'un bien ou d'une entreprise, vous devez choisir l'arrondissement concerné.<br>
-          • <strong>5% du montant</strong> de l'achat est versé au propriétaire de l'arrondissement.<br>
-          • Si l'arrondissement n'a pas de propriétaire, l'argent va dans le <strong>compte de l'arrondissement</strong> (visible en haut à gauche de sa vignette) et sera crédité directement au futur propriétaire lors de son achat.
         </div>
 
         <div class="aide-section">
@@ -398,11 +754,11 @@
   <!-- SIMULATION APPLE PAY -->
   <div class="apple-pay-overlay" id="applePayOverlay">
     <div class="apple-pay-card">
-      <div class="ap-header"><span>Pay</span></div>
+      <div class="ap-header" style="font-size:20px; font-weight:bold; margin-bottom:8px;"><span>Pay</span></div>
       <div class="ap-amount" id="apAmountDisplay">0,00 €</div>
       <div class="face-id-icon" id="faceIdIcon">😃</div>
-      <div class="ap-status" id="apStatusText">Vérification...</div>
-      <div class="ap-user" id="apUserDisplay"></div>
+      <div class="ap-status" id="apStatusText" style="font-weight:bold; font-size:14px; color:#a0aec0;">Vérification...</div>
+      <div class="ap-user" id="apUserDisplay" style="font-size:12px; color:#8b98a5; margin-top:6px;"></div>
     </div>
   </div>
 
@@ -423,7 +779,7 @@
       storageBucket: "caisse-enregistreuse-terrance.firebasestorage.app",
       messagingSenderId: "775121776791",
       appId: "1:775121776791:web:3a67715c6a07b005c579d2",
-      databaseURL: "https://caisse-enregistreuse-terrance-default-rtdb.firebaseio.com"
+      databaseURL: "[https://caisse-enregistreuse-terrance-default-rtdb.firebaseio.com](https://caisse-enregistreuse-terrance-default-rtdb.firebaseio.com)"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -499,9 +855,10 @@
     let panier = [];
     let comptesComplets = {};
     let possessionsImmo = {};
-    let arrondissementSoldes = {};
     let joueurSelectionneVueDetail = null;
     let filtreClassementActif = "tous";
+
+    let articleEnAttenteArrondissement = null;
 
     let marcheImmoPct = 0;
     let marcheBoursePct = 0;
@@ -641,8 +998,6 @@
 
     function initApp() {
       ecouterJoueursFirebase();
-      ecouterArrondissementSoldes();
-      remplirSelectArrondissements();
       afficherOnglets();
       afficherArticles();
       MettreAJourEcran();
@@ -665,18 +1020,6 @@
         opt.value = prenom;
         opt.innerText = `${prenom} (${groupe})`;
         if (prenom === joueurActif) opt.selected = true;
-        select.appendChild(opt);
-      });
-    }
-
-    function remplirSelectArrondissements() {
-      const select = document.getElementById('selectArrondissementAchat');
-      if (!select) return;
-      select.innerHTML = '';
-      baseArticles.filter(a => a.cat === "Arrondissements Marseille").forEach(arr => {
-        let opt = document.createElement('option');
-        opt.value = arr.immoKey;
-        opt.innerText = arr.nom;
         select.appendChild(opt);
       });
     }
@@ -846,13 +1189,6 @@
         return;
       }
       demanderCodePin('paiement');
-    }
-
-    function ecouterArrondissementSoldes() {
-      db.ref('arrondissement_soldes').on('value', (snapshot) => {
-        arrondissementSoldes = snapshot.val() || {};
-        if (categorieActive === "Arrondissements Marseille") afficherArticles();
-      });
     }
 
     function ecouterMarcheImmobilier() {
@@ -1315,6 +1651,51 @@
         return;
       }
 
+      // Si c'est un bien ou une entreprise, demander l'arrondissement
+      if (article.cat === "Immobilier Marseille" || article.cat === "Entreprises Connues" || article.estEntreprise) {
+        articleEnAttenteArrondissement = article;
+        ouvrirModalArrondissement();
+        return;
+      }
+
+      traiterAjoutPanierAvecArrondissement(article, null);
+    }
+
+    function ouvrirModalArrondissement() {
+      const select = document.getElementById('selectArrondissementAchat');
+      select.innerHTML = "";
+      
+      let arrondissements = baseArticles.filter(a => a.cat === "Arrondissements Marseille");
+      arrondissements.forEach(arr => {
+        let prop = obtenirProprietaireUnique(arr.immoKey);
+        let opt = document.createElement('option');
+        opt.value = arr.immoKey;
+        opt.innerText = `${arr.nom} ${prop ? '(Propriétaire: ' + prop + ')' : '(Sans propriétaire)'}`;
+        select.appendChild(opt);
+      });
+
+      document.getElementById('arrondissementOverlay').classList.add('active');
+    }
+
+    function fermerModalArrondissement() {
+      document.getElementById('arrondissementOverlay').classList.remove('active');
+      articleEnAttenteArrondissement = null;
+    }
+
+    function validerChoixArrondissement() {
+      const arrKey = document.getElementById('selectArrondissementAchat').value;
+      if (!arrKey) return;
+
+      let article = articleEnAttenteArrondissement;
+      document.getElementById('arrondissementOverlay').classList.remove('active');
+      articleEnAttenteArrondissement = null;
+
+      if (article) {
+        traiterAjoutPanierAvecArrondissement(article, arrKey);
+      }
+    }
+
+    function traiterAjoutPanierAvecArrondissement(article, arrondissementKey) {
       if (article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire) {
         let prop = obtenirProprietaireUnique(article.immoKey);
         if (prop) {
@@ -1359,11 +1740,27 @@
         }
       }
 
-      let index = panier.findIndex(p => p.id === article.id);
+      let arrNom = "";
+      let arrProp = null;
+      if (arrondissementKey) {
+        let arrObj = baseArticles.find(a => a.immoKey === arrondissementKey);
+        if (arrObj) {
+          arrNom = arrObj.nom;
+          arrProp = obtenirProprietaireUnique(arrondissementKey);
+        }
+      }
+
+      let index = panier.findIndex(p => p.id === article.id && p.arrondissementKey === arrondissementKey);
       if (index >= 0) {
         panier[index].qte += 1;
       } else {
-        panier.push({ ...article, qte: 1 });
+        panier.push({ 
+          ...article, 
+          qte: 1, 
+          arrondissementKey: arrondissementKey,
+          arrondissementNom: arrNom,
+          arrondissementProp: arrProp
+        });
       }
 
       MettreAJourEcran();
@@ -1403,9 +1800,13 @@
           let html = '';
           panier.forEach((item, idx) => {
             let st = item.prix * item.qte;
+            let infoArr = item.arrondissementNom ? `<br><span style="font-size:10px; color:#718096;">📍 ${item.arrondissementNom} ${item.arrondissementProp ? '(Taxe 5% pour ' + item.arrondissementProp + ')' : ''}</span>` : '';
             html += `
               <div class="ligne-ticket">
-                <span>${item.emoji} ${item.nom} x${item.qte}</span>
+                <div>
+                  <span>${item.emoji} ${item.nom} x${item.qte}</span>
+                  ${infoArr}
+                </div>
                 <div>
                   <span style="font-weight:bold;">${st.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €</span>
                   <button class="btn-suppr-ligne" onclick="retirerDuPanier(${idx})">✕</button>
@@ -1462,45 +1863,35 @@
           let updates = {};
           updates[`banques/${lastUserValide}`] = nouveauSolde;
 
-          // Taxe 5% pour l'arrondissement choisi
-          let selectArr = document.getElementById('selectArrondissementAchat');
-          let selectedArrKey = selectArr ? selectArr.value : 'arr_1';
-          let taxeMontant = Math.round(total * 0.05 * 100) / 100;
-          let proprietaireArr = obtenirProprietaireUnique(selectedArrKey);
-
-          if (proprietaireArr) {
-            let soldeProprietaire = comptesComplets[proprietaireArr] !== undefined ? comptesComplets[proprietaireArr] : 20000.00;
-            updates[`banques/${proprietaireArr]`] = Math.round((soldeProprietaire + taxeMontant) * 100) / 100;
-          } else {
-            let soldeActuelArr = arrondissementSoldes[selectedArrKey] || 0;
-            updates[`arrondissement_soldes/${selectedArrKey}`] = Math.round((soldeActuelArr + taxeMontant) * 100) / 100;
-          }
-
           panier.forEach(item => {
             for (let i = 0; i < item.qte; i++) {
+              // 1. Gérer la taxe d'arrondissement 5%
+              if (item.arrondissementKey) {
+                let propArr = obtenirProprietaireUnique(item.arrondissementKey);
+                if (propArr && propArr !== lastUserValide) {
+                  let taxe5Pct = Math.round(item.prix * 0.05 * 100) / 100;
+                  let soldePropArr = updates[`banques/${propArr}`] !== undefined ? updates[`banques/${propArr}`] : (comptesComplets[propArr] !== undefined ? comptesComplets[propArr] : 20000.00);
+                  updates[`banques/${propArr}`] = Math.round((soldePropArr + taxe5Pct) * 100) / 100;
+                }
+              }
+
+              // 2. Gérer les royalties d'Hôtels
               if (item.immoKey === "hotel") {
                 Object.keys(possessionsImmo).forEach(owner => {
                   if (owner !== lastUserValide && possessionsImmo[owner] && possessionsImmo[owner][item.immoKey] && possessionsImmo[owner][item.immoKey].quantite > 0) {
                     let royalty = Math.round(item.prix * 0.15 * 100) / 100;
-                    let ownerSolde = comptesComplets[owner] !== undefined ? comptesComplets[owner] : 20000.00;
-                    updates[`banques/${owner}`] = ownerSolde + royalty;
+                    let ownerSolde = updates[`banques/${owner}`] !== undefined ? updates[`banques/${owner}`] : (comptesComplets[owner] !== undefined ? comptesComplets[owner] : 20000.00);
+                    updates[`banques/${owner}`] = Math.round((ownerSolde + royalty) * 100) / 100;
                   }
                 });
               }
-              if (item.cat === "Arrondissements Marseille" || item.estUniqueProprietaire) {
-                let soldeArr = arrondissementSoldes[item.immoKey] || 0;
-                if (soldeArr > 0) {
-                  let soldeActuelAcheteur = updates[`banques/${lastUserValide}`] !== undefined ? updates[`banques/${lastUserValide}`] : (comptesComplets[lastUserValide] !== undefined ? comptesComplets[lastUserValide] : 20000.00);
-                  updates[`banques/${lastUserValide}`] = soldeActuelAcheteur + soldeArr;
-                  updates[`arrondissement_soldes/${item.immoKey}`] = 0;
-                }
-              }
+
               ajouterPossessionImmo(lastUserValide, item);
             }
           });
 
           db.ref().update(updates).then(() => {
-            alert(`✅ Paiement de ${total.toLocaleString('fr-FR')} € effectué avec succès pour ${lastUserValide} ! (Taxe 5% versée)`);
+            alert(`✅ Paiement de ${total.toLocaleString('fr-FR')} € effectué avec succès pour ${lastUserValide} !`);
             reinitialiser();
             mettreAJourSoldeJoueurActif();
           });
@@ -1627,20 +2018,12 @@
       articlesFiltres.forEach(art => {
         let btn = document.createElement('button');
         btn.className = "btn-article";
-        btn.style.position = "relative";
 
         let estUnique = (art.cat === "Entreprises Connues" || art.estEntreprise || art.cat === "Arrondissements Marseille" || art.estUniqueProprietaire);
         let prop = estUnique ? obtenirProprietaireUnique(art.immoKey) : null;
         
         let entObj = (art.cat === "Entreprises Connues" || art.estEntreprise) ? (bourseEntreprisesData[art.immoKey] || { pourcentageReel: 0 }) : null;
         let pctTexte = entObj ? `${entObj.pourcentageReel >= 0 ? '+' : ''}${entObj.pourcentageReel.toFixed(1)}%` : '';
-
-        // Compte de l'arrondissement en haut à gauche
-        let soldeArrondissement = 0;
-        if (art.cat === "Arrondissements Marseille") {
-          soldeArrondissement = arrondissementSoldes[art.immoKey] || 0;
-        }
-        let htmlSoldeArr = art.cat === "Arrondissements Marseille" ? `<div style="position: absolute; top: 6px; left: 8px; font-size: 10px; font-family: monospace; font-weight: bold; color: #38ef7d; background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 6px;" title="Compte de l'arrondissement">🏦 ${soldeArrondissement.toLocaleString('fr-FR', {minimumFractionDigits:0, maximumFractionDigits:0})} €</div>` : '';
 
         if (prop) {
           btn.style.opacity = '0.55';
@@ -1652,8 +2035,7 @@
           };
 
           btn.innerHTML = `
-            ${htmlSoldeArr}
-            <span class="emoji" style="${art.cat === 'Arrondissements Marseille' ? 'margin-top:12px;' : ''}">${art.emoji}</span>
+            <span class="emoji">${art.emoji}</span>
             <span style="line-height:1.2; text-decoration: line-through;">${art.nom}</span>
             <span class="prix-tag" style="background:#334155; color:#94a3b8;">${art.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
             <span style="font-size:10px; color:#f87171; font-weight:bold; margin-top:2px;">🔒 ${prop}</span>
@@ -1662,8 +2044,7 @@
           btn.onclick = () => ajouterAuPanier(art);
           let badgeGainHtml = entObj ? `<span style="font-size:10px; color:${entObj.pourcentageReel >= 0 ? '#38ef7d' : '#ff453a'}; font-weight:bold; margin-top:2px;">Bourse: ${pctTexte}/h</span>` : '';
           btn.innerHTML = `
-            ${htmlSoldeArr}
-            <span class="emoji" style="${art.cat === 'Arrondissements Marseille' ? 'margin-top:12px;' : ''}">${art.emoji}</span>
+            <span class="emoji">${art.emoji}</span>
             <span style="line-height:1.2;">${art.nom}</span>
             <span class="prix-tag">${art.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
             ${badgeGainHtml}
