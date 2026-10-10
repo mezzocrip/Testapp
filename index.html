@@ -263,7 +263,7 @@
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v5.3.0 (+50 Entreprises et Groupes Internationaux)</div>
+    <div class="version-tag">v5.4.0 (+24h Entreprises Vente & Gains sur Boutons)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -302,7 +302,8 @@
           • <strong>Revenus passifs</strong> : Snacks (+1 000€/h), Hôtels et Malls rapportent <strong>20%/h</strong> automatiquement 2 heures après l'achat.<br>
           • <strong>Entreprises en Bourse & Arrondissements (Toutes les heures)</strong> : Les entreprises et arrondissements rapportent ou font perdre de l'argent toutes les heures selon leur valeur réelle / marché.<br>
           • <strong>Règles de Possession & Propriétaire Unique</strong> :<br>
-          &nbsp;&nbsp;- 👑 <strong>Arrondissements & Entreprises</strong> : Les arrondissements de Marseille et les entreprises (70 entreprises disponibles) ne peuvent avoir qu'<strong>un seul propriétaire</strong>[cite: 1]. Une fois achetés par un joueur, ils sont grisés et ne peuvent plus être achetés par d'autres[cite: 1].<br>
+          &nbsp;&nbsp;- 👑 <strong>Arrondissements & Entreprises</strong> : Les arrondissements de Marseille et les entreprises ne peuvent avoir qu'<strong>un seul propriétaire</strong>[cite: 1]. Une fois achetés par un joueur, ils sont grisés et ne peuvent plus être achetés par d'autres[cite: 1].<br>
+          &nbsp;&nbsp;- ⏳ <strong>Délai de revente des Entreprises</strong> : Les entreprises acquises ne peuvent être revendues qu'au bout de <strong>24 heures minimum</strong>.<br>
           &nbsp;&nbsp;- 🏨 <strong>Hôtels</strong> : Limité à <strong>10 hôtels maximum par gamme/joueur</strong>. Si vous achetez un hôtel alors qu'un autre joueur en possède déjà, vous devez verser des <strong>royalties de 15%</strong> du montant de l'hôtel au(x) propriétaire(s).<br>
           • <strong>Revente de Biens</strong> : Seuls les biens de la section <em>Immobilier Marseille</em> (hors Hôtels), les <strong>Arrondissements</strong> et les <strong>Entreprises</strong> peuvent être revendus pour récupérer leur valeur actualisée.
         </div>
@@ -1004,7 +1005,7 @@
           marcheBoursePct = data.pourcentageReel;
           afficherIndicateurBourse();
           if (joueurSelectionneVueDetail) afficherDetailJoueur(joueurSelectionneVueDetail);
-          if (categorieActive === "🏠 Mes Biens") afficherArticles();
+          if (categorieActive === "🏠 Mes Biens" || categorieActive === "Entreprises Connues") afficherArticles();
         }
       });
     }
@@ -1218,6 +1219,7 @@
       
       let estImmoRevendable = (catalogueRef && catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel");
       let estElementRevendable = (catalogueRef && (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire));
+      let estEntreprise = (catalogueRef && (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise));
 
       if (!catalogueRef || (!estImmoRevendable && !estElementRevendable)) {
         alert("🚫 Seuls les biens de la section Immobilier Marseille (hors Hôtels), les Arrondissements et les Entreprises peuvent être revendus !");
@@ -1230,6 +1232,15 @@
         if (!data || !data.achats || data.achats[indexAchat] === undefined) return;
 
         const dateAchat = data.achats[indexAchat];
+        const maintenant = Date.now();
+        const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
+
+        if (estEntreprise && heuresEcoulees < 24) {
+          let heuresRestantes = Math.ceil(24 - heuresEcoulees);
+          alert(`🔒 Les entreprises ne peuvent être revendues qu'au bout de 24h minimum !\nTemps restant avant revente : environ ${heuresRestantes} heure(s).`);
+          return;
+        }
+
         const calculVal = calculerPrixReventeBien(dateAchat, prixBase, estElementRevendable);
         const prixRevente = calculVal.prix;
 
@@ -1497,12 +1508,26 @@
             btn.className = "btn-article mes-biens-card";
 
             let estRevendable = ((article.cat === "Immobilier Marseille" && immoKey !== "hotel") || article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire);
+            let estEntreprise = (article.cat === "Entreprises Connues" || article.estEntreprise);
+            
+            const maintenant = Date.now();
+            const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
+            let blocageEntreprise = estEntreprise && heuresEcoulees < 24;
+
             let infoCalcul = estRevendable ? calculerPrixReventeBien(dateAchat, article.prix, (article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire)) : { prix: article.prix, augmente: false };
             let prixAffichage = infoCalcul.prix;
 
-            let htmlRevendre = estRevendable 
-              ? `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${joueurActif}', '${immoKey}', ${idx}, ${article.prix}, '${article.nom.replace(/'/g, "\\'")}')">🏷️ Vendre (${prixAffichage.toLocaleString('fr-FR')} €)</button>`
-              : `<span style="font-size:10px; color:#a0aec0; margin-top:4px;">Non revendable</span>`;
+            let htmlRevendre = "";
+            if (estRevendable) {
+              if (blocageEntreprise) {
+                let heuresRestantes = Math.ceil(24 - heuresEcoulees);
+                htmlRevendre = `<button class="btn-vente-immo bloque" disabled>🔒 Vendre (dans ${heuresRestantes}h)</button>`;
+              } else {
+                htmlRevendre = `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${joueurActif}', '${immoKey}', ${idx}, ${article.prix}, '${article.nom.replace(/'/g, "\\'")}')">🏷️ Vendre (${prixAffichage.toLocaleString('fr-FR')} €)</button>`;
+              }
+            } else {
+              htmlRevendre = `<span style="font-size:10px; color:#a0aec0; margin-top:4px;">Non revendable</span>`;
+            }
 
             btn.innerHTML = `
               <div style="font-size:24px;">${article.emoji}</div>
@@ -1528,6 +1553,8 @@
 
         let estUnique = (art.cat === "Entreprises Connues" || art.estEntreprise || art.cat === "Arrondissements Marseille" || art.estUniqueProprietaire);
         let prop = estUnique ? obtenirProprietaireUnique(art.immoKey) : null;
+        let jeuPct = marcheBoursePct * 10;
+        let pctTexte = estUnique ? `${jeuPct >= 0 ? '+' : ''}${jeuPct.toFixed(1)}%` : '';
 
         if (prop) {
           btn.style.opacity = '0.55';
@@ -1546,10 +1573,12 @@
           `;
         } else {
           btn.onclick = () => ajouterAuPanier(art);
+          let badgeGainHtml = art.estEntreprise || art.cat === "Entreprises Connues" ? `<span style="font-size:10px; color:${jeuPct >= 0 ? '#38ef7d' : '#ff453a'}; font-weight:bold; margin-top:2px;">Gains: ${pctTexte}/h</span>` : '';
           btn.innerHTML = `
             <span class="emoji">${art.emoji}</span>
             <span style="line-height:1.2;">${art.nom}</span>
             <span class="prix-tag">${art.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
+            ${badgeGainHtml}
           `;
         }
 
@@ -1935,12 +1964,26 @@
           div.className = "possession-pill";
 
           let estRevendable = ((catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel") || catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire);
+          let estEntreprise = (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise);
+
+          const maintenant = Date.now();
+          const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
+          let blocageEntreprise = estEntreprise && heuresEcoulees < 24;
+
           let infoCalcul = estRevendable ? calculerPrixReventeBien(dateAchat, catalogueRef.prix, (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire)) : { prix: catalogueRef.prix, augmente: false };
           let prixAffichage = infoCalcul.prix;
 
-          let btnVendreHtml = estRevendable 
-            ? `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${prenom}', '${immoKey}', ${idx}, ${catalogueRef.prix}, '${catalogueRef.nom.replace(/'/g, "\\'")}')">🏷️ Vendre (${prixAffichage.toLocaleString('fr-FR')} €)</button>`
-            : `<span style="font-size:11px; color:#a0aec0;">Non revendable</span>`;
+          let btnVendreHtml = "";
+          if (estRevendable) {
+            if (blocageEntreprise) {
+              let heuresRestantes = Math.ceil(24 - heuresEcoulees);
+              btnVendreHtml = `<button class="btn-vente-immo bloque" disabled>🔒 Vendre (dans ${heuresRestantes}h)</button>`;
+            } else {
+              btnVendreHtml = `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${prenom}', '${immoKey}', ${idx}, ${catalogueRef.prix}, '${catalogueRef.nom.replace(/'/g, "\\'")}')">🏷️ Vendre (${prixAffichage.toLocaleString('fr-FR')} €)</button>`;
+            }
+          } else {
+            btnVendreHtml = `<span style="font-size:11px; color:#a0aec0;">Non revendable</span>`;
+          }
 
           div.innerHTML = `
             <div>
