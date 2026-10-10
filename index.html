@@ -263,7 +263,7 @@
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v5.4.0 (+24h Entreprises Vente & Gains sur Boutons)</div>
+    <div class="version-tag">v5.5.0 (+ Parking 5000€ & Cours de Bourse Individuel par Entreprise)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -276,7 +276,7 @@
       <div class="aide-content">
         <div class="aide-section">
           <div class="aide-section-title">🎮 Principe Général</div>
-          Accumulez de la fortune, achetez des biens immobiliers, des arrondissements de Marseille, des automobiles d'exception et des entreprises internationales. Gérez votre compte bancaire via la caisse enregistreuse !
+          Accumulez de la fortune, achetez des biens immobiliers, des places de parking, des arrondissements de Marseille, des automobiles d'exception et des entreprises internationales. Gérez votre compte bancaire via la caisse enregistreuse !
         </div>
 
         <div class="aide-section">
@@ -293,14 +293,15 @@
 
         <div class="aide-section">
           <div class="aide-section-title">🚘 Automobiles & Garages</div>
-          • Vous devez posséder au moins un garage (5 ou 20 places) dans <em>Immobilier Marseille</em> pour acheter des véhicules.<br>
+          • Vous devez posséder au moins un garage (5 ou 20 places) ou des places de parking dans <em>Immobilier Marseille</em> pour acheter des véhicules.<br>
           • La capacité de vos garages limite le nombre d'automobiles que vous pouvez acheter.
         </div>
 
         <div class="aide-section">
           <div class="aide-section-title">🏢 Immobilier, Arrondissements & Entreprises</div>
           • <strong>Revenus passifs</strong> : Snacks (+1 000€/h), Hôtels et Malls rapportent <strong>20%/h</strong> automatiquement 2 heures après l'achat.<br>
-          • <strong>Entreprises en Bourse & Arrondissements (Toutes les heures)</strong> : Les entreprises et arrondissements rapportent ou font perdre de l'argent toutes les heures selon leur valeur réelle / marché.<br>
+          • <strong>Place de Parking</strong> : Disponible à 5 000 € dans l'immobilier marseillais, elle suit le cours de l'immobilier comme les maisons.<br>
+          • <strong>Entreprises en Bourse (Cours individuels) & Arrondissements (Toutes les heures)</strong> : Chaque entreprise possède son propre cours de la bourse indépendant mis à jour toutes les heures. Les arrondissements suivent l'indice global du marché.<br>
           • <strong>Règles de Possession & Propriétaire Unique</strong> :<br>
           &nbsp;&nbsp;- 👑 <strong>Arrondissements & Entreprises</strong> : Les arrondissements de Marseille et les entreprises ne peuvent avoir qu'<strong>un seul propriétaire</strong>[cite: 1]. Une fois achetés par un joueur, ils sont grisés et ne peuvent plus être achetés par d'autres[cite: 1].<br>
           &nbsp;&nbsp;- ⏳ <strong>Délai de revente des Entreprises</strong> : Les entreprises acquises ne peuvent être revendues qu'au bout de <strong>24 heures minimum</strong>.<br>
@@ -491,8 +492,8 @@
       </div>
 
       <div class="marche-immo-ticker" id="marcheBourseTicker">
-        <span>📊 Tendance Bourse Entreprises & Arrondissements (1h) :</span>
-        <span id="marcheBourseValDisplay" class="marche-immo-hausse">+0%</span>
+        <span>📊 Bourse Entreprises (Cours individuels) :</span>
+        <span id="marcheBourseValDisplay" class="marche-immo-hausse">Indépendant</span>
       </div>
 
       <div class="categories-tabs" id="tabsClassementGroupe" style="margin-bottom: 10px;">
@@ -623,6 +624,7 @@
 
     let marcheImmoPct = 0;
     let marcheBoursePct = 0;
+    let bourseEntreprisesData = {};
 
     let niveauQuizActif = "facile";
     let gainParQuestion = 30000;
@@ -669,6 +671,7 @@
       { id: 512, cat: "Immobilier Marseille", emoji: "🏬", nom: "Abu Dhabi Mega Mall (20%/h après 2h)", prix: 100000000.00, immoKey: "abuDhabiMall", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estMall: true, estCentreCommercial: true },
       { id: 513, cat: "Immobilier Marseille", emoji: "🚘", nom: "Garage 5 voitures", prix: 50000.00, immoKey: "garage5", capaciteGarage: 5 },
       { id: 514, cat: "Immobilier Marseille", emoji: "🏎", nom: "Garage 20 voitures", prix: 150000.00, immoKey: "garage20", capaciteGarage: 20 },
+      { id: 515, cat: "Immobilier Marseille", emoji: "🅿️", nom: "Place de parking", prix: 5000.00, immoKey: "parking" },
 
       // ARRONDISSEMENTS DE MARSEILLE
       { id: 701, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "1er Arrondissement", prix: 100000000000000000.00, immoKey: "arr_1", delaiActivationHeures: 2, estUniqueProprietaire: true },
@@ -774,6 +777,7 @@
       initialiserEtEcouterComptes();
       ecouterPossessionsImmo();
       ecouterMarcheImmobilier();
+      ecouterBourseEntreprises();
       ecouterMarcheBourse();
       setInterval(traiterRevenusHorairesImmo, 10000);
     }
@@ -991,6 +995,34 @@
       });
     }
 
+    function ecouterBourseEntreprises() {
+      db.ref('bourse_entreprises').on('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        const maintenant = Date.now();
+        const trancheHeure = Math.floor(maintenant / (3600 * 1000));
+        let updates = {};
+        let needsUpdate = false;
+
+        baseArticles.filter(a => a.cat === "Entreprises Connues" || a.estEntreprise).forEach(ent => {
+          let entData = data[ent.immoKey];
+          if (!entData || entData.tranche !== trancheHeure) {
+            const estPerte = Math.random() < 0.35;
+            let pctReel = estPerte ? - (Math.floor(Math.random() * 40) / 10 + 0.5) : (Math.floor(Math.random() * 50) / 10 + 0.5);
+            updates[ent.immoKey] = { tranche: trancheHeure, pourcentageReel: pctReel };
+            needsUpdate = true;
+          }
+        });
+
+        if (needsUpdate) {
+          db.ref('bourse_entreprises').update(updates);
+        } else {
+          bourseEntreprisesData = data;
+          if (joueurSelectionneVueDetail) afficherDetailJoueur(joueurSelectionneVueDetail);
+          if (categorieActive === "🏠 Mes Biens" || categorieActive === "Entreprises Connues") afficherArticles();
+        }
+      });
+    }
+
     function ecouterMarcheBourse() {
       db.ref('marche_bourse').on('value', (snapshot) => {
         const data = snapshot.val();
@@ -1003,9 +1035,6 @@
           db.ref('marche_bourse').set({ tranche: trancheHeure, pourcentageReel: pctReel });
         } else {
           marcheBoursePct = data.pourcentageReel;
-          afficherIndicateurBourse();
-          if (joueurSelectionneVueDetail) afficherDetailJoueur(joueurSelectionneVueDetail);
-          if (categorieActive === "🏠 Mes Biens" || categorieActive === "Entreprises Connues") afficherArticles();
         }
       });
     }
@@ -1019,19 +1048,6 @@
       } else {
         display.className = "marche-immo-baisse";
         display.innerText = `${marcheImmoPct.toLocaleString('fr-FR')}% 📉`;
-      }
-    }
-
-    function afficherIndicateurBourse() {
-      const display = document.getElementById('marcheBourseValDisplay');
-      if (!display) return;
-      let jeuPct = marcheBoursePct * 10;
-      if (jeuPct >= 0) {
-        display.className = "marche-immo-hausse";
-        display.innerText = `+${jeuPct.toFixed(1)}% (${marcheBoursePct >= 0 ? '+' : ''}${marcheBoursePct.toFixed(1)}% réel) 📈`;
-      } else {
-        display.className = "marche-immo-baisse";
-        display.innerText = `${jeuPct.toFixed(1)}% (${marcheBoursePct.toFixed(1)}% réel) 📉`;
       }
     }
 
@@ -1140,9 +1156,15 @@
             let dernierPaiementIndiv = (dataBien.derniersPaiements && dataBien.derniersPaiements[index]) ? dataBien.derniersPaiements[index] : dateAchat;
             let delaiMin = 0;
             let gainOuPerteHeure = 0;
-            let estElementUnique = (catalogueRef && (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire));
+            let estEntreprise = (catalogueRef && (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise));
+            let estElementUnique = (catalogueRef && (catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire));
 
-            if (estElementUnique) {
+            if (estEntreprise) {
+              delaiMin = (catalogueRef.delaiActivationHeures || 2) * 3600 * 1000;
+              let entObj = bourseEntreprisesData[immoKey] || { pourcentageReel: 0 };
+              let tauxJeu = entObj.pourcentageReel * 0.10;
+              gainOuPerteHeure = catalogueRef.prix * tauxJeu;
+            } else if (estElementUnique) {
               delaiMin = (catalogueRef.delaiActivationHeures || 2) * 3600 * 1000;
               let tauxJeu = marcheBoursePct * 0.10;
               gainOuPerteHeure = catalogueRef.prix * tauxJeu;
@@ -1199,7 +1221,7 @@
       });
     }
 
-    function calculerPrixReventeBien(dateAchat, prixBase, isElementUnique) {
+    function calculerPrixReventeBien(dateAchat, prixBase, isElementUnique, immoKey, isEntreprise) {
       const maintenant = Date.now();
       const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
 
@@ -1207,7 +1229,16 @@
         return { prix: prixBase, augmente: false };
       }
 
-      let pctMarche = isElementUnique ? (marcheBoursePct * 10) : marcheImmoPct;
+      let pctMarche = 0;
+      if (isEntreprise) {
+        let entObj = bourseEntreprisesData[immoKey] || { pourcentageReel: 0 };
+        pctMarche = entObj.pourcentageReel * 10;
+      } else if (isElementUnique) {
+        pctMarche = marcheBoursePct * 10;
+      } else {
+        pctMarche = marcheImmoPct;
+      }
+
       let multMarche = 1 + (pctMarche / 100);
       if (multMarche < 0.1) multMarche = 0.1;
 
@@ -1241,10 +1272,11 @@
           return;
         }
 
-        const calculVal = calculerPrixReventeBien(dateAchat, prixBase, estElementRevendable);
+        const calculVal = calculerPrixReventeBien(dateAchat, prixBase, (catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire), immoKey, estEntreprise);
         const prixRevente = calculVal.prix;
 
-        let pctRefAffiche = estElementRevendable ? (marcheBoursePct * 10) : marcheImmoPct;
+        let entObj = bourseEntreprisesData[immoKey] || { pourcentageReel: 0 };
+        let pctRefAffiche = estEntreprise ? (entObj.pourcentageReel * 10) : (estElementRevendable ? (marcheBoursePct * 10) : marcheImmoPct);
         let msg = calculVal.augmente
           ? `Voulez-vous revendre ${nomBien} pour ${prixRevente.toLocaleString('fr-FR')} € (Selon le marché : ${pctRefAffiche >= 0 ? '+' : ''}${pctRefAffiche.toFixed(1)}%) ?`
           : `Ce bien a moins de 3h d'ancienneté. Voulez-vous le revendre à son prix initial de ${prixBase.toLocaleString('fr-FR')} € ?`;
@@ -1306,6 +1338,7 @@
         const userImmo = possessionsImmo[joueurActif] || {};
         if (userImmo.garage5 && userImmo.garage5.quantite) capaciteTotale += userImmo.garage5.quantite * 5;
         if (userImmo.garage20 && userImmo.garage20.quantite) capaciteTotale += userImmo.garage20.quantite * 20;
+        if (userImmo.parking && userImmo.parking.quantite) capaciteTotale += userImmo.parking.quantite * 1;
 
         let voituresPossedees = 0;
         baseArticles.filter(a => a.cat === "Automobiles").forEach(car => {
@@ -1317,7 +1350,7 @@
         let voituresDansPanier = panier.filter(p => p.cat === "Automobiles").reduce((s, i) => s + i.qte, 0);
 
         if (voituresPossedees + voituresDansPanier + 1 > capaciteTotale) {
-          alert(`🚗 Capacité de garage insuffisante !\nPlaces disponibles : ${capaciteTotale}\nVéhicules (possédés + panier) : ${voituresPossedees + voituresDansPanier}\nAchetez un garage dans "Immobilier Marseille" pour continuer.`);
+          alert(`🚗 Capacité de garage / parking insuffisante !\nPlaces disponibles : ${capaciteTotale}\nVéhicules (possédés + panier) : ${voituresPossedees + voituresDansPanier}\nAchetez un garage ou une place de parking dans "Immobilier Marseille" pour continuer.`);
           return;
         }
       }
@@ -1514,7 +1547,7 @@
             const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
             let blocageEntreprise = estEntreprise && heuresEcoulees < 24;
 
-            let infoCalcul = estRevendable ? calculerPrixReventeBien(dateAchat, article.prix, (article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire)) : { prix: article.prix, augmente: false };
+            let infoCalcul = estRevendable ? calculerPrixReventeBien(dateAchat, article.prix, (article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire), immoKey, estEntreprise) : { prix: article.prix, augmente: false };
             let prixAffichage = infoCalcul.prix;
 
             let htmlRevendre = "";
@@ -1553,8 +1586,10 @@
 
         let estUnique = (art.cat === "Entreprises Connues" || art.estEntreprise || art.cat === "Arrondissements Marseille" || art.estUniqueProprietaire);
         let prop = estUnique ? obtenirProprietaireUnique(art.immoKey) : null;
-        let jeuPct = marcheBoursePct * 10;
-        let pctTexte = estUnique ? `${jeuPct >= 0 ? '+' : ''}${jeuPct.toFixed(1)}%` : '';
+        
+        let entObj = (art.cat === "Entreprises Connues" || art.estEntreprise) ? (bourseEntreprisesData[art.immoKey] || { pourcentageReel: 0 }) : null;
+        let jeuPct = entObj ? entObj.pourcentageReel * 10 : (marcheBoursePct * 10);
+        let pctTexte = entObj ? `${entObj.pourcentageReel >= 0 ? '+' : ''}${entObj.pourcentageReel.toFixed(1)}%` : '';
 
         if (prop) {
           btn.style.opacity = '0.55';
@@ -1573,7 +1608,7 @@
           `;
         } else {
           btn.onclick = () => ajouterAuPanier(art);
-          let badgeGainHtml = art.estEntreprise || art.cat === "Entreprises Connues" ? `<span style="font-size:10px; color:${jeuPct >= 0 ? '#38ef7d' : '#ff453a'}; font-weight:bold; margin-top:2px;">Gains: ${pctTexte}/h</span>` : '';
+          let badgeGainHtml = entObj ? `<span style="font-size:10px; color:${entObj.pourcentageReel >= 0 ? '#38ef7d' : '#ff453a'}; font-weight:bold; margin-top:2px;">Bourse: ${pctTexte}/h</span>` : '';
           btn.innerHTML = `
             <span class="emoji">${art.emoji}</span>
             <span style="line-height:1.2;">${art.nom}</span>
@@ -1970,7 +2005,7 @@
           const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
           let blocageEntreprise = estEntreprise && heuresEcoulees < 24;
 
-          let infoCalcul = estRevendable ? calculerPrixReventeBien(dateAchat, catalogueRef.prix, (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire)) : { prix: catalogueRef.prix, augmente: false };
+          let infoCalcul = estRevendable ? calculerPrixReventeBien(dateAchat, catalogueRef.prix, (catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire), immoKey, estEntreprise) : { prix: catalogueRef.prix, augmente: false };
           let prixAffichage = infoCalcul.prix;
 
           let btnVendreHtml = "";
@@ -2004,3 +2039,4 @@
   </script>
 </body>
 </html>
+```
