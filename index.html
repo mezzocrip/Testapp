@@ -93,16 +93,16 @@
     .btn-quiz-mode { background: #6b46c1; color: #fff; border: none; border-radius: 14px; padding: 12px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; }
     .btn-reset { background: none; border: none; color: #e53e3e; font-weight: bold; cursor: pointer; padding: 6px; font-size: 12px; width: 100%; text-align: center; }
 
-    .pin-overlay, .banque-overlay, .historique-overlay, .reglages-overlay, .quiz-level-overlay, .quiz-overlay, .apple-pay-overlay, .creer-ecole-overlay, .aide-overlay {
+    .pin-overlay, .banque-overlay, .historique-overlay, .reglages-overlay, .quiz-level-overlay, .quiz-overlay, .apple-pay-overlay, .creer-ecole-overlay, .aide-overlay, .vente-quantite-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85);
       backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center;
       opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 9998;
     }
-    .pin-overlay.active, .banque-overlay.active, .historique-overlay.active, .reglages-overlay.active, .quiz-level-overlay.active, .quiz-overlay.active, .apple-pay-overlay.active, .creer-ecole-overlay.active, .aide-overlay.active {
+    .pin-overlay.active, .banque-overlay.active, .historique-overlay.active, .reglages-overlay.active, .quiz-level-overlay.active, .quiz-overlay.active, .apple-pay-overlay.active, .creer-ecole-overlay.active, .aide-overlay.active, .vente-quantite-overlay.active {
       opacity: 1; pointer-events: auto;
     }
     
-    .banque-card, .historique-card, .reglages-card, .level-card, .quiz-card, .creer-ecole-card, .aide-card {
+    .banque-card, .historique-card, .reglages-card, .level-card, .quiz-card, .creer-ecole-card, .aide-card, .vente-card {
       background: #121820; width: 92%; max-width: 440px; border-radius: 24px; padding: 22px; color: white;
       text-align: left; box-shadow: 0 20px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08);
       max-height: 90vh; display: flex; flex-direction: column;
@@ -263,7 +263,7 @@
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v5.5.0 (+ Parking 5000€ & Cours de Bourse Individuel par Entreprise)</div>
+    <div class="version-tag">v5.6.0 (+ Choix de la quantité de biens à vendre)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -306,8 +306,25 @@
           &nbsp;&nbsp;- 👑 <strong>Arrondissements & Entreprises</strong> : Les arrondissements de Marseille et les entreprises ne peuvent avoir qu'<strong>un seul propriétaire</strong>[cite: 1]. Une fois achetés par un joueur, ils sont grisés et ne peuvent plus être achetés par d'autres[cite: 1].<br>
           &nbsp;&nbsp;- ⏳ <strong>Délai de revente des Entreprises</strong> : Les entreprises acquises ne peuvent être revendues qu'au bout de <strong>24 heures minimum</strong>.<br>
           &nbsp;&nbsp;- 🏨 <strong>Hôtels</strong> : Limité à <strong>10 hôtels maximum par gamme/joueur</strong>. Si vous achetez un hôtel alors qu'un autre joueur en possède déjà, vous devez verser des <strong>royalties de 15%</strong> du montant de l'hôtel au(x) propriétaire(s).<br>
-          • <strong>Revente de Biens</strong> : Seuls les biens de la section <em>Immobilier Marseille</em> (hors Hôtels), les <strong>Arrondissements</strong> et les <strong>Entreprises</strong> peuvent être revendus pour récupérer leur valeur actualisée.
+          • <strong>Revente de Biens (avec choix de quantité)</strong> : Seuls les biens de la section <em>Immobilier Marseille</em> (hors Hôtels), les <strong>Arrondissements</strong> et les <strong>Entreprises</strong> peuvent être revendus. Vous pouvez choisir la quantité exacte à revendre (méthode FIFO).
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CHOIX QUANTITE VENTE -->
+  <div class="vente-quantite-overlay" id="venteQuantiteOverlay">
+    <div class="vente-card">
+      <div class="reglages-header">
+        <span class="reglages-title" id="venteModalTitle">Revendre un bien 🏷️</span>
+        <button class="btn-close" onclick="fermerModalVenteQuantite()">✕</button>
+      </div>
+      <div id="venteModalBody" style="font-size: 13px; color: #cbd5e0; margin-bottom: 16px; line-height: 1.5;">
+        <!-- Contenu dynamique -->
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-validation" style="background:#2b6cb0; flex:1;" onclick="validerVenteQuantite()">Valider la revente</button>
+        <button class="btn-validation" style="background:#2d3748; color:#cbd5e0; flex:1;" onclick="fermerModalVenteQuantite()">Annuler</button>
       </div>
     </div>
   </div>
@@ -634,6 +651,8 @@
     let questionActiveCourante = null;
     let tempsRestant = 10;
     let intervalChrono = null;
+
+    let venteActiveContext = null;
 
     let baseArticles = [
       // AUTOMOBILES
@@ -1245,14 +1264,14 @@
       return { prix: Math.round(prixBase * multMarche * 100) / 100, augmente: true };
     }
 
-    function revendreBienImmobilier(user, immoKey, indexAchat, prixBase, nomBien) {
+    function ouvrirModalVenteBien(user, immoKey) {
       const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
-      
-      let estImmoRevendable = (catalogueRef && catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel");
-      let estElementRevendable = (catalogueRef && (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire));
-      let estEntreprise = (catalogueRef && (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise));
+      if (!catalogueRef) return;
 
-      if (!catalogueRef || (!estImmoRevendable && !estElementRevendable)) {
+      let estImmoRevendable = (catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel");
+      let estElementRevendable = (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire);
+
+      if (!estImmoRevendable && !estElementRevendable) {
         alert("🚫 Seuls les biens de la section Immobilier Marseille (hors Hôtels), les Arrondissements et les Entreprises peuvent être revendus !");
         return;
       }
@@ -1260,56 +1279,175 @@
       const ref = db.ref(`immobilier/${user}/${immoKey}`);
       ref.once('value', (snapshot) => {
         const data = snapshot.val();
-        if (!data || !data.achats || data.achats[indexAchat] === undefined) return;
-
-        const dateAchat = data.achats[indexAchat];
-        const maintenant = Date.now();
-        const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
-
-        if (estEntreprise && heuresEcoulees < 24) {
-          let heuresRestantes = Math.ceil(24 - heuresEcoulees);
-          alert(`🔒 Les entreprises ne peuvent être revendues qu'au bout de 24h minimum !\nTemps restant avant revente : environ ${heuresRestantes} heure(s).`);
+        if (!data || !data.achats || data.achats.length === 0) {
+          alert("Vous ne possédez aucun exemplaire de ce bien.");
           return;
         }
 
-        const calculVal = calculerPrixReventeBien(dateAchat, prixBase, (catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire), immoKey, estEntreprise);
-        const prixRevente = calculVal.prix;
+        const maintenant = Date.now();
+        let estEntreprise = (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise);
 
-        let entObj = bourseEntreprisesData[immoKey] || { pourcentageReel: 0 };
-        let pctRefAffiche = estEntreprise ? (entObj.pourcentageReel * 10) : (estElementRevendable ? (marcheBoursePct * 10) : marcheImmoPct);
-        let msg = calculVal.augmente
-          ? `Voulez-vous revendre ${nomBien} pour ${prixRevente.toLocaleString('fr-FR')} € (Selon le marché : ${pctRefAffiche >= 0 ? '+' : ''}${pctRefAffiche.toFixed(1)}%) ?`
-          : `Ce bien a moins de 3h d'ancienneté. Voulez-vous le revendre à son prix initial de ${prixBase.toLocaleString('fr-FR')} € ?`;
+        // Filtrer les achats éligibles (pour les entreprises, vérifier le délai de 24h)
+        let achatsEligibles = [];
+        let achatsBloquesCount = 0;
 
-        if (confirm(msg)) {
-          let nouveauxAchats = [...data.achats];
-          let nouveauxPaiements = data.derniersPaiements ? [...data.derniersPaiements] : [];
-          nouveauxAchats.splice(indexAchat, 1);
-          if (nouveauxPaiements.length > indexAchat) nouveauxPaiements.splice(indexAchat, 1);
-
-          let nouvelleQuantite = (data.quantite || 1) - 1;
-          let actionUpdate = {};
-
-          if (nouvelleQuantite <= 0) {
-            actionUpdate[`immobilier/${user}/${immoKey}`] = null;
+        data.achats.forEach((dateAchat, idx) => {
+          const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
+          if (estEntreprise && heuresEcoulees < 24) {
+            achatsBloquesCount++;
           } else {
-            actionUpdate[`immobilier/${user}/${immoKey}`] = {
-              quantite: nouvelleQuantite,
-              achats: nouveauxAchats,
-              derniersPaiements: nouveauxPaiements
-            };
+            achatsEligibles.push({ dateAchat, indexOriginal: idx });
           }
+        });
 
-          db.ref().update(actionUpdate).then(() => {
-            let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
-            let nouveauSolde = Math.round((soldeActuel + prixRevente) * 100) / 100;
-            db.ref(`banques/${user}`).set(nouveauSolde).then(() => {
-              alert(`💰 ${nomBien} revendu avec succès pour ${prixRevente.toLocaleString('fr-FR')} € !`);
-              afficherClassementEtPossessions();
-              if (categorieActive === "🏠 Mes Biens") afficherArticles();
-            });
-          });
+        if (achatsEligibles.length === 0) {
+          alert(`🔒 Toutes vos unités de "${catalogueRef.nom}" sont verrouillées (délai de 24h minimum pour les entreprises non atteint).`);
+          return;
         }
+
+        venteActiveContext = {
+          user,
+          immoKey,
+          catalogueRef,
+          achatsEligibles,
+          achatsBloquesCount,
+          quantiteMax: achatsEligibles.length,
+          quantiteSelectionnee: 1
+        };
+
+        afficherModalVenteHTML();
+        document.getElementById('venteQuantiteOverlay').classList.add('active');
+      });
+    }
+
+    function afficherModalVenteHTML() {
+      const body = document.getElementById('venteModalBody');
+      const ctx = venteActiveContext;
+      if (!ctx) return;
+
+      document.getElementById('venteModalTitle').innerText = `Revendre : ${ctx.catalogueRef.emoji} ${ctx.catalogueRef.nom}`;
+
+      // Calculer le prix total pour la quantité sélectionnée (méthode FIFO sur les plus anciens achats éligibles)
+      let prixTotalRevente = 0;
+      let detailsPrixTexte = [];
+      for (let i = 0; i < ctx.quantiteSelectionnee; i++) {
+        let itemAchat = ctx.achatsEligibles[i];
+        let resCalc = calculerPrixReventeBien(itemAchat.dateAchat, ctx.catalogueRef.prix, (ctx.catalogueRef.cat === "Arrondissements Marseille" || ctx.catalogueRef.estUniqueProprietaire), ctx.immoKey, (ctx.catalogueRef.cat === "Entreprises Connues" || ctx.catalogueRef.estEntreprise));
+        prixTotalRevente += resCalc.prix;
+      }
+
+      let infoBloqueHtml = ctx.achatsBloquesCount > 0 ? `<div style="color:#f87171; font-size:11px; margin-top:4px;">🔒 ${ctx.achatsBloquesCount} unité(s) bloquée(s) (délai 24h)</div>` : "";
+
+      body.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; background:#1a222d; padding:10px; border-radius:12px;">
+          <div>
+            <div style="font-weight:bold; color:white;">Unités disponibles :</div>
+            <div style="font-size:12px; color:#38ef7d;">${ctx.quantiteMax} unité(s) vendable(s)</div>
+            ${infoBloqueHtml}
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:bold; color:white;">Prix unitaire base :</div>
+            <div style="font-size:12px; color:#38bdf8;">${ctx.catalogueRef.prix.toLocaleString('fr-FR')} €</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:12px; font-weight:bold; color:#a0aec0; margin-bottom:6px;">Quantité à revendre :</label>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button class="btn-validation" style="width:48px; height:48px; font-size:20px; background:#2c2c2e;" onclick="modifierQuantiteVente(-1)">-</button>
+            <input type="number" id="inputQteVente" value="${ctx.quantiteSelectionnee}" min="1" max="${ctx.quantiteMax}" oninput="changerQuantiteInputVente(this.value)" style="flex-grow:1; text-align:center; padding:12px; font-size:20px; font-weight:bold; border-radius:12px; background:#0d1117; color:#38ef7d; border:1px solid #4a5568;">
+            <button class="btn-validation" style="width:48px; height:48px; font-size:20px; background:#2c2c2e;" onclick="modifierQuantiteVente(1)">+</button>
+          </div>
+        </div>
+
+        <div style="background:#1a222d; padding:12px; border-radius:12px; text-align:center; border:1px solid rgba(56,239,125,0.3);">
+          <div style="font-size:11px; text-transform:uppercase; color:#a0aec0; font-weight:bold;">Montant total de revente estimé</div>
+          <div style="font-size:24px; font-family:monospace; font-weight:bold; color:#38ef7d; margin-top:2px;">${prixTotalRevente.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2})} €</div>
+        </div>
+      `;
+    }
+
+    function modifierQuantiteVente(delta) {
+      if (!venteActiveContext) return;
+      let nouvelleQte = venteActiveContext.quantiteSelectionnee + delta;
+      if (nouvelleQte < 1) nouvelleQte = 1;
+      if (nouvelleQte > venteActiveContext.quantiteMax) nouvelleQte = venteActiveContext.quantiteMax;
+      venteActiveContext.quantiteSelectionnee = nouvelleQte;
+      afficherModalVenteHTML();
+    }
+
+    function changerQuantiteInputVente(valStr) {
+      if (!venteActiveContext) return;
+      let val = parseInt(valStr);
+      if (isNaN(val) || val < 1) val = 1;
+      if (val > venteActiveContext.quantiteMax) val = venteActiveContext.quantiteMax;
+      venteActiveContext.quantiteSelectionnee = val;
+      afficherModalVenteHTML();
+    }
+
+    function fermerModalVenteQuantite() {
+      document.getElementById('venteQuantiteOverlay').classList.remove('active');
+      venteActiveContext = null;
+    }
+
+    function validerVenteQuantite() {
+      if (!venteActiveContext) return;
+      const ctx = venteActiveContext;
+
+      const ref = db.ref(`immobilier/${ctx.user}/${ctx.immoKey}`);
+      ref.once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data || !data.achats) return;
+
+        let qteAVendre = ctx.quantiteSelectionnee;
+        let achatsRestants = [...data.achats];
+        let paiementsRestants = data.derniersPaiements ? [...data.derniersPaiements] : [];
+
+        let prixTotalRevente = 0;
+        let indicesASupprimer = [];
+
+        // Sélectionner les 'qteAVendre' plus anciens achats éligibles (FIFO)
+        for (let i = 0; i < qteAVendre; i++) {
+          let itemEligible = ctx.achatsEligibles[i];
+          let resCalc = calculerPrixReventeBien(itemEligible.dateAchat, ctx.catalogueRef.prix, (ctx.catalogueRef.cat === "Arrondissements Marseille" || ctx.catalogueRef.estUniqueProprietaire), ctx.immoKey, (ctx.catalogueRef.cat === "Entreprises Connues" || ctx.catalogueRef.estEntreprise));
+          prixTotalRevente += resCalc.prix;
+          indicesASupprimer.push(itemEligible.dateAchat);
+        }
+
+        // Supprimer du tableau global des achats (par timestamp de correspondance)
+        indicesASupprimer.forEach(timestamp => {
+          let indexTrouve = achatsRestants.indexOf(timestamp);
+          if (indexTrouve !== -1) {
+            achatsRestants.splice(indexTrouve, 1);
+            if (paiementsRestants.length > indexTrouve) {
+              paiementsRestants.splice(indexTrouve, 1);
+            }
+          }
+        });
+
+        let nouvelleQuantiteTotale = achatsRestants.length;
+        let actionUpdate = {};
+
+        if (nouvelleQuantiteTotale <= 0) {
+          actionUpdate[`immobilier/${ctx.user}/${ctx.immoKey}`] = null;
+        } else {
+          actionUpdate[`immobilier/${ctx.user}/${ctx.immoKey}`] = {
+            quantite: nouvelleQuantiteTotale,
+            achats: achatsRestants,
+            derniersPaiements: paiementsRestants
+          };
+        }
+
+        db.ref().update(actionUpdate).then(() => {
+          let soldeActuel = comptesComplets[ctx.user] !== undefined ? comptesComplets[ctx.user] : 20000.00;
+          let nouveauSolde = Math.round((soldeActuel + prixTotalRevente) * 100) / 100;
+          db.ref(`banques/${ctx.user}`).set(nouveauSolde).then(() => {
+            fermerModalVenteQuantite();
+            alert(`💰 ${qteAVendre}x ${ctx.catalogueRef.nom} revendu(s) avec succès pour ${prixTotalRevente.toLocaleString('fr-FR', {minimumFractionDigits:2})} € !`);
+            afficherClassementEtPossessions();
+            if (categorieActive === "🏠 Mes Biens") afficherArticles();
+          });
+        });
       });
     }
 
@@ -1535,41 +1673,39 @@
           const article = baseArticles.find(a => a.immoKey === immoKey);
           if (!article) return;
 
-          dataBien.achats.forEach((dateAchat, idx) => {
-            nbBiensAffiches++;
-            const btn = document.createElement('div');
-            btn.className = "btn-article mes-biens-card";
+          nbBiensAffiches++;
+          const btn = document.createElement('div');
+          btn.className = "btn-article mes-biens-card";
 
-            let estRevendable = ((article.cat === "Immobilier Marseille" && immoKey !== "hotel") || article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire);
-            let estEntreprise = (article.cat === "Entreprises Connues" || article.estEntreprise);
-            
-            const maintenant = Date.now();
-            const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
-            let blocageEntreprise = estEntreprise && heuresEcoulees < 24;
+          let estRevendable = ((article.cat === "Immobilier Marseille" && immoKey !== "hotel") || article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire);
+          let estEntreprise = (article.cat === "Entreprises Connues" || article.estEntreprise);
 
-            let infoCalcul = estRevendable ? calculerPrixReventeBien(dateAchat, article.prix, (article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire), immoKey, estEntreprise) : { prix: article.prix, augmente: false };
-            let prixAffichage = infoCalcul.prix;
-
-            let htmlRevendre = "";
-            if (estRevendable) {
-              if (blocageEntreprise) {
-                let heuresRestantes = Math.ceil(24 - heuresEcoulees);
-                htmlRevendre = `<button class="btn-vente-immo bloque" disabled>🔒 Vendre (dans ${heuresRestantes}h)</button>`;
-              } else {
-                htmlRevendre = `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${joueurActif}', '${immoKey}', ${idx}, ${article.prix}, '${article.nom.replace(/'/g, "\\'")}')">🏷️ Vendre (${prixAffichage.toLocaleString('fr-FR')} €)</button>`;
-              }
-            } else {
-              htmlRevendre = `<span style="font-size:10px; color:#a0aec0; margin-top:4px;">Non revendable</span>`;
-            }
-
-            btn.innerHTML = `
-              <div style="font-size:24px;">${article.emoji}</div>
-              <div style="font-weight:bold; font-size:13px; line-height:1.2;">${article.nom}</div>
-              <div class="prix-tag" style="background:rgba(255,255,255,0.1); color:#38ef7d; font-size:10px; border:1px solid rgba(56,239,125,0.3); margin-top:2px;">Valeur: ${article.prix.toLocaleString('fr-FR')} €</div>
-              ${htmlRevendre}
-            `;
-            grid.appendChild(btn);
+          const maintenant = Date.now();
+          // Vérifier si au moins un achat n'est pas bloqué de 24h
+          let unitesEligibles = 0;
+          dataBien.achats.forEach(dateAchat => {
+            let heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
+            if (!estEntreprise || heuresEcoulees >= 24) unitesEligibles++;
           });
+
+          let htmlRevendre = "";
+          if (estRevendable) {
+            if (unitesEligibles > 0) {
+              htmlRevendre = `<button class="btn-vente-immo" onclick="ouvrirModalVenteBien('${joueurActif}', '${immoKey}')">🏷️ Vendre (${dataBien.quantite} possédé${dataBien.quantite > 1 ? 's' : ''})</button>`;
+            } else {
+              htmlRevendre = `<button class="btn-vente-immo bloque" disabled>🔒 Vendu récemment (24h)</button>`;
+            }
+          } else {
+            htmlRevendre = `<span style="font-size:10px; color:#a0aec0; margin-top:4px;">Non revendable (${dataBien.quantite})</span>`;
+          }
+
+          btn.innerHTML = `
+            <div style="font-size:24px;">${article.emoji}</div>
+            <div style="font-weight:bold; font-size:13px; line-height:1.2;">${article.nom}</div>
+            <div class="prix-tag" style="background:rgba(255,255,255,0.1); color:#38ef7d; font-size:10px; border:1px solid rgba(56,239,125,0.3); margin-top:2px;">Quantité : ${dataBien.quantite}</div>
+            ${htmlRevendre}
+          `;
+          grid.appendChild(btn);
         });
 
         if (nbBiensAffiches === 0) {
@@ -1588,7 +1724,6 @@
         let prop = estUnique ? obtenirProprietaireUnique(art.immoKey) : null;
         
         let entObj = (art.cat === "Entreprises Connues" || art.estEntreprise) ? (bourseEntreprisesData[art.immoKey] || { pourcentageReel: 0 }) : null;
-        let jeuPct = entObj ? entObj.pourcentageReel * 10 : (marcheBoursePct * 10);
         let pctTexte = entObj ? `${entObj.pourcentageReel >= 0 ? '+' : ''}${entObj.pourcentageReel.toFixed(1)}%` : '';
 
         if (prop) {
@@ -1993,43 +2128,39 @@
         if (!catalogueRef) return;
 
         auMoinsUn = true;
+        let div = document.createElement('div');
+        div.className = "possession-pill";
 
-        dataBien.achats.forEach((dateAchat, idx) => {
-          let div = document.createElement('div');
-          div.className = "possession-pill";
+        let estRevendable = ((catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel") || catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire);
+        let estEntreprise = (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise);
 
-          let estRevendable = ((catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel") || catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire);
-          let estEntreprise = (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise);
-
-          const maintenant = Date.now();
-          const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
-          let blocageEntreprise = estEntreprise && heuresEcoulees < 24;
-
-          let infoCalcul = estRevendable ? calculerPrixReventeBien(dateAchat, catalogueRef.prix, (catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire), immoKey, estEntreprise) : { prix: catalogueRef.prix, augmente: false };
-          let prixAffichage = infoCalcul.prix;
-
-          let btnVendreHtml = "";
-          if (estRevendable) {
-            if (blocageEntreprise) {
-              let heuresRestantes = Math.ceil(24 - heuresEcoulees);
-              btnVendreHtml = `<button class="btn-vente-immo bloque" disabled>🔒 Vendre (dans ${heuresRestantes}h)</button>`;
-            } else {
-              btnVendreHtml = `<button class="btn-vente-immo" onclick="revendreBienImmobilier('${prenom}', '${immoKey}', ${idx}, ${catalogueRef.prix}, '${catalogueRef.nom.replace(/'/g, "\\'")}')">🏷️ Vendre (${prixAffichage.toLocaleString('fr-FR')} €)</button>`;
-            }
-          } else {
-            btnVendreHtml = `<span style="font-size:11px; color:#a0aec0;">Non revendable</span>`;
-          }
-
-          div.innerHTML = `
-            <div>
-              <div style="font-weight:bold; color:white;">${catalogueRef.emoji} ${catalogueRef.nom}</div>
-              <div style="font-size:11px; color:#a0aec0;">Acheté le ${new Date(dateAchat).toLocaleDateString('fr-FR')}</div>
-              ${btnVendreHtml}
-            </div>
-            <div class="possession-badge-green">${catalogueRef.prix.toLocaleString('fr-FR')} €</div>
-          `;
-          list.appendChild(div);
+        const maintenant = Date.now();
+        let unitesEligibles = 0;
+        dataBien.achats.forEach(dateAchat => {
+          let heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
+          if (!estEntreprise || heuresEcoulees >= 24) unitesEligibles++;
         });
+
+        let btnVendreHtml = "";
+        if (estRevendable) {
+          if (unitesEligibles > 0) {
+            btnVendreHtml = `<button class="btn-vente-immo" onclick="ouvrirModalVenteBien('${prenom}', '${immoKey}')">🏷️ Vendre (Quantité: ${dataBien.quantite})</button>`;
+          } else {
+            btnVendreHtml = `<button class="btn-vente-immo bloque" disabled>🔒 Bloqué (délai 24h)</button>`;
+          }
+        } else {
+          btnVendreHtml = `<span style="font-size:11px; color:#a0aec0;">Non revendable</span>`;
+        }
+
+        div.innerHTML = `
+          <div>
+            <div style="font-weight:bold; color:white;">${catalogueRef.emoji} ${catalogueRef.nom}</div>
+            <div style="font-size:11px; color:#a0aec0;">Quantité possédée : ${dataBien.quantite}</div>
+            ${btnVendreHtml}
+          </div>
+          <div class="possession-badge-green">${(catalogueRef.prix * dataBien.quantite).toLocaleString('fr-FR')} €</div>
+        `;
+        list.appendChild(div);
       });
 
       if (!auMoinsUn) {
@@ -2039,4 +2170,3 @@
   </script>
 </body>
 </html>
-```
