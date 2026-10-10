@@ -83,7 +83,7 @@
     .articles-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .btn-article { background: #f7fafc; border: 1.5px solid #cbd5e0; border-radius: 14px; padding: 10px 6px; font-size: 12px; font-weight: 600; color: #2d3748; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 72px; text-align: center; }
     .btn-article:active { background-color: #e2e8f0; transform: scale(0.98); }
-    .btn-article.mes-biens-card { background: #1a222d; border: 1px solid rgba(255, 255, 255, 0.12); color: white; justify-content: space-between; }
+    .btn-article.mes-biens-card { background: #1a222d; border: 1px solid rgba(255, 255, 255, 0.12); color: white; justify-content: space-between; position: relative; }
     .emoji { font-size: 22px; }
     .prix-tag { font-weight: 800; color: #2b6cb0; font-size: 11px; background: #ebf8ff; padding: 2px 6px; border-radius: 8px; }
 
@@ -263,7 +263,7 @@
       <button class="btn-reset" onclick="reinitialiser()">Remise à zéro</button>
     </div>
 
-    <div class="version-tag">v5.6.0 (+ Choix de la quantité de biens à vendre)</div>
+    <div class="version-tag">v5.7.0 (+ Pourcentage gain/perte et prix courant sur cartes biens)</div>
   </div>
 
   <!-- MODAL AIDE ET REGLES -->
@@ -1287,7 +1287,6 @@
         const maintenant = Date.now();
         let estEntreprise = (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise);
 
-        // Filtrer les achats éligibles (pour les entreprises, vérifier le délai de 24h)
         let achatsEligibles = [];
         let achatsBloquesCount = 0;
 
@@ -1327,9 +1326,7 @@
 
       document.getElementById('venteModalTitle').innerText = `Revendre : ${ctx.catalogueRef.emoji} ${ctx.catalogueRef.nom}`;
 
-      // Calculer le prix total pour la quantité sélectionnée (méthode FIFO sur les plus anciens achats éligibles)
       let prixTotalRevente = 0;
-      let detailsPrixTexte = [];
       for (let i = 0; i < ctx.quantiteSelectionnee; i++) {
         let itemAchat = ctx.achatsEligibles[i];
         let resCalc = calculerPrixReventeBien(itemAchat.dateAchat, ctx.catalogueRef.prix, (ctx.catalogueRef.cat === "Arrondissements Marseille" || ctx.catalogueRef.estUniqueProprietaire), ctx.immoKey, (ctx.catalogueRef.cat === "Entreprises Connues" || ctx.catalogueRef.estEntreprise));
@@ -1406,7 +1403,6 @@
         let prixTotalRevente = 0;
         let indicesASupprimer = [];
 
-        // Sélectionner les 'qteAVendre' plus anciens achats éligibles (FIFO)
         for (let i = 0; i < qteAVendre; i++) {
           let itemEligible = ctx.achatsEligibles[i];
           let resCalc = calculerPrixReventeBien(itemEligible.dateAchat, ctx.catalogueRef.prix, (ctx.catalogueRef.cat === "Arrondissements Marseille" || ctx.catalogueRef.estUniqueProprietaire), ctx.immoKey, (ctx.catalogueRef.cat === "Entreprises Connues" || ctx.catalogueRef.estEntreprise));
@@ -1414,7 +1410,6 @@
           indicesASupprimer.push(itemEligible.dateAchat);
         }
 
-        // Supprimer du tableau global des achats (par timestamp de correspondance)
         indicesASupprimer.forEach(timestamp => {
           let indexTrouve = achatsRestants.indexOf(timestamp);
           if (indexTrouve !== -1) {
@@ -1676,33 +1671,54 @@
           nbBiensAffiches++;
           const btn = document.createElement('div');
           btn.className = "btn-article mes-biens-card";
+          btn.style.position = "relative";
 
           let estRevendable = ((article.cat === "Immobilier Marseille" && immoKey !== "hotel") || article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire);
           let estEntreprise = (article.cat === "Entreprises Connues" || article.estEntreprise);
+          let isElementUnique = (article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire);
 
           const maintenant = Date.now();
-          // Vérifier si au moins un achat n'est pas bloqué de 24h
           let unitesEligibles = 0;
+          let prixTotalCourant = 0;
+
+          let pctMarche = 0;
+          if (estEntreprise) {
+            let entObj = bourseEntreprisesData[immoKey] || { pourcentageReel: 0 };
+            pctMarche = entObj.pourcentageReel * 10;
+          } else if (isElementUnique) {
+            pctMarche = marcheBoursePct * 10;
+          } else {
+            pctMarche = marcheImmoPct;
+          }
+
           dataBien.achats.forEach(dateAchat => {
             let heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
             if (!estEntreprise || heuresEcoulees >= 24) unitesEligibles++;
+
+            let resCalc = calculerPrixReventeBien(dateAchat, article.prix, isElementUnique, immoKey, estEntreprise);
+            prixTotalCourant += resCalc.prix;
           });
 
           let htmlRevendre = "";
           if (estRevendable) {
             if (unitesEligibles > 0) {
-              htmlRevendre = `<button class="btn-vente-immo" onclick="ouvrirModalVenteBien('${joueurActif}', '${immoKey}')">🏷️ Vendre (${dataBien.quantite} possédé${dataBien.quantite > 1 ? 's' : ''})</button>`;
+              htmlRevendre = `<button class="btn-vente-immo" onclick="ouvrirModalVenteBien('${joueurActif}', '${immoKey}')">🏷️ Vendre (${dataBien.quantite})</button>`;
             } else {
-              htmlRevendre = `<button class="btn-vente-immo bloque" disabled>🔒 Vendu récemment (24h)</button>`;
+              htmlRevendre = `<button class="btn-vente-immo bloque" disabled>🔒 Bloqué (24h)</button>`;
             }
           } else {
-            htmlRevendre = `<span style="font-size:10px; color:#a0aec0; margin-top:4px;">Non revendable (${dataBien.quantite})</span>`;
+            htmlRevendre = `<span style="font-size:10px; color:#a0aec0; margin-top:2px;">Non revendable (${dataBien.quantite})</span>`;
           }
 
+          let colorPct = pctMarche >= 0 ? '#38ef7d' : '#ff453a';
+          let signPct = pctMarche >= 0 ? '+' : '';
+
           btn.innerHTML = `
-            <div style="font-size:24px;">${article.emoji}</div>
+            <div style="position: absolute; top: 6px; right: 8px; font-size: 10px; font-family: monospace; font-weight: bold; color: #38bdf8; background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 6px;" title="Prix courant">${prixTotalCourant.toLocaleString('fr-FR', {minimumFractionDigits:0, maximumFractionDigits:0})} €</div>
+            <div style="font-size:24px; margin-top:10px;">${article.emoji}</div>
             <div style="font-weight:bold; font-size:13px; line-height:1.2;">${article.nom}</div>
-            <div class="prix-tag" style="background:rgba(255,255,255,0.1); color:#38ef7d; font-size:10px; border:1px solid rgba(56,239,125,0.3); margin-top:2px;">Quantité : ${dataBien.quantite}</div>
+            <div style="font-size:11px; font-weight:bold; color: ${colorPct};">${signPct}${pctMarche.toFixed(1)}%</div>
+            <div class="prix-tag" style="background:rgba(255,255,255,0.1); color:#cbd5e0; font-size:10px; border:1px solid rgba(255,255,255,0.15); margin-top:2px;">Qté : ${dataBien.quantite}</div>
             ${htmlRevendre}
           `;
           grid.appendChild(btn);
@@ -2170,3 +2186,4 @@
   </script>
 </body>
 </html>
+```
