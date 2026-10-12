@@ -81,11 +81,33 @@
 
     .articles-scroll { flex-grow: 1; overflow-y: auto; padding-right: 2px; -webkit-overflow-scrolling: touch; }
     .articles-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .btn-article { background: #f7fafc; border: 1.5px solid #cbd5e0; border-radius: 14px; padding: 10px 6px; font-size: 12px; font-weight: 600; color: #2d3748; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 72px; text-align: center; position: relative; }
-    .btn-article:active { background-color: #e2e8f0; transform: scale(0.98); }
+    
+    .btn-article { 
+      background: #f7fafc; border: 1.5px solid #cbd5e0; border-radius: 14px; padding: 10px 6px; 
+      font-size: 12px; font-weight: 600; color: #2d3748; display: flex; flex-direction: column; 
+      align-items: center; justify-content: space-between; gap: 4px; min-height: 110px; text-align: center; position: relative; 
+    }
     .btn-article.mes-biens-card { background: #1a222d; border: 1px solid rgba(255, 255, 255, 0.12); color: white; justify-content: space-between; position: relative; }
     .emoji { font-size: 22px; }
     .prix-tag { font-weight: 800; color: #2b6cb0; font-size: 11px; background: #ebf8ff; padding: 2px 6px; border-radius: 8px; }
+
+    /* Controls pour sélectionner la quantité à acheter */
+    .qte-picker {
+      display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; margin-top: 4px;
+    }
+    .btn-qte-step {
+      background: #cbd5e0; border: none; border-radius: 6px; width: 24px; height: 24px;
+      font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .btn-qte-step:active { background: #a0aec0; }
+    .input-qte-buy {
+      width: 36px; text-align: center; border: 1px solid #cbd5e0; border-radius: 6px; font-weight: bold; font-size: 12px; padding: 2px 0;
+    }
+    .btn-ajouter-panier {
+      background: #3182ce; color: white; border: none; border-radius: 8px; width: 100%; padding: 6px 0;
+      font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 4px;
+    }
+    .btn-ajouter-panier:active { background: #2b6cb0; }
 
     .actions-section { flex-shrink: 0; margin-top: 4px; }
     .btn-validation { background: #000; color: #fff; border: none; border-radius: 14px; padding: 12px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; margin-bottom: 6px; }
@@ -219,7 +241,7 @@
       <button class="btn-validation" onclick="lancerPaiementJoueur()">Payer</button>
     </div>
 
-    <div class="version-tag">v5.9.0 (Taxe 5% Arrondissements & Comptes)</div>
+    <div class="version-tag">v6.0.0 (Sélection Quantité d'Achat & Taxe 5%)</div>
   </div>
 
   <!-- MODAL CHOIX ARRONDISSEMENT LORS DE L'ACHAT -->
@@ -577,70 +599,70 @@
       { id: 904, cat: "Entreprises Connues", emoji: "🔍", nom: "Alphabet (Google)", prix: 2100000000000.00, immoKey: "ent_goog", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
       { id: 905, cat: "Entreprises Connues", emoji: "📦", nom: "Amazon", prix: 2200000000000.00, immoKey: "ent_amzn", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
       { id: 906, cat: "Entreprises Connues", emoji: "♾️", nom: "Meta Platforms", prix: 1400000000000.00, immoKey: "ent_meta", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 907, cat: "Entreprises Connues", emoji: "⚡", nom: "Tesla", prix: 800000000000.00, immoKey: "ent_tsla", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 907, cat: "Entreprises Connues", emoji: "⚡", nom: "Tesla", prix: 80000000000.00, immoKey: "ent_tsla", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
       { id: 908, cat: "Entreprises Connues", emoji: "👜", nom: "LVMH", prix: 3500000000000.00, immoKey: "ent_lvmh", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 909, cat: "Entreprises Connues", emoji: "🎬", nom: "Netflix", prix: 280000000000.00, immoKey: "ent_nflx", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 910, cat: "Entreprises Connues", emoji: "✨", nom: "Walt Disney Company", prix: 210000000000.00, immoKey: "ent_disney", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 911, cat: "Entreprises Connues", emoji: "🥤", nom: "Coca-Cola", prix: 290000000000.00, immoKey: "ent_ko", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 912, cat: "Entreprises Connues", emoji: "🍟", nom: "McDonald's", prix: 220000000000.00, immoKey: "ent_mcd", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 913, cat: "Entreprises Connues", emoji: "👟", nom: "Nike", prix: 130000000000.00, immoKey: "ent_nike", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 914, cat: "Entreprises Connues", emoji: "☕", nom: "Starbucks", prix: 110000000000.00, immoKey: "ent_sbux", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 915, cat: "Entreprises Connues", emoji: "🧬", nom: "Eli Lilly", prix: 850000000000.00, immoKey: "ent_lly", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 916, cat: "Entreprises Connues", emoji: "💊", nom: "Novo Nordisk", prix: 550000000000.00, immoKey: "ent_nvo", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 917, cat: "Entreprises Connues", emoji: "💉", nom: "Pfizer", prix: 160000000000.00, immoKey: "ent_pfe", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 918, cat: "Entreprises Connues", emoji: "💳", nom: "Visa", prix: 570000000000.00, immoKey: "ent_v", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 919, cat: "Entreprises Connues", emoji: "💳", nom: "Mastercard", prix: 4500000000000.00, immoKey: "ent_ma", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 920, cat: "Entreprises Connues", emoji: "🏦", nom: "JPMorgan Chase", prix: 590000000000.00, immoKey: "ent_jpm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 921, cat: "Entreprises Connues", emoji: "📱", nom: "Samsung Electronics", prix: 400000000000.00, immoKey: "ent_samsung", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 922, cat: "Entreprises Connues", emoji: "🎮", nom: "Tencent Holdings", prix: 450000000000.00, immoKey: "ent_tencent", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 923, cat: "Entreprises Connues", emoji: "🛒", nom: "Alibaba Group", prix: 200000000000.00, immoKey: "ent_alibaba", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 924, cat: "Entreprises Connues", emoji: "🛒", nom: "Walmart", prix: 500000000000.00, immoKey: "ent_walmart", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 925, cat: "Entreprises Connues", emoji: "⛽", nom: "ExxonMobil", prix: 450000000000.00, immoKey: "ent_exxon", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 926, cat: "Entreprises Connues", emoji: "⛽", nom: "Chevron", prix: 300000000000.00, immoKey: "ent_chevron", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 927, cat: "Entreprises Connues", emoji: "⛽", nom: "Shell plc", prix: 220000000000.00, immoKey: "ent_shell", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 928, cat: "Entreprises Connues", emoji: "⛽", nom: "TotalEnergies", prix: 150000000000.00, immoKey: "ent_total", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 929, cat: "Entreprises Connues", emoji: "⛽", nom: "BP", prix: 100000000000.00, immoKey: "ent_bp", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 930, cat: "Entreprises Connues", emoji: "🍫", nom: "Nestlé", prix: 250000000000.00, immoKey: "ent_nestle", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 931, cat: "Entreprises Connues", emoji: "🧴", nom: "Procter & Gamble", prix: 380000000000.00, immoKey: "ent_pg", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 932, cat: "Entreprises Connues", emoji: "🧼", nom: "Unilever", prix: 130000000000.00, immoKey: "ent_unilever", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 933, cat: "Entreprises Connues", emoji: "🥤", nom: "PepsiCo", prix: 230000000000.00, immoKey: "ent_pepsico", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 934, cat: "Entreprises Connues", emoji: "💻", nom: "IBM", prix: 180000000000.00, immoKey: "ent_ibm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 935, cat: "Entreprises Connues", emoji: "💻", nom: "Intel Corporation", prix: 100000000000.00, immoKey: "ent_intel", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 936, cat: "Entreprises Connues", emoji: "💻", nom: "AMD", prix: 230000000000.00, immoKey: "ent_amd", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 937, cat: "Entreprises Connues", emoji: "📱", nom: "Qualcomm", prix: 180000000000.00, immoKey: "ent_qualcomm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 938, cat: "Entreprises Connues", emoji: "🔌", nom: "Broadcom", prix: 700000000000.00, immoKey: "ent_broadcom", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 939, cat: "Entreprises Connues", emoji: "🌐", nom: "Cisco Systems", prix: 220000000000.00, immoKey: "ent_cisco", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 940, cat: "Entreprises Connues", emoji: "🗄️", nom: "Oracle Corporation", prix: 350000000000.00, immoKey: "ent_oracle", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 941, cat: "Entreprises Connues", emoji: "☁️", nom: "Salesforce", prix: 270000000000.00, immoKey: "ent_salesforce", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 942, cat: "Entreprises Connues", emoji: "🎨", nom: "Adobe", prix: 230000000000.00, immoKey: "ent_adobe", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 943, cat: "Entreprises Connues", emoji: "💳", nom: "PayPal", prix: 60000000000.00, immoKey: "ent_paypal", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 944, cat: "Entreprises Connues", emoji: "🚗", nom: "Uber Technologies", prix: 150000000000.00, immoKey: "ent_uber", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 945, cat: "Entreprises Connues", emoji: "🏠", nom: "Airbnb", prix: 80000000000.00, immoKey: "ent_airbnb", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 946, cat: "Entreprises Connues", emoji: "✈️", nom: "Booking Holdings", prix: 140000000000.00, immoKey: "ent_booking", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 947, cat: "Entreprises Connues", emoji: "🎮", nom: "Sony Group", prix: 110000000000.00, immoKey: "ent_sony", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 948, cat: "Entreprises Connues", emoji: "🍄", nom: "Nintendo", prix: 70000000000.00, immoKey: "ent_nintendo", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 949, cat: "Entreprises Connues", emoji: "🚗", nom: "Toyota Motor", prix: 250000000000.00, immoKey: "ent_toyota", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 950, cat: "Entreprises Connues", emoji: "🚗", nom: "Volkswagen Group", prix: 60000000000.00, immoKey: "ent_vw", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 951, cat: "Entreprises Connues", emoji: "⭐", nom: "Mercedes-Benz Group", prix: 70000000000.00, immoKey: "ent_mercedes", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 952, cat: "Entreprises Connues", emoji: "🚗", nom: "BMW Group", prix: 60000000000.00, immoKey: "ent_bmw", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 953, cat: "Entreprises Connues", emoji: "🚗", nom: "Stellantis", prix: 40000000000.00, immoKey: "ent_stellantis", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 954, cat: "Entreprises Connues", emoji: "🚙", nom: "Ford Motor", prix: 45000000000.00, immoKey: "ent_ford", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 955, cat: "Entreprises Connues", emoji: "🚙", nom: "General Motors", prix: 50000000000.00, immoKey: "ent_gm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 956, cat: "Entreprises Connues", emoji: "🏍️", nom: "Honda Motor", prix: 50000000000.00, immoKey: "ent_honda", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 957, cat: "Entreprises Connues", emoji: "⚙️", nom: "Siemens", prix: 140000000000.00, immoKey: "ent_siemens", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 958, cat: "Entreprises Connues", emoji: "⚡", nom: "Schneider Electric", prix: 130000000000.00, immoKey: "ent_schneider", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 959, cat: "Entreprises Connues", emoji: "✈️", nom: "Airbus", prix: 120000000000.00, immoKey: "ent_airbus", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 960, cat: "Entreprises Connues", emoji: "✈️", nom: "Boeing", prix: 100000000000.00, immoKey: "ent_boeing", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 961, cat: "Entreprises Connues", emoji: "🛒", nom: "Costco Wholesale", prix: 350000000000.00, immoKey: "ent_costco", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 962, cat: "Entreprises Connues", emoji: "🔨", nom: "Home Depot", prix: 380000000000.00, immoKey: "ent_homedepot", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 963, cat: "Entreprises Connues", emoji: "🏥", nom: "UnitedHealth Group", prix: 500000000000.00, immoKey: "ent_unitedhealth", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 964, cat: "Entreprises Connues", emoji: "🩹", nom: "Johnson & Johnson", prix: 380000000000.00, immoKey: "ent_jnj", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 965, cat: "Entreprises Connues", emoji: "🏦", nom: "Bank of America", prix: 300000000000.00, immoKey: "ent_bofa", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 966, cat: "Entreprises Connues", emoji: "💰", nom: "Goldman Sachs", prix: 150000000000.00, immoKey: "ent_goldman", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 967, cat: "Entreprises Connues", emoji: "📊", nom: "BlackRock", prix: 130000000000.00, immoKey: "ent_blackrock", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 968, cat: "Entreprises Connues", emoji: "📞", nom: "AT&T", prix: 130000000000.00, immoKey: "ent_att", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 969, cat: "Entreprises Connues", emoji: "🎧", nom: "Spotify", prix: 70000000000.00, immoKey: "ent_spotify", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 970, cat: "Entreprises Connues", emoji: "💻", nom: "SAP SE", prix: 200000000000.00, immoKey: "ent_sap", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true }
+      { id: 909, cat: "Entreprises Connues", emoji: "🎬", nom: "Netflix", prix: 28000000000.00, immoKey: "ent_nflx", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 910, cat: "Entreprises Connues", emoji: "✨", nom: "Walt Disney Company", prix: 21000000000.00, immoKey: "ent_disney", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 911, cat: "Entreprises Connues", emoji: "🥤", nom: "Coca-Cola", prix: 29000000000.00, immoKey: "ent_ko", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 912, cat: "Entreprises Connues", emoji: "🍟", nom: "McDonald's", prix: 22000000000.00, immoKey: "ent_mcd", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 913, cat: "Entreprises Connues", emoji: "👟", nom: "Nike", prix: 13000000000.00, immoKey: "ent_nike", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 914, cat: "Entreprises Connues", emoji: "☕", nom: "Starbucks", prix: 11000000000.00, immoKey: "ent_sbux", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 915, cat: "Entreprises Connues", emoji: "🧬", nom: "Eli Lilly", prix: 85000000000.00, immoKey: "ent_lly", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 916, cat: "Entreprises Connues", emoji: "💊", nom: "Novo Nordisk", prix: 55000000000.00, immoKey: "ent_nvo", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 917, cat: "Entreprises Connues", emoji: "💉", nom: "Pfizer", prix: 16000000000.00, immoKey: "ent_pfe", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 918, cat: "Entreprises Connues", emoji: "💳", nom: "Visa", prix: 57000000000.00, immoKey: "ent_v", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 919, cat: "Entreprises Connues", emoji: "💳", nom: "Mastercard", prix: 450000000000.00, immoKey: "ent_ma", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 920, cat: "Entreprises Connues", emoji: "🏦", nom: "JPMorgan Chase", prix: 59000000000.00, immoKey: "ent_jpm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 921, cat: "Entreprises Connues", emoji: "📱", nom: "Samsung Electronics", prix: 40000000000.00, immoKey: "ent_samsung", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 922, cat: "Entreprises Connues", emoji: "🎮", nom: "Tencent Holdings", prix: 45000000000.00, immoKey: "ent_tencent", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 923, cat: "Entreprises Connues", emoji: "🛒", nom: "Alibaba Group", prix: 20000000000.00, immoKey: "ent_alibaba", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 924, cat: "Entreprises Connues", emoji: "🛒", nom: "Walmart", prix: 50000000000.00, immoKey: "ent_walmart", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 925, cat: "Entreprises Connues", emoji: "⛽", nom: "ExxonMobil", prix: 45000000000.00, immoKey: "ent_exxon", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 926, cat: "Entreprises Connues", emoji: "⛽", nom: "Chevron", prix: 30000000000.00, immoKey: "ent_chevron", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 927, cat: "Entreprises Connues", emoji: "⛽", nom: "Shell plc", prix: 22000000000.00, immoKey: "ent_shell", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 928, cat: "Entreprises Connues", emoji: "⛽", nom: "TotalEnergies", prix: 15000000000.00, immoKey: "ent_total", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 929, cat: "Entreprises Connues", emoji: "⛽", nom: "BP", prix: 10000000000.00, immoKey: "ent_bp", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 930, cat: "Entreprises Connues", emoji: "🍫", nom: "Nestlé", prix: 25000000000.00, immoKey: "ent_nestle", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 931, cat: "Entreprises Connues", emoji: "🧴", nom: "Procter & Gamble", prix: 38000000000.00, immoKey: "ent_pg", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 932, cat: "Entreprises Connues", emoji: "🧼", nom: "Unilever", prix: 13000000000.00, immoKey: "ent_unilever", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 933, cat: "Entreprises Connues", emoji: "🥤", nom: "PepsiCo", prix: 23000000000.00, immoKey: "ent_pepsico", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 934, cat: "Entreprises Connues", emoji: "💻", nom: "IBM", prix: 18000000000.00, immoKey: "ent_ibm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 935, cat: "Entreprises Connues", emoji: "💻", nom: "Intel Corporation", prix: 10000000000.00, immoKey: "ent_intel", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 936, cat: "Entreprises Connues", emoji: "💻", nom: "AMD", prix: 23000000000.00, immoKey: "ent_amd", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 937, cat: "Entreprises Connues", emoji: "📱", nom: "Qualcomm", prix: 18000000000.00, immoKey: "ent_qualcomm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 938, cat: "Entreprises Connues", emoji: "🔌", nom: "Broadcom", prix: 70000000000.00, immoKey: "ent_broadcom", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 939, cat: "Entreprises Connues", emoji: "🌐", nom: "Cisco Systems", prix: 22000000000.00, immoKey: "ent_cisco", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 940, cat: "Entreprises Connues", emoji: "🗄️", nom: "Oracle Corporation", prix: 35000000000.00, immoKey: "ent_oracle", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 941, cat: "Entreprises Connues", emoji: "☁️", nom: "Salesforce", prix: 27000000000.00, immoKey: "ent_salesforce", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 942, cat: "Entreprises Connues", emoji: "🎨", nom: "Adobe", prix: 23000000000.00, immoKey: "ent_adobe", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 943, cat: "Entreprises Connues", emoji: "💳", nom: "PayPal", prix: 6000000000.00, immoKey: "ent_paypal", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 944, cat: "Entreprises Connues", emoji: "🚗", nom: "Uber Technologies", prix: 15000000000.00, immoKey: "ent_uber", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 945, cat: "Entreprises Connues", emoji: "🏠", nom: "Airbnb", prix: 8000000000.00, immoKey: "ent_airbnb", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 946, cat: "Entreprises Connues", emoji: "✈️", nom: "Booking Holdings", prix: 14000000000.00, immoKey: "ent_booking", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 947, cat: "Entreprises Connues", emoji: "🎮", nom: "Sony Group", prix: 11000000000.00, immoKey: "ent_sony", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 948, cat: "Entreprises Connues", emoji: "🍄", nom: "Nintendo", prix: 7000000000.00, immoKey: "ent_nintendo", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 949, cat: "Entreprises Connues", emoji: "🚗", nom: "Toyota Motor", prix: 25000000000.00, immoKey: "ent_toyota", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 950, cat: "Entreprises Connues", emoji: "🚗", nom: "Volkswagen Group", prix: 6000000000.00, immoKey: "ent_vw", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 951, cat: "Entreprises Connues", emoji: "⭐", nom: "Mercedes-Benz Group", prix: 7000000000.00, immoKey: "ent_mercedes", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 952, cat: "Entreprises Connues", emoji: "🚗", nom: "BMW Group", prix: 6000000000.00, immoKey: "ent_bmw", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 953, cat: "Entreprises Connues", emoji: "🚗", nom: "Stellantis", prix: 4000000000.00, immoKey: "ent_stellantis", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 954, cat: "Entreprises Connues", emoji: "🚙", nom: "Ford Motor", prix: 4500000000.00, immoKey: "ent_ford", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 955, cat: "Entreprises Connues", emoji: "🚙", nom: "General Motors", prix: 5000000000.00, immoKey: "ent_gm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 956, cat: "Entreprises Connues", emoji: "🏍️", nom: "Honda Motor", prix: 5000000000.00, immoKey: "ent_honda", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 957, cat: "Entreprises Connues", emoji: "⚙️", nom: "Siemens", prix: 14000000000.00, immoKey: "ent_siemens", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 958, cat: "Entreprises Connues", emoji: "⚡", nom: "Schneider Electric", prix: 13000000000.00, immoKey: "ent_schneider", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 959, cat: "Entreprises Connues", emoji: "✈️", nom: "Airbus", prix: 12000000000.00, immoKey: "ent_airbus", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 960, cat: "Entreprises Connues", emoji: "✈️", nom: "Boeing", prix: 10000000000.00, immoKey: "ent_boeing", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 961, cat: "Entreprises Connues", emoji: "🛒", nom: "Costco Wholesale", prix: 35000000000.00, immoKey: "ent_costco", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 962, cat: "Entreprises Connues", emoji: "🔨", nom: "Home Depot", prix: 38000000000.00, immoKey: "ent_homedepot", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 963, cat: "Entreprises Connues", emoji: "🏥", nom: "UnitedHealth Group", prix: 50000000000.00, immoKey: "ent_unitedhealth", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 964, cat: "Entreprises Connues", emoji: "🩹", nom: "Johnson & Johnson", prix: 38000000000.00, immoKey: "ent_jnj", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 965, cat: "Entreprises Connues", emoji: "🏦", nom: "Bank of America", prix: 30000000000.00, immoKey: "ent_bofa", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 966, cat: "Entreprises Connues", emoji: "💰", nom: "Goldman Sachs", prix: 15000000000.00, immoKey: "ent_goldman", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 967, cat: "Entreprises Connues", emoji: "📊", nom: "BlackRock", prix: 13000000000.00, immoKey: "ent_blackrock", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 968, cat: "Entreprises Connues", emoji: "📞", nom: "AT&T", prix: 13000000000.00, immoKey: "ent_att", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 969, cat: "Entreprises Connues", emoji: "🎧", nom: "Spotify", prix: 7000000000.00, immoKey: "ent_spotify", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
+      { id: 970, cat: "Entreprises Connues", emoji: "💻", nom: "SAP SE", prix: 20000000000.00, immoKey: "ent_sap", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true }
     ];
 
     function initApp() {
@@ -843,7 +865,6 @@
         return;
       }
 
-      // Vérifier si le panier contient des biens ou entreprises (nécessitant le choix d'un arrondissement)
       let besoinArrondissement = panier.some(item => item.cat === "Automobiles" || item.cat === "Immobilier Marseille" || item.cat === "Entreprises Connues");
 
       if (besoinArrondissement) {
@@ -1342,18 +1363,35 @@
       });
     }
 
-    function ajouterAuPanier(article) {
+    // Fonctions de modification de quantité d'achat dans la carte produit
+    function stepQteAchat(artId, delta) {
+      const input = document.getElementById(`qte_input_${artId}`);
+      if (!input) return;
+      let val = parseInt(input.value) || 1;
+      val += delta;
+      if (val < 1) val = 1;
+      input.value = val;
+    }
+
+    function ajouterAuPanier(article, qteDemandee = 1) {
       if (!joueurActif) {
         alert("⚠️ Veuillez d'abord choisir un joueur dans le menu déroulant !");
         demanderCodePin('select_player');
         return;
       }
 
+      qteDemandee = parseInt(qteDemandee);
+      if (isNaN(qteDemandee) || qteDemandee < 1) qteDemandee = 1;
+
       if (article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire) {
         let prop = obtenirProprietaireUnique(article.immoKey);
         if (prop) {
           alert(`🚫 "${article.nom}" appartient déjà à ${prop} !`);
           return;
+        }
+        if (qteDemandee > 1) {
+          alert(`🚫 "${article.nom}" est un bien unique, vous ne pouvez en acheter qu'un seul exemplaire.`);
+          qteDemandee = 1;
         }
         let dejaDansPanier = panier.some(p => p.immoKey === article.immoKey);
         if (dejaDansPanier) {
@@ -1378,8 +1416,8 @@
 
         let voituresDansPanier = panier.filter(p => p.cat === "Automobiles").reduce((s, i) => s + i.qte, 0);
 
-        if (voituresPossedees + voituresDansPanier + 1 > capaciteTotale) {
-          alert(`🚗 Capacité de garage / parking insuffisante !\nPlaces disponibles : ${capaciteTotale}\nVéhicules (possédés + panier) : ${voituresPossedees + voituresDansPanier}\nAchetez un garage ou une place de parking dans "Immobilier Marseille" pour continuer.`);
+        if (voituresPossedees + voituresDansPanier + qteDemandee > capaciteTotale) {
+          alert(`🚗 Capacité de garage / parking insuffisante !\nPlaces disponibles : ${capaciteTotale}\nVéhicules (possédés + panier) : ${voituresPossedees + voituresDansPanier}\nDemande : ${qteDemandee}\nAchetez un garage ou une place de parking dans "Immobilier Marseille" pour continuer.`);
           return;
         }
       }
@@ -1387,7 +1425,7 @@
       if (article.immoKey === 'hotel') {
         let hotelsPossedes = (possessionsImmo[joueurActif] && possessionsImmo[joueurActif].hotel && possessionsImmo[joueurActif].hotel.quantite) || 0;
         let hotelsPanier = panier.filter(p => p.immoKey === 'hotel').reduce((s, i) => s + i.qte, 0);
-        if (hotelsPossedes + hotelsPanier + 1 > 10) {
+        if (hotelsPossedes + hotelsPanier + qteDemandee > 10) {
           alert("🏨 Limite atteinte : Vous ne pouvez pas posséder plus de 10 Hôtels !");
           return;
         }
@@ -1395,9 +1433,9 @@
 
       let index = panier.findIndex(p => p.id === article.id);
       if (index >= 0) {
-        panier[index].qte += 1;
+        panier[index].qte += qteDemandee;
       } else {
-        panier.push({ ...article, qte: 1 });
+        panier.push({ ...article, qte: qteDemandee });
       }
 
       MettreAJourEcran();
@@ -1496,10 +1534,8 @@
           let updates = {};
           updates[`banques/${lastUserValide}`] = nouveauSolde;
 
-          // Traitement des taxes de 5% et des achats d'arrondissements
           panier.forEach(item => {
             if (item.cat === "Arrondissements Marseille") {
-              // Si l'utilisateur achète un arrondissement, on lui verse le solde accumulé de son compte d'arrondissement s'il existe
               let arrKey = item.immoKey;
               let compteArrInitial = arrondissementsComptes[arrKey] || 0;
               if (compteArrInitial > 0) {
@@ -1508,7 +1544,6 @@
                 updates[`arrondissements_comptes/${arrKey}`] = 0;
               }
             } else if (item.cat === "Automobiles" || item.cat === "Immobilier Marseille" || item.cat === "Entreprises Connues") {
-              // Si c'est un bien ou une entreprise, prélèvement de 5% pour l'arrondissement choisi
               if (arrondissementSelectionneAchat) {
                 let montantTaxe5Pct = Math.round(item.prix * 0.05 * item.qte * 100) / 100;
                 let proprietaireArr = obtenirProprietaireUnique(arrondissementSelectionneAchat);
@@ -1665,8 +1700,8 @@
       let articlesFiltres = baseArticles.filter(a => a.cat === categorieActive);
 
       articlesFiltres.forEach(art => {
-        let btn = document.createElement('button');
-        btn.className = "btn-article";
+        let card = document.createElement('div');
+        card.className = "btn-article";
 
         let estUnique = (art.cat === "Entreprises Connues" || art.estEntreprise || art.cat === "Arrondissements Marseille" || art.estUniqueProprietaire);
         let prop = estUnique ? obtenirProprietaireUnique(art.immoKey) : null;
@@ -1674,7 +1709,6 @@
         let entObj = (art.cat === "Entreprises Connues" || art.estEntreprise) ? (bourseEntreprisesData[art.immoKey] || { pourcentageReel: 0 }) : null;
         let pctTexte = entObj ? `${entObj.pourcentageReel >= 0 ? '+' : ''}${entObj.pourcentageReel.toFixed(1)}%` : '';
 
-        // Badge du compte de l'arrondissement en haut à gauche si c'est un arrondissement
         let badgeArrHtml = "";
         if (art.cat === "Arrondissements Marseille") {
           let soldeArr = arrondissementsComptes[art.immoKey] || 0;
@@ -1682,15 +1716,11 @@
         }
 
         if (prop) {
-          btn.style.opacity = '0.55';
-          btn.style.backgroundColor = '#1e293b';
-          btn.style.borderColor = '#475569';
-          btn.style.cursor = 'not-allowed';
-          btn.onclick = () => {
-            alert(`🔒 "${art.nom}" appartient déjà à ${prop}.`);
-          };
+          card.style.opacity = '0.55';
+          card.style.backgroundColor = '#1e293b';
+          card.style.borderColor = '#475569';
 
-          btn.innerHTML = `
+          card.innerHTML = `
             ${badgeArrHtml}
             <span class="emoji" style="margin-top:10px;">${art.emoji}</span>
             <span style="line-height:1.2; text-decoration: line-through;">${art.nom}</span>
@@ -1698,18 +1728,33 @@
             <span style="font-size:10px; color:#f87171; font-weight:bold; margin-top:2px;">🔒 ${prop}</span>
           `;
         } else {
-          btn.onclick = () => ajouterAuPanier(art);
-          let badgeGainHtml = entObj ? `<span style="font-size:10px; color:${entObj.pourcentageReel >= 0 ? '#38ef7d' : '#ff453a'}; font-weight:bold; margin-top:2px;">Bourse: ${pctTexte}/h</span>` : '';
-          btn.innerHTML = `
+          let badgeGainHtml = entObj ? `<span style="font-size:10px; color:${entObj.pourcentageReel >= 0 ? '#38ef7d' : '#ff453a'}; font-weight:bold;">Bourse: ${pctTexte}/h</span>` : '';
+          
+          let controlsQteHtml = "";
+          if (estUnique) {
+            controlsQteHtml = `<button class="btn-ajouter-panier" onclick="ajouterAuPanier(baseArticles.find(a=>a.id===${art.id}), 1)">+ Ajouter</button>`;
+          } else {
+            controlsQteHtml = `
+              <div class="qte-picker">
+                <button class="btn-qte-step" onclick="stepQteAchat(${art.id}, -1)">-</button>
+                <input type="number" id="qte_input_${art.id}" class="input-qte-buy" value="1" min="1">
+                <button class="btn-qte-step" onclick="stepQteAchat(${art.id}, 1)">+</button>
+              </div>
+              <button class="btn-ajouter-panier" onclick="ajouterAuPanier(baseArticles.find(a=>a.id===${art.id}), document.getElementById('qte_input_${art.id}').value)">+ Ajouter</button>
+            `;
+          }
+
+          card.innerHTML = `
             ${badgeArrHtml}
-            <span class="emoji" style="margin-top:10px;">${art.emoji}</span>
+            <span class="emoji">${art.emoji}</span>
             <span style="line-height:1.2;">${art.nom}</span>
             <span class="prix-tag">${art.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
             ${badgeGainHtml}
+            ${controlsQteHtml}
           `;
         }
 
-        grid.appendChild(btn);
+        grid.appendChild(card);
       });
     }
 
