@@ -1,1950 +1,1065 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="h-full bg-slate-950 text-slate-100 select-none">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Marseille Monopoly</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+    <title>Tournoi de Football</title>
+    <link rel="apple-touch-icon" href="./Logo.PNG">
 
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Marseille Monopoly">
-  <link rel="apple-touch-icon" href="https://fav.farm/🎲">
-
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <style>
-    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
-    html, body {
-      width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
-      background-color: #0d1117; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    .caisse-container {
-      background: white; width: 100vw; height: 100vh; height: 100dvh;
-      display: flex; flex-direction: column; justify-content: space-between;
-      padding: calc(14px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
-      position: relative;
-    }
-
-    .version-tag {
-      position: absolute; bottom: calc(5px + env(safe-area-inset-bottom)); right: 15px;
-      font-size: 11px; font-weight: 600; color: #a0aec0; font-family: monospace; z-index: 10;
-    }
-
-    .header-caisse { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0; gap: 8px; flex-wrap: wrap; }
-    h1 { color: #1a202c; margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-    .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS for Excel (.xlsx / .csv) parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    .select-joueur {
-      background: #1a222d; color: #38ef7d; border: 1.5px solid rgba(56, 239, 125, 0.5);
-      border-radius: 12px; padding: 0 10px; font-size: 13px; font-weight: bold;
-      height: 44px; cursor: pointer; outline: none; max-width: 180px;
-    }
-    .select-joueur option { background: #121820; color: white; }
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        pitch: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        accent: {
+                            50: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
 
-    .btn-quick-add {
-      background: #2b6cb0; color: white; border: none; border-radius: 12px;
-      padding: 0 12px; font-size: 13px; font-weight: bold; cursor: pointer;
-      display: flex; align-items: center; gap: 6px; height: 44px;
-    }
-    .btn-quick-add:active { background: #2c5282; }
+        input, textarea {
+            -webkit-user-select: text;
+            user-select: text;
+        }
 
-    .btn-icon {
-      background: #edf2f7; border: none; border-radius: 12px; width: 44px; height: 44px;
-      font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center;
-    }
-    .btn-icon:active { background: #cbd5e0; }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(34, 197, 94, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(34, 197, 94, 0.8);
+        }
 
-    .layout-ipad { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; justify-content: space-between; }
-    .col-gauche { display: flex; flex-direction: column; flex-shrink: 0; }
-
-    .ecran { background-color: #1a202c; border-radius: 14px; padding: 10px 14px; margin-bottom: 8px; text-align: center; }
-    .total-label { color: #a0aec0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-    .total-montant { color: #38ef7d; font-size: 28px; font-family: monospace; font-weight: bold; margin-top: 2px; }
-
-    .ticket-container {
-      background: #f8fafc; border: 2px dashed #cbd5e0; border-radius: 12px; padding: 8px 12px;
-      margin-bottom: 10px; max-height: 100px; overflow-y: auto; text-align: left; -webkit-overflow-scrolling: touch;
-    }
-    .ticket-vide { color: #a0aec0; font-size: 13px; text-align: center; margin: 6px 0; font-style: italic; }
-    .ligne-ticket { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #2d3748; padding: 4px 0; border-bottom: 1px solid #edf2f7; }
-    .btn-suppr-ligne { background: #fed7d7; color: #9b2c2c; border: none; border-radius: 8px; font-size: 12px; padding: 2px 6px; cursor: pointer; margin-left: 8px; font-weight: bold; }
-
-    .section-title { font-size: 12px; color: #718096; margin-bottom: 6px; text-align: left; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-    .col-droite { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; margin-bottom: 8px; }
-
-    .categories-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; scrollbar-width: none; align-items: center; flex-shrink: 0; }
-    .categories-tabs::-webkit-scrollbar { display: none; }
-    .tab-btn { background: #e2e8f0; color: #4a5568; border: none; padding: 8px 14px; border-radius: 22px; font-size: 12px; font-weight: bold; white-space: nowrap; cursor: pointer; flex-shrink: 0; min-height: 38px; display: flex; align-items: center; }
-    .tab-btn.active { background: #3182ce; color: white; }
-
-    .articles-scroll { flex-grow: 1; overflow-y: auto; padding-right: 2px; -webkit-overflow-scrolling: touch; }
-    .articles-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    
-    .btn-article { 
-      background: #f7fafc; border: 1.5px solid #cbd5e0; border-radius: 14px; padding: 10px 6px; 
-      font-size: 12px; font-weight: 600; color: #2d3748; display: flex; flex-direction: column; 
-      align-items: center; justify-content: space-between; gap: 4px; min-height: 110px; text-align: center; position: relative; 
-    }
-    .btn-article.mes-biens-card { background: #1a222d; border: 1px solid rgba(255, 255, 255, 0.12); color: white; justify-content: space-between; position: relative; }
-    .emoji { font-size: 22px; }
-    .prix-tag { font-weight: 800; color: #2b6cb0; font-size: 11px; background: #ebf8ff; padding: 2px 6px; border-radius: 8px; }
-
-    /* Controls pour sélectionner la quantité à acheter */
-    .qte-picker {
-      display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; margin-top: 4px;
-    }
-    .btn-qte-step {
-      background: #cbd5e0; border: none; border-radius: 6px; width: 24px; height: 24px;
-      font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    }
-    .btn-qte-step:active { background: #a0aec0; }
-    .input-qte-buy {
-      width: 36px; text-align: center; border: 1px solid #cbd5e0; border-radius: 6px; font-weight: bold; font-size: 12px; padding: 2px 0;
-    }
-    .btn-ajouter-panier {
-      background: #3182ce; color: white; border: none; border-radius: 8px; width: 100%; padding: 6px 0;
-      font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 4px;
-    }
-    .btn-ajouter-panier:active { background: #2b6cb0; }
-
-    .actions-section { flex-shrink: 0; margin-top: 4px; }
-    .btn-validation { background: #000; color: #fff; border: none; border-radius: 14px; padding: 12px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; margin-bottom: 6px; }
-
-    .pin-overlay, .banque-overlay, .historique-overlay, .reglages-overlay, .creer-ecole-overlay, .aide-overlay, .vente-quantite-overlay, .arrondissement-choix-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center;
-      opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 9998;
-    }
-    .pin-overlay.active, .banque-overlay.active, .historique-overlay.active, .reglages-overlay.active, .creer-ecole-overlay.active, .aide-overlay.active, .vente-quantite-overlay.active, .arrondissement-choix-overlay.active {
-      opacity: 1; pointer-events: auto;
-    }
-    
-    .banque-card, .historique-card, .reglages-card, .creer-ecole-card, .aide-card, .vente-card, .arrondissement-choix-card {
-      background: #121820; width: 92%; max-width: 440px; border-radius: 24px; padding: 22px; color: white;
-      text-align: left; box-shadow: 0 20px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08);
-      max-height: 90vh; display: flex; flex-direction: column;
-    }
-
-    .pin-card { background: #1c1c1e; width: 90%; max-width: 400px; border-radius: 28px; padding: 22px; color: white; text-align: center; }
-    .pin-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
-    .pin-subtitle { font-size: 14px; color: #8e8e93; margin-bottom: 18px; }
-    .error-msg { color: #ff453a; font-size: 13px; font-weight: 600; min-height: 20px; margin-bottom: 10px; text-align: center; }
-
-    .pin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 10px; }
-    .btn-pin { background: #2c2c2e; color: white; border: none; border-radius: 50%; width: 62px; height: 62px; margin: 0 auto; font-size: 22px; font-weight: 600; display: flex; justify-content: center; align-items: center; cursor: pointer; }
-    .btn-pin.btn-cancel { font-size: 14px; color: #ff453a; background: transparent; font-weight: bold; }
-    .btn-pin.btn-del { font-size: 20px; color: #8e8e93; background: transparent; }
-
-    .dark-card-item {
-      display: flex; justify-content: space-between; align-items: center; padding: 14px 16px;
-      background: #1a222d; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; margin-bottom: 10px; cursor: pointer;
-    }
-    .dark-card-name { font-size: 15px; font-weight: 700; color: #ffffff; }
-    .dark-card-sub { font-size: 12px; color: #8b98a5; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
-    .dark-card-amount { font-size: 16px; font-family: monospace; font-weight: bold; color: #38ef7d; text-align: right; }
-    .dark-card-amount.deficit { color: #ff453a; }
-
-    .historique-list { overflow-y: auto; flex-grow: 1; margin-top: 6px; display: flex; flex-direction: column; -webkit-overflow-scrolling: touch; }
-
-    .btn-back { background: #1a222d; color: #38bdf8; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; width: fit-content; }
-
-    .possession-pill { background: #202b38; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #e2e8f0; }
-    .possession-badge-green { background: rgba(56, 239, 125, 0.15); color: #38ef7d; font-weight: bold; padding: 6px 10px; border-radius: 8px; font-size: 12px; font-family: monospace; }
-
-    .btn-vente-immo { background: #2b6cb0; color: white; border: none; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 4px; }
-    .btn-vente-immo.bloque { background: #4a5568; color: #a0aec0; cursor: not-allowed; }
-
-    .reglages-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-    .reglages-title { font-size: 18px; font-weight: 800; color: #ffffff; }
-    .btn-close { background: #1a222d; border: none; color: #a0aec0; border-radius: 50%; width: 36px; height: 36px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; }
-
-    .item-editor { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-    .item-editor input { padding: 8px; border-radius: 8px; border: 1px solid #cbd5e0; font-size: 13px; }
-    .item-editor input.nom-input { flex-grow: 1; }
-
-    .btn-ajouter-article { background: #3182ce; color: white; border: none; border-radius: 10px; padding: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; font-size: 13px; min-height: 44px; }
-
-    .apple-pay-card { background: #1c1c1e; width: 100%; max-width: 440px; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; color: white; text-align: center; }
-    .ap-amount { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
-    .face-id-icon { width: 56px; height: 56px; margin: 12px auto; border: 3px solid #30d158; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 28px; }
-    .face-id-icon.success { background: #30d158; color: white; }
-
-    .badge-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 2px 8px; border-radius: 10px; background: rgba(255,255,255,0.1); margin-left: 6px; font-weight: bold; }
-
-    .marche-immo-ticker {
-      background: #1e293b; border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px;
-      padding: 8px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
-      font-size: 12px; font-weight: bold; color: #e2e8f0;
-    }
-    .marche-immo-hausse { color: #38ef7d; font-family: monospace; font-size: 13px; }
-    .marche-immo-baisse { color: #ff453a; font-family: monospace; font-size: 13px; }
-
-    .aide-content { font-size: 13px; color: #cbd5e0; line-height: 1.5; overflow-y: auto; max-height: 70vh; padding-right: 6px; }
-    .aide-section { background: #1a222d; border-radius: 12px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
-    .aide-section-title { font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-
-    @media (min-width: 600px) { .articles-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (min-width: 768px) and (orientation: landscape) {
-      .layout-ipad { display: grid; grid-template-columns: 340px 1fr; gap: 16px; }
-      .ticket-container { max-height: 160px; }
-      .articles-grid { grid-template-columns: repeat(4, 1fr); }
-    }
-  </style>
+        .touch-btn {
+            min-height: 48px;
+            min-width: 48px;
+        }
+        .touch-btn-sm {
+            min-height: 40px;
+            min-width: 40px;
+        }
+    </style>
 </head>
-<body onload="initApp()">
-
-  <div class="caisse-container">
-    <div class="header-caisse">
-      <h1>Marseille Monopoly 🎲</h1>
-      <div class="header-actions">
-        <!-- MENU DEROULANT JOUEURS -->
-        <select id="selectJoueurMenu" class="select-joueur" onchange="changerJoueurActif(this.value)">
-          <option value="">👤 Choisir un Joueur</option>
-        </select>
-        <button class="btn-quick-add" onclick="ouvrirModalCreerEcole()">🏫 + Joueur École</button>
-        <button class="btn-icon" onclick="ouvrirBanque()" title="Comptes Bancaires">🏦</button>
-        <button class="btn-icon" onclick="ouvrirAide()" title="Règles du jeu">❓</button>
-      </div>
-    </div>
-    
-    <div class="layout-ipad">
-      <div class="col-gauche">
-        <!-- ECRAN TOTAL ET SOLDE JOUEUR -->
-        <div class="ecran">
-          <div class="total-label">Total à payer</div>
-          <div class="total-montant" id="totalDisplay">0,00 €</div>
-          <div style="border-top: 1px solid rgba(255,255,255,0.15); margin: 8px 0 6px 0;"></div>
-          <div class="total-label">Solde Joueur : <span id="joueurActifNomDisplay" style="color: #38ef7d; font-weight: bold;">Aucun</span></div>
-          <div class="total-montant" id="joueurSoldeDisplay" style="color: #38bdf8; font-size: 26px; margin-top: 2px;">0,00 €</div>
-        </div>
-
-        <div class="section-title">Détail du panier</div>
-        <div class="ticket-container" id="ticketList">
-          <div class="ticket-vide">Aucun article ajouté</div>
-        </div>
-      </div>
-
-      <div class="col-droite">
-        <div class="section-title">Catalogue</div>
-        <!-- ONGLETS -->
-        <div class="categories-tabs" id="categoriesTabs"></div>
-
-        <div class="articles-scroll">
-          <div class="articles-grid" id="articlesGrid"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="actions-section">
-      <button class="btn-validation" onclick="lancerPaiementJoueur()">Payer</button>
-    </div>
-
-    <div class="version-tag">v6.0.0 (Sélection Quantité d'Achat & Taxe 5%)</div>
-  </div>
-
-  <!-- MODAL CHOIX ARRONDISSEMENT LORS DE L'ACHAT -->
-  <div class="arrondissement-choix-overlay" id="arrondissementChoixOverlay">
-    <div class="arrondissement-choix-card">
-      <div class="reglages-header">
-        <span class="reglages-title">Arrondissement d'achat 🏙️</span>
-        <button class="btn-close" onclick="fermerChoixArrondissementAchat()">✕</button>
-      </div>
-      <p style="font-size: 13px; color: #a0aec0; margin-bottom: 16px;">Sélectionnez l'arrondissement où vous achetez ce bien ou cette entreprise (taxe de 5% reversée au propriétaire ou au compte de l'arrondissement) :</p>
-      <div style="margin-bottom: 16px;">
-        <select id="selectArrondissementAchat" style="width:100%; padding:12px; border-radius:10px; background:#1a222d; color:white; border:1px solid #4a5568; font-size:14px; font-weight:bold; outline:none;"></select>
-      </div>
-      <div class="error-msg" id="arrChoixErrorMsg"></div>
-      <button class="btn-ajouter-article" style="background:#2b6cb0; padding:14px; font-size:15px;" onclick="validerChoixArrondissementAchat()">Confirmer l'arrondissement et Payer</button>
-    </div>
-  </div>
-
-  <!-- MODAL AIDE ET REGLES -->
-  <div class="aide-overlay" id="aideOverlay">
-    <div class="aide-card">
-      <div class="reglages-header">
-        <span class="reglages-title">Règles du Jeu & Guide 📜</span>
-        <button class="btn-close" onclick="fermerAide()">✕</button>
-      </div>
-      <div class="aide-content">
-        <div class="aide-section">
-          <div class="aide-section-title">🎮 Principe & Objectif du Jeu</div>
-          Le but du jeu est de devenir le joueur le plus riche de Marseille en investissant judicieusement ! Accumulez de la fortune, achetez des biens immobiliers, des places de parking, des arrondissements, des véhicules d'exception et des entreprises internationales. Gérez votre compte bancaire et faites fructifier vos investissements.
-        </div>
-
-        <div class="aide-section">
-          <div class="aide-section-title">🔑 Mots de passe & Connexion</div>
-          • Sélectionnez votre profil dans le menu déroulant en haut et saisissez votre mot de passe pour jouer.<br>
-          • Chaque joueur dispose d'un mot de passe / code PIN requis avant chaque action de paiement.<br>
-          • Pour créer un joueur École, cliquez sur <strong>🏫 + Joueur École</strong> (solde de départ : 20 000 €).
-        </div>
-
-        <div class="aide-section">
-          <div class="aide-section-title">🚘 Automobiles & Garages</div>
-          • Vous devez posséder au moins un garage (5 ou 20 places) ou des places de parking dans <em>Immobilier Marseille</em> pour acheter des véhicules.<br>
-          • La capacité de vos garages limite le nombre d'automobiles que vous pouvez acheter.
-        </div>
-
-        <div class="aide-section">
-          <div class="aide-section-title">🏢 Immobilier, Arrondissements & Entreprises</div>
-          • <strong>Taxe Arrondissement (5%)</strong> : Lors de l'achat d'un bien ou d'une entreprise, vous devez choisir un arrondissement. 5% du montant est versé au propriétaire de l'arrondissement. Si personne n'est propriétaire, l'argent alimente le compte de l'arrondissement et sera crédité directement au propriétaire lors de son achat ultérieur.<br>
-          • <strong>Revenus passifs</strong> : Snacks (+1 000€/h), Hôtels et Malls rapportent <strong>20%/h</strong> automatiquement 2 heures après l'achat.<br>
-          • <strong>Place de Parking</strong> : Disponible à 5 000 € dans l'immobilier marseillais, elle suit le cours de l'immobilier comme les maisons.<br>
-          • <strong>Entreprises en Bourse & Arrondissements</strong> : Chaque entreprise possède son propre cours de bourse indépendant mis à jour toutes les heures. Les arrondissements suivent l'indice global du marché.<br>
-          • <strong>Règles de Possession & Propriétaire Unique</strong> :<br>
-          &nbsp;&nbsp;- 👑 <strong>Arrondissements & Entreprises</strong> : Ils ne peuvent avoir qu'<strong>un seul propriétaire</strong>. Une fois achetés, ils sont grisés et ne peuvent plus être achetés par d'autres.<br>
-          &nbsp;&nbsp;- ⏳ <strong>Délai de revente</strong> :<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;• <em>Immobilier Marseille</em> : Les biens immobiliers peuvent être revendus à partir de **2 heures minimum** après leur acquisition.<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;• <em>Entreprises</em> : Les entreprises acquises ne peuvent être revendues qu'au bout de **24 heures minimum**.<br>
-          &nbsp;&nbsp;- 🏨 <strong>Hôtels</strong> : Limité à <strong>10 hôtels maximum par joueur</strong>. Si vous achetez un hôtel alors qu'un autre joueur en possède déjà, vous versez des <strong>royalties de 15%</strong> au(x) propriétaire(s).<br>
-          • <strong>Revente de Biens</strong> : Vous pouvez choisir la quantité exacte à revendre (méthode FIFO) selon les cours du marché en temps réel.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL CHOIX QUANTITE VENTE -->
-  <div class="vente-quantite-overlay" id="venteQuantiteOverlay">
-    <div class="vente-card">
-      <div class="reglages-header">
-        <span class="reglages-title" id="venteModalTitle">Revendre un bien 🏷️</span>
-        <button class="btn-close" onclick="fermerModalVenteQuantite()">✕</button>
-      </div>
-      <div id="venteModalBody" style="font-size: 13px; color: #cbd5e0; margin-bottom: 16px; line-height: 1.5;"></div>
-      <div style="display: flex; gap: 10px;">
-        <button class="btn-validation" style="background:#2b6cb0; flex:1; margin-bottom:0;" onclick="validerVenteQuantite()">Valider la revente</button>
-        <button class="btn-validation" style="background:#2d3748; color:#cbd5e0; flex:1; margin-bottom:0;" onclick="fermerModalVenteQuantite()">Annuler</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL CREATION JOUEUR ECOLE -->
-  <div class="creer-ecole-overlay" id="creerEcoleOverlay">
-    <div class="creer-ecole-card">
-      <div class="reglages-header">
-        <span class="reglages-title">Nouveau Joueur École 🏫</span>
-        <button class="btn-close" onclick="fermerModalCreerEcole()">✕</button>
-      </div>
-      <p style="font-size: 13px; color: #a0aec0; margin-bottom: 16px;">Saisissez le prénom et le mot de passe du joueur. Solde initial : 20 000 €.</p>
-      <div class="item-editor" style="margin-bottom: 10px;">
-        <input type="text" id="ecoleNomInput" class="nom-input" placeholder="Prénom" style="width:100%; padding:12px; font-size:15px;">
-      </div>
-      <div class="item-editor" style="margin-bottom: 16px;">
-        <input type="text" id="ecolePinInput" class="nom-input" placeholder="Mot de passe / PIN" style="width:100%; padding:12px; font-size:15px;">
-      </div>
-      <button class="btn-ajouter-article" style="background:#2b6cb0; padding:14px; font-size:15px;" onclick="validerCreationJoueurEcole()">Créer le joueur (20 000 €)</button>
-    </div>
-  </div>
-
-  <!-- MODAL CODE PIN / MOT DE PASSE -->
-  <div class="pin-overlay" id="pinOverlay">
-    <div class="pin-card" id="pinCard">
-      <div class="pin-title" id="pinTitleModal">Mot de passe requis</div>
-      <div class="pin-subtitle" id="pinSubtitleModal">Saisissez votre mot de passe ou code PIN</div>
-      
-      <div id="selectionJoueurPinSimilaire" style="display:none; margin-bottom: 14px;">
-        <div style="font-size:13px; color:#f97316; margin-bottom:8px; font-weight:bold;">Plusieurs joueurs ont ce mot de passe !</div>
-        <select id="selectJoueurPinDoublon" style="width:100%; padding:10px; border-radius:10px; background:#2c2c2e; color:white; border:1px solid #4a5568; font-size:14px; font-weight:bold;"></select>
-        <button class="btn-ajouter-article" style="margin-top:10px; background:#38ef7d; color:#000;" onclick="confirmerChoixJoueurDoublon()">Valider mon choix</button>
-      </div>
-
-      <div id="pinBoxContainer">
-        <input type="password" id="pinTextInput" placeholder="Mot de passe / PIN" style="width:100%; padding:14px; font-size:18px; border-radius:14px; border:2px solid #3a3a3c; background:#2c2c2e; color:white; text-align:center; margin-bottom:12px; font-weight:bold;" onkeydown="if(event.key==='Enter') verifierCodePin()">
-
-        <div class="error-msg" id="pinErrorMsg"></div>
-
-        <div style="display:flex; gap:10px; margin-bottom:12px;">
-          <button class="btn-validation" style="background:#0a84ff; flex:1; margin-bottom:0;" onclick="verifierCodePin()">Valider</button>
-          <button class="btn-validation" style="background:#3a3a3c; color:#ff453a; flex:1; margin-bottom:0;" onclick="fermerCodePin()">Annuler</button>
-        </div>
-
-        <div class="pin-grid">
-          <button class="btn-pin" onclick="taperCodePin('1')">1</button>
-          <button class="btn-pin" onclick="taperCodePin('2')">2</button>
-          <button class="btn-pin" onclick="taperCodePin('3')">3</button>
-          <button class="btn-pin" onclick="taperCodePin('4')">4</button>
-          <button class="btn-pin" onclick="taperCodePin('5')">5</button>
-          <button class="btn-pin" onclick="taperCodePin('6')">6</button>
-          <button class="btn-pin" onclick="taperCodePin('7')">7</button>
-          <button class="btn-pin" onclick="taperCodePin('8')">8</button>
-          <button class="btn-pin" onclick="taperCodePin('9')">9</button>
-          <button class="btn-pin btn-cancel" onclick="fermerCodePin()">✕</button>
-          <button class="btn-pin" onclick="taperCodePin('0')">0</button>
-          <button class="btn-pin btn-del" onclick="effacerChiffrePin()">⌫</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL BANQUE -->
-  <div class="banque-overlay" id="banqueOverlay">
-    <div class="banque-card">
-      <div class="reglages-header">
-        <span class="reglages-title">Comptes Bancaires 🏦</span>
-        <button class="btn-close" onclick="fermerBanque()">✕</button>
-      </div>
-      <div class="historique-list" id="soldesList">
-        <div style="text-align:center; color:#a0aec0; margin:20px 0;">Chargement des comptes...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL HISTORIQUE / CLASSEMENT -->
-  <div class="historique-overlay" id="historiqueOverlay">
-    <div class="historique-card">
-      <div class="reglages-header">
-        <span class="reglages-title" id="historiqueTitle">Classement Général 🧾</span>
-        <button class="btn-close" onclick="fermerHistorique()">✕</button>
-      </div>
-
-      <div class="marche-immo-ticker" id="marcheImmoTicker">
-        <span>📈 Tendance Marché Immo (30 min) :</span>
-        <span id="marcheImmoValDisplay" class="marche-immo-hausse">+0%</span>
-      </div>
-
-      <div class="marche-immo-ticker" id="marcheBourseTicker">
-        <span>📊 Bourse Entreprises (Cours individuels) :</span>
-        <span id="marcheBourseValDisplay" class="marche-immo-hausse">Indépendant</span>
-      </div>
-
-      <div class="categories-tabs" id="tabsClassementGroupe" style="margin-bottom: 10px;">
-        <button class="tab-btn active" id="btnTabClassementTous" onclick="changerOngletClassement('tous')">🌐 Tous</button>
-        <button class="tab-btn" id="btnTabClassementFamille" onclick="changerOngletClassement('famille')">👨‍👩‍👧‍👦 Famille</button>
-        <button class="tab-btn" id="btnTabClassementEcole" onclick="changerOngletClassement('ecole')">🏫 École</button>
-      </div>
-
-      <div class="historique-list" id="historiqueList">
-        <div style="text-align:center; color:#a0aec0; margin-top:20px;">Chargement du classement...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SIMULATION APPLE PAY -->
-  <div class="apple-pay-overlay" id="applePayOverlay">
-    <div class="apple-pay-card">
-      <div class="ap-header"><span>Pay</span></div>
-      <div class="ap-amount" id="apAmountDisplay">0,00 €</div>
-      <div class="face-id-icon" id="faceIdIcon">😃</div>
-      <div class="ap-status" id="apStatusText">Vérification...</div>
-      <div class="ap-user" id="apUserDisplay"></div>
-    </div>
-  </div>
-
-  <script>
-    (function antiTriche() {
-      document.addEventListener('contextmenu', function(e) { e.preventDefault(); }, false);
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; }
-        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) { e.preventDefault(); return false; }
-        if (e.metaKey && e.altKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) { e.preventDefault(); return false; }
-      }, false);
-    })();
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBtij22GLTXBbdWxbUX42rKP_HQIeah7AQ",
-      authDomain: "caisse-enregistreuse-terrance.firebaseapp.com",
-      projectId: "caisse-enregistreuse-terrance",
-      storageBucket: "caisse-enregistreuse-terrance.firebasestorage.app",
-      messagingSenderId: "775121776791",
-      appId: "1:775121776791:web:3a67715c6a07b005c579d2",
-      databaseURL: "https://caisse-enregistreuse-terrance-default-rtdb.firebaseio.com"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function (event) {
-      const now = (new Date()).getTime();
-      if (now - lastTouchEnd <= 300) { event.preventDefault(); }
-      lastTouchEnd = now;
-    }, false);
-
-    const PIN_HASH_MAP = {
-      "0b82b3d681d6aa0274291c98db182245b058eb7b830d93708453ae66a9876798": "Yves",
-      "c67160ad3df65d4b4a1c5d4fb17502755f190c1f4e1f7c32b509ebed8a018247": "Terrance",
-      "7bf41e065bf639ddbe2a281ff9281a629b3ee33b1e754fb7128edfa58a74e5ea": "Lamar",
-      "56f108f972049e3776b23b4f6274474936d07e68fa707efd25718dfb8416d6ff": "Marjo",
-      "f1807d96a7ee007d4b4fb24e4d5804aa1f79f40076a084bcbb53158cfa40a7cf": "Joyce"
-    };
-
-    let USERS_LIST = [
-      { pin: "0712", nom: "Yves", groupe: "Famille" },
-      { pin: "2807", nom: "Terrance", groupe: "Famille" },
-      { pin: "2006", nom: "Lamar", groupe: "Famille" },
-      { pin: "2410", nom: "Marjo", groupe: "Famille" },
-      { pin: "1806", nom: "Joyce", groupe: "Famille" }
-    ];
-
-    const PALIERS_BADGES = [
-      { montant: 100000000000, nom: "Bronze 🥉", code: "bronze" },
-      { montant: 1000000000000, nom: "Argent 🥈", code: "argent" },
-      { montant: 10000000000000, nom: "Or 🥇", code: "or" },
-      { montant: 100000000000000, nom: "Platine 💎", code: "platine" },
-      { montant: 1000000000000000, nom: "Ultima 👑", code: "ultima" }
-    ];
-
-    function ObtenirInfosBadge(soldeCash) {
-      let currentBadge = null;
-      for (let i = 0; i < PALIERS_BADGES.length; i++) {
-        if (soldeCash >= PALIERS_BADGES[i].montant) {
-          currentBadge = PALIERS_BADGES[i];
-        }
-      }
-      return { badgeActuel: currentBadge };
-    }
-
-    function ObtenirPrenomUser(pinOuObj) {
-      if (!pinOuObj) return "Anonyme";
-      if (typeof pinOuObj === 'string') return pinOuObj;
-      if (pinOuObj.nom) return pinOuObj.nom;
-      return "Anonyme";
-    }
-
-    function ObtenirGroupeUser(prenom) {
-      let entree = USERS_LIST.find(u => u.nom === prenom);
-      if (entree && entree.groupe) return entree.groupe;
-      return "Famille";
-    }
-
-    async function hashPin(str) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(str);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    let pinSaisi = "";
-    let joueurActif = "";
-    let targetJoueurSelection = "";
-    let lastUserValide = "";
-    let actionApresPin = "";
-    let panier = [];
-    let comptesComplets = {};
-    let possessionsImmo = {};
-    let arrondissementsComptes = {};
-    let arrondissementSelectionneAchat = "";
-    let joueurSelectionneVueDetail = null;
-    let filtreClassementActif = "tous";
-
-    let marcheImmoPct = 0;
-    let marcheBoursePct = 0;
-    let bourseEntreprisesData = {};
-
-    let venteActiveContext = null;
-    let categorieActive = "Automobiles";
-
-    let baseArticles = [
-      // AUTOMOBILES
-      { id: 801, cat: "Automobiles", emoji: "🚗", nom: "Audi A3 Sportback", prix: 36790.00, immoKey: "car_audi_a3" },
-      { id: 802, cat: "Automobiles", emoji: "🚗", nom: "Fiat 500 Électrique", prix: 18790.00, immoKey: "car_fiat500" },
-      { id: 803, cat: "Automobiles", emoji: "🚗", nom: "Citroën C4", prix: 27800.00, immoKey: "car_citroen_c4" },
-      { id: 804, cat: "Automobiles", emoji: "🚙", nom: "Renault Clio 5", prix: 19900.00, immoKey: "car_renault_clio5" },
-      { id: 805, cat: "Automobiles", emoji: "🚙", nom: "Peugeot 3008", prix: 38850.00, immoKey: "car_peugeot3008" },
-      { id: 806, cat: "Automobiles", emoji: "🚙", nom: "Peugeot 5008", prix: 40490.00, immoKey: "car_peugeot5008" },
-      { id: 807, cat: "Automobiles", emoji: "🏎", nom: "Tesla Model 3", prix: 39990.00, immoKey: "car_tesla_m3" },
-      { id: 808, cat: "Automobiles", emoji: "🏎️", nom: "Tesla Model Y", prix: 44990.00, immoKey: "car_tesla_my" },
-      { id: 809, cat: "Automobiles", emoji: "🏎", nom: "Tesla Model S", prix: 92990.00, immoKey: "car_tesla_ms" },
-      { id: 810, cat: "Automobiles", emoji: "🏎️", nom: "Tesla Model X", prix: 99990.00, immoKey: "car_tesla_mx" },
-      { id: 811, cat: "Automobiles", emoji: "📐", nom: "Tesla Cybertruck", prix: 102000.00, immoKey: "car_tesla_cybertruck" },
-      { id: 812, cat: "Automobiles", emoji: "⚡", nom: "BYD Dolphin", prix: 33990.00, immoKey: "car_byd_dolphin" },
-      { id: 813, cat: "Automobiles", emoji: "⚡", nom: "BYD Atto 3", prix: 37990.00, immoKey: "car_byd_atto3" },
-      { id: 814, cat: "Automobiles", emoji: "⚡", nom: "BYD Seal", prix: 46990.00, immoKey: "car_byd_seal" },
-      { id: 815, cat: "Automobiles", emoji: "⚡", nom: "BYD Sealion 7", prix: 47990.00, immoKey: "car_byd_sealion7" },
-      { id: 816, cat: "Automobiles", emoji: "⚡", nom: "BYD Tang", prix: 70990.00, immoKey: "car_byd_tang" },
-      { id: 817, cat: "Automobiles", emoji: "⚡", nom: "BYD Han", prix: 70800.00, immoKey: "car_byd_han" },
-      { id: 818, cat: "Automobiles", emoji: "👑", nom: "Range Rover Autograph", prix: 144900.00, immoKey: "car_range_rover" },
-
-      // IMMOBILIER MARSEILLE
-      { id: 501, cat: "Immobilier Marseille", emoji: "🏢", nom: "Appart T1 Marseille", prix: 115000.00, immoKey: "t1" },
-      { id: 502, cat: "Immobilier Marseille", emoji: "🏢", nom: "Appart T2 Marseille", prix: 185000.00, immoKey: "t2" },
-      { id: 503, cat: "Immobilier Marseille", emoji: "🏢", nom: "Appart T3 Vue mer", prix: 280000.00, immoKey: "t3" },
-      { id: 504, cat: "Immobilier Marseille", emoji: "🏢", nom: "Appart T4 Standing", prix: 395000.00, immoKey: "t4" },
-      { id: 505, cat: "Immobilier Marseille", emoji: "🏡", nom: "Maison T4 (Piscine)", prix: 620000.00, immoKey: "maisonT4", estMaison: true },
-      { id: 506, cat: "Immobilier Marseille", emoji: "🏡", nom: "Maison T5 (13012)", prix: 780000.00, immoKey: "maisonT5", estMaison: true },
-      { id: 507, cat: "Immobilier Marseille", emoji: "🏰", nom: "Villa T6 (8ème)", prix: 1250000.00, immoKey: "villaT6", estMaison: true },
-      { id: 508, cat: "Immobilier Marseille", emoji: "🥪", nom: "Snack (+1 000€/h)", prix: 150000.00, immoKey: "snack", revenuHeure: 1000.00 },
-      { id: 509, cat: "Immobilier Marseille", emoji: "🏨", nom: "Hôtel (20%/h après 2h)", prix: 500000.00, immoKey: "hotel", tauxPourcentHeure: 0.20, delaiActivationHeures: 2 },
-      { id: 510, cat: "Immobilier Marseille", emoji: "🏬", nom: "Centre Commercial (20%/h après 2h)", prix: 1000000.00, immoKey: "centreCommercial", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estCentreCommercial: true },
-      { id: 511, cat: "Immobilier Marseille", emoji: "🏬", nom: "Dubai Mall Center (20%/h après 2h)", prix: 50000000.00, immoKey: "dubaiMall", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estMall: true, estCentreCommercial: true },
-      { id: 512, cat: "Immobilier Marseille", emoji: "🏬", nom: "Abu Dhabi Mega Mall (20%/h après 2h)", prix: 100000000.00, immoKey: "abuDhabiMall", tauxPourcentHeure: 0.20, delaiActivationHeures: 2, estMall: true, estCentreCommercial: true },
-      { id: 513, cat: "Immobilier Marseille", emoji: "🚘", nom: "Garage 5 voitures", prix: 50000.00, immoKey: "garage5", capaciteGarage: 5 },
-      { id: 514, cat: "Immobilier Marseille", emoji: "🏎", nom: "Garage 20 voitures", prix: 150000.00, immoKey: "garage20", capaciteGarage: 20 },
-      { id: 515, cat: "Immobilier Marseille", emoji: "🅿️", nom: "Place de parking", prix: 5000.00, immoKey: "parking" },
-
-      // ARRONDISSEMENTS DE MARSEILLE
-      { id: 701, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "1er Arrondissement", prix: 100000000000000000.00, immoKey: "arr_1", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 702, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "2ème Arrondissement", prix: 150000000000000000.00, immoKey: "arr_2", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 703, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "3ème Arrondissement", prix: 200000000000000000.00, immoKey: "arr_3", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 704, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "4ème Arrondissement", prix: 250000000000000000.00, immoKey: "arr_4", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 705, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "5ème Arrondissement", prix: 300000000000000000.00, immoKey: "arr_5", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 706, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "6ème Arrondissement", prix: 350000000000000000.00, immoKey: "arr_6", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 707, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "7ème Arrondissement", prix: 400000000000000000.00, immoKey: "arr_7", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 708, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "8ème Arrondissement", prix: 450000000000000000.00, immoKey: "arr_8", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 709, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "9ème Arrondissement", prix: 500000000000000000.00, immoKey: "arr_9", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 710, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "10ème Arrondissement", prix: 550000000000000000.00, immoKey: "arr_10", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 711, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "11ème Arrondissement", prix: 600000000000000000.00, immoKey: "arr_11", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 712, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "12ème Arrondissement", prix: 650000000000000000.00, immoKey: "arr_12", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 713, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "13ème Arrondissement", prix: 700000000000000000.00, immoKey: "arr_13", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 714, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "14ème Arrondissement", prix: 750000000000000000.00, immoKey: "arr_14", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 715, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "15ème Arrondissement", prix: 800000000000000000.00, immoKey: "arr_15", delaiActivationHeures: 2, estUniqueProprietaire: true },
-      { id: 716, cat: "Arrondissements Marseille", emoji: "🏙️", nom: "16ème Arrondissement", prix: 900000000000000000.00, immoKey: "arr_16", delaiActivationHeures: 2, estUniqueProprietaire: true },
-
-      // ENTREPRISES CONNUES
-      { id: 901, cat: "Entreprises Connues", emoji: "🍎", nom: "Apple Inc.", prix: 3400000000000.00, immoKey: "ent_apple", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 902, cat: "Entreprises Connues", emoji: "💻", nom: "Microsoft", prix: 3100000000000.00, immoKey: "ent_msft", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 903, cat: "Entreprises Connues", emoji: "👁️", nom: "NVIDIA", prix: 3200000000000.00, immoKey: "ent_nvda", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 904, cat: "Entreprises Connues", emoji: "🔍", nom: "Alphabet (Google)", prix: 2100000000000.00, immoKey: "ent_goog", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 905, cat: "Entreprises Connues", emoji: "📦", nom: "Amazon", prix: 2200000000000.00, immoKey: "ent_amzn", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 906, cat: "Entreprises Connues", emoji: "♾️", nom: "Meta Platforms", prix: 1400000000000.00, immoKey: "ent_meta", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 907, cat: "Entreprises Connues", emoji: "⚡", nom: "Tesla", prix: 80000000000.00, immoKey: "ent_tsla", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 908, cat: "Entreprises Connues", emoji: "👜", nom: "LVMH", prix: 3500000000000.00, immoKey: "ent_lvmh", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 909, cat: "Entreprises Connues", emoji: "🎬", nom: "Netflix", prix: 28000000000.00, immoKey: "ent_nflx", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 910, cat: "Entreprises Connues", emoji: "✨", nom: "Walt Disney Company", prix: 21000000000.00, immoKey: "ent_disney", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 911, cat: "Entreprises Connues", emoji: "🥤", nom: "Coca-Cola", prix: 29000000000.00, immoKey: "ent_ko", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 912, cat: "Entreprises Connues", emoji: "🍟", nom: "McDonald's", prix: 22000000000.00, immoKey: "ent_mcd", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 913, cat: "Entreprises Connues", emoji: "👟", nom: "Nike", prix: 13000000000.00, immoKey: "ent_nike", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 914, cat: "Entreprises Connues", emoji: "☕", nom: "Starbucks", prix: 11000000000.00, immoKey: "ent_sbux", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 915, cat: "Entreprises Connues", emoji: "🧬", nom: "Eli Lilly", prix: 85000000000.00, immoKey: "ent_lly", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 916, cat: "Entreprises Connues", emoji: "💊", nom: "Novo Nordisk", prix: 55000000000.00, immoKey: "ent_nvo", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 917, cat: "Entreprises Connues", emoji: "💉", nom: "Pfizer", prix: 16000000000.00, immoKey: "ent_pfe", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 918, cat: "Entreprises Connues", emoji: "💳", nom: "Visa", prix: 57000000000.00, immoKey: "ent_v", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 919, cat: "Entreprises Connues", emoji: "💳", nom: "Mastercard", prix: 450000000000.00, immoKey: "ent_ma", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 920, cat: "Entreprises Connues", emoji: "🏦", nom: "JPMorgan Chase", prix: 59000000000.00, immoKey: "ent_jpm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 921, cat: "Entreprises Connues", emoji: "📱", nom: "Samsung Electronics", prix: 40000000000.00, immoKey: "ent_samsung", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 922, cat: "Entreprises Connues", emoji: "🎮", nom: "Tencent Holdings", prix: 45000000000.00, immoKey: "ent_tencent", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 923, cat: "Entreprises Connues", emoji: "🛒", nom: "Alibaba Group", prix: 20000000000.00, immoKey: "ent_alibaba", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 924, cat: "Entreprises Connues", emoji: "🛒", nom: "Walmart", prix: 50000000000.00, immoKey: "ent_walmart", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 925, cat: "Entreprises Connues", emoji: "⛽", nom: "ExxonMobil", prix: 45000000000.00, immoKey: "ent_exxon", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 926, cat: "Entreprises Connues", emoji: "⛽", nom: "Chevron", prix: 30000000000.00, immoKey: "ent_chevron", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 927, cat: "Entreprises Connues", emoji: "⛽", nom: "Shell plc", prix: 22000000000.00, immoKey: "ent_shell", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 928, cat: "Entreprises Connues", emoji: "⛽", nom: "TotalEnergies", prix: 15000000000.00, immoKey: "ent_total", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 929, cat: "Entreprises Connues", emoji: "⛽", nom: "BP", prix: 10000000000.00, immoKey: "ent_bp", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 930, cat: "Entreprises Connues", emoji: "🍫", nom: "Nestlé", prix: 25000000000.00, immoKey: "ent_nestle", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 931, cat: "Entreprises Connues", emoji: "🧴", nom: "Procter & Gamble", prix: 38000000000.00, immoKey: "ent_pg", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 932, cat: "Entreprises Connues", emoji: "🧼", nom: "Unilever", prix: 13000000000.00, immoKey: "ent_unilever", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 933, cat: "Entreprises Connues", emoji: "🥤", nom: "PepsiCo", prix: 23000000000.00, immoKey: "ent_pepsico", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 934, cat: "Entreprises Connues", emoji: "💻", nom: "IBM", prix: 18000000000.00, immoKey: "ent_ibm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 935, cat: "Entreprises Connues", emoji: "💻", nom: "Intel Corporation", prix: 10000000000.00, immoKey: "ent_intel", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 936, cat: "Entreprises Connues", emoji: "💻", nom: "AMD", prix: 23000000000.00, immoKey: "ent_amd", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 937, cat: "Entreprises Connues", emoji: "📱", nom: "Qualcomm", prix: 18000000000.00, immoKey: "ent_qualcomm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 938, cat: "Entreprises Connues", emoji: "🔌", nom: "Broadcom", prix: 70000000000.00, immoKey: "ent_broadcom", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 939, cat: "Entreprises Connues", emoji: "🌐", nom: "Cisco Systems", prix: 22000000000.00, immoKey: "ent_cisco", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 940, cat: "Entreprises Connues", emoji: "🗄️", nom: "Oracle Corporation", prix: 35000000000.00, immoKey: "ent_oracle", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 941, cat: "Entreprises Connues", emoji: "☁️", nom: "Salesforce", prix: 27000000000.00, immoKey: "ent_salesforce", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 942, cat: "Entreprises Connues", emoji: "🎨", nom: "Adobe", prix: 23000000000.00, immoKey: "ent_adobe", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 943, cat: "Entreprises Connues", emoji: "💳", nom: "PayPal", prix: 6000000000.00, immoKey: "ent_paypal", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 944, cat: "Entreprises Connues", emoji: "🚗", nom: "Uber Technologies", prix: 15000000000.00, immoKey: "ent_uber", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 945, cat: "Entreprises Connues", emoji: "🏠", nom: "Airbnb", prix: 8000000000.00, immoKey: "ent_airbnb", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 946, cat: "Entreprises Connues", emoji: "✈️", nom: "Booking Holdings", prix: 14000000000.00, immoKey: "ent_booking", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 947, cat: "Entreprises Connues", emoji: "🎮", nom: "Sony Group", prix: 11000000000.00, immoKey: "ent_sony", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 948, cat: "Entreprises Connues", emoji: "🍄", nom: "Nintendo", prix: 7000000000.00, immoKey: "ent_nintendo", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 949, cat: "Entreprises Connues", emoji: "🚗", nom: "Toyota Motor", prix: 25000000000.00, immoKey: "ent_toyota", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 950, cat: "Entreprises Connues", emoji: "🚗", nom: "Volkswagen Group", prix: 6000000000.00, immoKey: "ent_vw", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 951, cat: "Entreprises Connues", emoji: "⭐", nom: "Mercedes-Benz Group", prix: 7000000000.00, immoKey: "ent_mercedes", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 952, cat: "Entreprises Connues", emoji: "🚗", nom: "BMW Group", prix: 6000000000.00, immoKey: "ent_bmw", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 953, cat: "Entreprises Connues", emoji: "🚗", nom: "Stellantis", prix: 4000000000.00, immoKey: "ent_stellantis", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 954, cat: "Entreprises Connues", emoji: "🚙", nom: "Ford Motor", prix: 4500000000.00, immoKey: "ent_ford", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 955, cat: "Entreprises Connues", emoji: "🚙", nom: "General Motors", prix: 5000000000.00, immoKey: "ent_gm", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 956, cat: "Entreprises Connues", emoji: "🏍️", nom: "Honda Motor", prix: 5000000000.00, immoKey: "ent_honda", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 957, cat: "Entreprises Connues", emoji: "⚙️", nom: "Siemens", prix: 14000000000.00, immoKey: "ent_siemens", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 958, cat: "Entreprises Connues", emoji: "⚡", nom: "Schneider Electric", prix: 13000000000.00, immoKey: "ent_schneider", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 959, cat: "Entreprises Connues", emoji: "✈️", nom: "Airbus", prix: 12000000000.00, immoKey: "ent_airbus", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 960, cat: "Entreprises Connues", emoji: "✈️", nom: "Boeing", prix: 10000000000.00, immoKey: "ent_boeing", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 961, cat: "Entreprises Connues", emoji: "🛒", nom: "Costco Wholesale", prix: 35000000000.00, immoKey: "ent_costco", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 962, cat: "Entreprises Connues", emoji: "🔨", nom: "Home Depot", prix: 38000000000.00, immoKey: "ent_homedepot", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 963, cat: "Entreprises Connues", emoji: "🏥", nom: "UnitedHealth Group", prix: 50000000000.00, immoKey: "ent_unitedhealth", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 964, cat: "Entreprises Connues", emoji: "🩹", nom: "Johnson & Johnson", prix: 38000000000.00, immoKey: "ent_jnj", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 965, cat: "Entreprises Connues", emoji: "🏦", nom: "Bank of America", prix: 30000000000.00, immoKey: "ent_bofa", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 966, cat: "Entreprises Connues", emoji: "💰", nom: "Goldman Sachs", prix: 15000000000.00, immoKey: "ent_goldman", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 967, cat: "Entreprises Connues", emoji: "📊", nom: "BlackRock", prix: 13000000000.00, immoKey: "ent_blackrock", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 968, cat: "Entreprises Connues", emoji: "📞", nom: "AT&T", prix: 13000000000.00, immoKey: "ent_att", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 969, cat: "Entreprises Connues", emoji: "🎧", nom: "Spotify", prix: 7000000000.00, immoKey: "ent_spotify", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true },
-      { id: 970, cat: "Entreprises Connues", emoji: "💻", nom: "SAP SE", prix: 20000000000.00, immoKey: "ent_sap", delaiActivationHeures: 2, estEntreprise: true, estUniqueProprietaire: true }
-    ];
-
-    function initApp() {
-      ecouterJoueursFirebase();
-      afficherOnglets();
-      afficherArticles();
-      MettreAJourEcran();
-      initialiserEtEcouterComptes();
-      ecouterPossessionsImmo();
-      ecouterArrondissementsComptes();
-      ecouterMarcheImmobilier();
-      ecouterBourseEntreprises();
-      ecouterMarcheBourse();
-      setInterval(traiterRevenusHorairesImmo, 10000);
-    }
-
-    function remplirSelectJoueursMenu() {
-      const select = document.getElementById('selectJoueurMenu');
-      if (!select) return;
-      select.innerHTML = '<option value="">👤 Choisir un Joueur</option>';
-      USERS_LIST.forEach(u => {
-        let prenom = ObtenirPrenomUser(u);
-        let groupe = ObtenirGroupeUser(prenom);
-        let opt = document.createElement('option');
-        opt.value = prenom;
-        opt.innerText = `${prenom} (${groupe})`;
-        if (prenom === joueurActif) opt.selected = true;
-        select.appendChild(opt);
-      });
-    }
-
-    function changerJoueurActif(nom) {
-      if (!nom) {
-        joueurActif = "";
-        lastUserValide = "";
-        mettreAJourSoldeJoueurActif();
-        if (categorieActive === "🏠 Mes Biens") afficherArticles();
-        return;
-      }
-      targetJoueurSelection = nom;
-      document.getElementById('selectJoueurMenu').value = joueurActif;
-      demanderCodePin('select_player');
-    }
-
-    function mettreAJourSoldeJoueurActif() {
-      const nomDisplay = document.getElementById('joueurActifNomDisplay');
-      const soldeDisplay = document.getElementById('joueurSoldeDisplay');
-      if (!nomDisplay || !soldeDisplay) return;
-
-      if (joueurActif) {
-        nomDisplay.innerText = joueurActif;
-        let solde = comptesComplets[joueurActif] !== undefined ? comptesComplets[joueurActif] : 20000.00;
-        soldeDisplay.innerText = solde.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
-        soldeDisplay.style.color = solde < 0 ? '#ff453a' : '#38bdf8';
-      } else {
-        nomDisplay.innerText = "Aucun";
-        soldeDisplay.innerText = "0,00 €";
-        soldeDisplay.style.color = '#38bdf8';
-      }
-    }
-
-    function demanderCodePin(action) {
-      actionApresPin = action;
-      pinSaisi = "";
-      document.getElementById('pinTextInput').value = "";
-      document.getElementById('pinErrorMsg').innerText = "";
-      document.getElementById('selectionJoueurPinSimilaire').style.display = 'none';
-
-      if (action === 'select_player' && targetJoueurSelection) {
-        document.getElementById('pinTitleModal').innerText = `Connexion (${targetJoueurSelection})`;
-        document.getElementById('pinSubtitleModal').innerText = `Entrez le mot de passe de ${targetJoueurSelection}`;
-      } else if (action === 'paiement') {
-        document.getElementById('pinTitleModal').innerText = "Validation du paiement";
-        document.getElementById('pinSubtitleModal').innerText = "Saisissez votre code PIN pour valider";
-      } else {
-        document.getElementById('pinTitleModal').innerText = "Mot de passe requis";
-        document.getElementById('pinSubtitleModal').innerText = "Saisissez votre code PIN";
-      }
-
-      document.getElementById('pinOverlay').classList.add('active');
-    }
-
-    function taperCodePin(chiffre) {
-      pinSaisi += chiffre;
-      document.getElementById('pinTextInput').value = pinSaisi;
-    }
-
-    function effacerChiffrePin() {
-      pinSaisi = pinSaisi.slice(0, -1);
-      document.getElementById('pinTextInput').value = pinSaisi;
-    }
-
-    function fermerCodePin() {
-      pinSaisi = "";
-      document.getElementById('pinOverlay').classList.remove('active');
-    }
-
-    function verifierCodePin() {
-      const inputVal = document.getElementById('pinTextInput').value.trim();
-      const codeFinal = inputVal || pinSaisi;
-      const errElem = document.getElementById('pinErrorMsg');
-
-      if (!codeFinal) {
-        errElem.innerText = "Veuillez saisir un code PIN ou mot de passe !";
-        return;
-      }
-
-      let matches = USERS_LIST.filter(u => {
-        let p = ObtenirPrenomUser(u);
-        return u.pin === codeFinal || p.toLowerCase() === codeFinal.toLowerCase();
-      });
-
-      if (matches.length === 0) {
-        hashPin(codeFinal).then(hash => {
-          let nomHash = PIN_HASH_MAP[hash];
-          if (nomHash) {
-            let uObj = USERS_LIST.find(u => ObtenirPrenomUser(u).toLowerCase() === nomHash.toLowerCase());
-            if (uObj) matches.push(uObj);
-          }
-          traiterValidationPin(matches, codeFinal);
-        });
-      } else {
-        traiterValidationPin(matches, codeFinal);
-      }
-    }
-
-    function traiterValidationPin(matches, codeFinal) {
-      const errElem = document.getElementById('pinErrorMsg');
-
-      if (matches.length === 0) {
-        errElem.innerText = "❌ Mot de passe ou Code PIN incorrect !";
-        return;
-      }
-
-      if (actionApresPin === 'select_player' && targetJoueurSelection) {
-        let matchTarget = matches.find(u => ObtenirPrenomUser(u).toLowerCase() === targetJoueurSelection.toLowerCase());
-        if (!matchTarget) {
-          errElem.innerText = `❌ Code PIN incorrect pour ${targetJoueurSelection} !`;
-          return;
-        }
-        matches = [matchTarget];
-      }
-
-      if (matches.length > 1) {
-        const sel = document.getElementById('selectJoueurPinDoublon');
-        sel.innerHTML = "";
-        matches.forEach(u => {
-          let p = ObtenirPrenomUser(u);
-          let opt = document.createElement('option');
-          opt.value = p; opt.innerText = p;
-          sel.appendChild(opt);
-        });
-        document.getElementById('selectionJoueurPinSimilaire').style.display = 'block';
-        return;
-      }
-
-      let userObj = matches[0];
-      let prenomValide = ObtenirPrenomUser(userObj);
-
-      joueurActif = prenomValide;
-      lastUserValide = prenomValide;
-
-      document.getElementById('selectJoueurMenu').value = prenomValide;
-      mettreAJourSoldeJoueurActif();
-      if (categorieActive === "🏠 Mes Biens") afficherArticles();
-
-      fermerCodePin();
-
-      if (actionApresPin === 'paiement') {
-        validerPaiement();
-      }
-    }
-
-    function confirmerChoixJoueurDoublon() {
-      let sel = document.getElementById('selectJoueurPinDoublon');
-      let prenom = sel.value;
-      joueurActif = prenom;
-      lastUserValide = prenom;
-      document.getElementById('selectJoueurMenu').value = prenom;
-      mettreAJourSoldeJoueurActif();
-      if (categorieActive === "🏠 Mes Biens") afficherArticles();
-
-      fermerCodePin();
-
-      if (actionApresPin === 'paiement') {
-        validerPaiement();
-      }
-    }
-
-    function lancerPaiementJoueur() {
-      let total = calculerTotalPanier();
-      if (total <= 0) {
-        alert("Votre panier est vide !");
-        return;
-      }
-
-      if (!joueurActif) {
-        alert("⚠️ Veuillez d'abord choisir un joueur dans le menu déroulant !");
-        demanderCodePin('select_player');
-        return;
-      }
-
-      let besoinArrondissement = panier.some(item => item.cat === "Automobiles" || item.cat === "Immobilier Marseille" || item.cat === "Entreprises Connues");
-
-      if (besoinArrondissement) {
-        ouvrirModalChoixArrondissementAchat();
-      } else {
-        demanderCodePin('paiement');
-      }
-    }
-
-    function ouvrirModalChoixArrondissementAchat() {
-      const select = document.getElementById('selectArrondissementAchat');
-      select.innerHTML = "";
-      baseArticles.filter(a => a.cat === "Arrondissements Marseille").forEach(arr => {
-        let prop = obtenirProprietaireUnique(arr.immoKey);
-        let opt = document.createElement('option');
-        opt.value = arr.immoKey;
-        opt.innerText = `${arr.emoji} ${arr.nom} ${prop ? '(Propriétaire : ' + prop + ')' : '(Non possédé - Compte arr.)'}`;
-        select.appendChild(opt);
-      });
-      document.getElementById('arrChoixErrorMsg').innerText = "";
-      document.getElementById('arrondissementChoixOverlay').classList.add('active');
-    }
-
-    function fermerChoixArrondissementAchat() {
-      document.getElementById('arrondissementChoixOverlay').classList.remove('active');
-    }
-
-    function validerChoixArrondissementAchat() {
-      const select = document.getElementById('selectArrondissementAchat');
-      arrondissementSelectionneAchat = select.value;
-      if (!arrondissementSelectionneAchat) {
-        document.getElementById('arrChoixErrorMsg').innerText = "Veuillez sélectionner un arrondissement !";
-        return;
-      }
-      fermerChoixArrondissementAchat();
-      demanderCodePin('paiement');
-    }
-
-    function ecouterArrondissementsComptes() {
-      db.ref('arrondissements_comptes').on('value', (snapshot) => {
-        arrondissementsComptes = snapshot.val() || {};
-        if (categorieActive === "Arrondissements Marseille") afficherArticles();
-      });
-    }
-
-    function ecouterMarcheImmobilier() {
-      db.ref('marche_immobilier').on('value', (snapshot) => {
-        const data = snapshot.val();
-        const maintenant = Date.now();
-        const tranche30min = Math.floor(maintenant / (30 * 60 * 1000));
-
-        if (!data || data.tranche !== tranche30min) {
-          const estPerte = Math.random() < 0.25;
-          let pct = estPerte ? - (Math.floor(Math.random() * 85) + 5) : Math.floor(Math.exp(Math.random() * Math.log(10000000 / 5)) * 5);
-          db.ref('marche_immobilier').set({ tranche: tranche30min, pourcentage: pct });
-        } else {
-          marcheImmoPct = data.pourcentage;
-          afficherIndicateurMarche();
-          if (joueurSelectionneVueDetail) afficherDetailJoueur(joueurSelectionneVueDetail);
-          if (categorieActive === "🏠 Mes Biens") afficherArticles();
-        }
-      });
-    }
-
-    function ecouterBourseEntreprises() {
-      db.ref('bourse_entreprises').on('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        const maintenant = Date.now();
-        const trancheHeure = Math.floor(maintenant / (3600 * 1000));
-        let updates = {};
-        let needsUpdate = false;
-
-        baseArticles.filter(a => a.cat === "Entreprises Connues" || a.estEntreprise).forEach(ent => {
-          let entData = data[ent.immoKey];
-          if (!entData || entData.tranche !== trancheHeure) {
-            const estPerte = Math.random() < 0.35;
-            let pctReel = estPerte ? - (Math.floor(Math.random() * 40) / 10 + 0.5) : (Math.floor(Math.random() * 50) / 10 + 0.5);
-            updates[ent.immoKey] = { tranche: trancheHeure, pourcentageReel: pctReel };
-            needsUpdate = true;
-          }
-        });
-
-        if (needsUpdate) {
-          db.ref('bourse_entreprises').update(updates);
-        } else {
-          bourseEntreprisesData = data;
-          if (joueurSelectionneVueDetail) afficherDetailJoueur(joueurSelectionneVueDetail);
-          if (categorieActive === "🏠 Mes Biens" || categorieActive === "Entreprises Connues") afficherArticles();
-        }
-      });
-    }
-
-    function ecouterMarcheBourse() {
-      db.ref('marche_bourse').on('value', (snapshot) => {
-        const data = snapshot.val();
-        const maintenant = Date.now();
-        const trancheHeure = Math.floor(maintenant / (3600 * 1000));
-
-        if (!data || data.tranche !== trancheHeure) {
-          const estPerte = Math.random() < 0.35;
-          let pctReel = estPerte ? - (Math.floor(Math.random() * 40) / 10 + 0.5) : (Math.floor(Math.random() * 50) / 10 + 0.5);
-          db.ref('marche_bourse').set({ tranche: trancheHeure, pourcentageReel: pctReel });
-        } else {
-          marcheBoursePct = data.pourcentageReel;
-        }
-      });
-    }
-
-    function afficherIndicateurMarche() {
-      const display = document.getElementById('marcheImmoValDisplay');
-      if (!display) return;
-      if (marcheImmoPct >= 0) {
-        display.className = "marche-immo-hausse";
-        display.innerText = `+${marcheImmoPct.toLocaleString('fr-FR')}% 📈`;
-      } else {
-        display.className = "marche-immo-baisse";
-        display.innerText = `${marcheImmoPct.toLocaleString('fr-FR')}% 📉`;
-      }
-    }
-
-    function ouvrirAide() { document.getElementById('aideOverlay').classList.add('active'); }
-    function fermerAide() { document.getElementById('aideOverlay').classList.remove('active'); }
-
-    function ouvrirModalCreerEcole() {
-      document.getElementById('ecoleNomInput').value = "";
-      document.getElementById('ecolePinInput').value = "";
-      document.getElementById('creerEcoleOverlay').classList.add('active');
-    }
-
-    function fermerModalCreerEcole() {
-      document.getElementById('creerEcoleOverlay').classList.remove('active');
-    }
-
-    function validerCreationJoueurEcole() {
-      const prenom = document.getElementById('ecoleNomInput').value.trim();
-      const pin = document.getElementById('ecolePinInput').value.trim();
-
-      if (!prenom) { alert("Veuillez saisir un prénom !"); return; }
-      if (!pin) { alert("Veuillez saisir un mot de passe ou code PIN !"); return; }
-
-      let doublonNom = USERS_LIST.find(u => u.nom.toLowerCase() === prenom.toLowerCase());
-      if (doublonNom) { alert("Ce prénom est déjà utilisé !"); return; }
-
-      USERS_LIST.push({ pin: pin, nom: prenom, groupe: "École" });
-      db.ref('utilisateurs_v2').set(USERS_LIST);
-      db.ref(`banques/${prenom}`).set(20000.00);
-
-      fermerModalCreerEcole();
-      alert(`🎉 Joueur "${prenom}" créé avec succès !\nMot de passe: ${pin}\nSolde: 20 000 €`);
-    }
-
-    function ecouterJoueursFirebase() {
-      db.ref('utilisateurs_v2').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data) { 
-          db.ref('utilisateurs_v2').set(USERS_LIST); 
-        } else { 
-          USERS_LIST = Array.isArray(data) ? data : Object.values(data); 
-          remplirSelectJoueursMenu();
-          afficherClassementEtPossessions(); 
-        }
-      });
-    }
-
-    function initialiserEtEcouterComptes() {
-      db.ref('banques').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data) {
-          let initialData = {};
-          USERS_LIST.forEach(u => { initialData[ObtenirPrenomUser(u)] = 20000.00; });
-          db.ref('banques').set(initialData);
-        } else {
-          comptesComplets = data;
-          mettreAJourSoldeJoueurActif();
-          afficherSoldesBanque();
-          afficherClassementEtPossessions();
-        }
-      });
-    }
-
-    function ecouterPossessionsImmo() {
-      db.ref('immobilier').on('value', (snapshot) => {
-        possessionsImmo = snapshot.val() || {};
-        traiterRevenusHorairesImmo();
-        afficherSoldesBanque();
-        afficherClassementEtPossessions();
-        if (categorieActive === "🏠 Mes Biens") afficherArticles();
-        else afficherArticles();
-      });
-    }
-
-    function obtenirProprietaireUnique(immoKey) {
-      if (!possessionsImmo) return null;
-      for (let user in possessionsImmo) {
-        if (possessionsImmo[user] && possessionsImmo[user][immoKey] && possessionsImmo[user][immoKey].quantite > 0) {
-          return user;
-        }
-      }
-      return null;
-    }
-
-    function traiterRevenusHorairesImmo() {
-      if (!possessionsImmo) return;
-      const maintenant = Date.now();
-      let updatesBanque = {};
-      let updatesImmo = {};
-
-      Object.keys(possessionsImmo).forEach(user => {
-        const biens = possessionsImmo[user];
-        if (!biens) return;
-
-        let deltaTotalARecup = 0;
-
-        Object.keys(biens).forEach(immoKey => {
-          const dataBien = biens[immoKey];
-          if (!dataBien || !dataBien.achats) return;
-
-          const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
-
-          dataBien.achats.forEach((dateAchat, index) => {
-            let dernierPaiementIndiv = (dataBien.derniersPaiements && dataBien.derniersPaiements[index]) ? dataBien.derniersPaiements[index] : dateAchat;
-            let delaiMin = 0;
-            let gainOuPerteHeure = 0;
-            let estEntreprise = (catalogueRef && (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise));
-            let estElementUnique = (catalogueRef && (catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire));
-
-            if (estEntreprise) {
-              delaiMin = (catalogueRef.delaiActivationHeures || 2) * 3600 * 1000;
-              let entObj = bourseEntreprisesData[immoKey] || { pourcentageReel: 0 };
-              let tauxJeu = entObj.pourcentageReel * 0.10;
-              gainOuPerteHeure = catalogueRef.prix * tauxJeu;
-            } else if (estElementUnique) {
-              delaiMin = (catalogueRef.delaiActivationHeures || 2) * 3600 * 1000;
-              let tauxJeu = marcheBoursePct * 0.10;
-              gainOuPerteHeure = catalogueRef.prix * tauxJeu;
-            } else if (catalogueRef && catalogueRef.tauxPourcentHeure) {
-              delaiMin = (catalogueRef.delaiActivationHeures || 2) * 3600 * 1000;
-              gainOuPerteHeure = catalogueRef.prix * catalogueRef.tauxPourcentHeure;
-            } else if (immoKey === 'snack') {
-              delaiMin = 2 * 3600 * 1000;
-              gainOuPerteHeure = 1000;
-            }
-
-            if (gainOuPerteHeure !== 0) {
-              let debutEligibilite = dateAchat + delaiMin;
-              let debutCalcul = Math.max(dernierPaiementIndiv, debutEligibilite);
-
-              if (maintenant > debutCalcul) {
-                let heuresCompletes = Math.floor((maintenant - debutCalcul) / (3600 * 1000));
-                if (heuresCompletes >= 1) {
-                  deltaTotalARecup += heuresCompletes * gainOuPerteHeure;
-                  if (!updatesImmo[`immobilier/${user}/${immoKey}/derniersPaiements`]) {
-                    updatesImmo[`immobilier/${user}/${immoKey}/derniersPaiements`] = [...(dataBien.derniersPaiements || dataBien.achats)];
-                  }
-                  updatesImmo[`immobilier/${user}/${immoKey}/derniersPaiements`][index] = debutCalcul + (heuresCompletes * 3600 * 1000);
-                }
-              }
-            }
-          });
-        });
-
-        if (deltaTotalARecup !== 0) {
-          let soldeActuel = comptesComplets[user] !== undefined ? comptesComplets[user] : 20000.00;
-          updatesBanque[`banques/${user}`] = Math.round((soldeActuel + deltaTotalARecup) * 100) / 100;
-        }
-      });
-
-      if (Object.keys(updatesBanque).length > 0) db.ref().update(updatesBanque);
-      if (Object.keys(updatesImmo).length > 0) db.ref().update(updatesImmo);
-    }
-
-    function ajouterPossessionImmo(user, item) {
-      if (!item.immoKey) return;
-      const ref = db.ref(`immobilier/${user}/${item.immoKey}`);
-      ref.once('value', (snapshot) => {
-        const currentData = snapshot.val() || { quantite: 0, achats: [], derniersPaiements: [] };
-        let quantite = (currentData.quantite || 0) + 1;
-        let achats = currentData.achats || [];
-        let derniersPaiements = currentData.derniersPaiements || [];
-        const now = Date.now();
-
-        achats.push(now);
-        derniersPaiements.push(now);
-
-        ref.set({ quantite: quantite, achats: achats, derniersPaiements: derniersPaiements });
-      });
-    }
-
-    function calculerPrixReventeBien(dateAchat, prixBase, isElementUnique, immoKey, isEntreprise) {
-      const maintenant = Date.now();
-      const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
-
-      if (heuresEcoulees < 3 && !isElementUnique) {
-        return { prix: prixBase, augmente: false };
-      }
-
-      let pctMarche = 0;
-      if (isEntreprise) {
-        let entObj = bourseEntreprisesData[immoKey] || { pourcentageReel: 0 };
-        pctMarche = entObj.pourcentageReel * 10;
-      } else if (isElementUnique) {
-        pctMarche = marcheBoursePct * 10;
-      } else {
-        pctMarche = marcheImmoPct;
-      }
-
-      let multMarche = 1 + (pctMarche / 100);
-      if (multMarche < 0.1) multMarche = 0.1;
-
-      return { prix: Math.round(prixBase * multMarche * 100) / 100, augmente: true };
-    }
-
-    function ouvrirModalVenteBien(user, immoKey) {
-      const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
-      if (!catalogueRef) return;
-
-      let estImmoRevendable = (catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel");
-      let estElementRevendable = (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire);
-
-      if (!estImmoRevendable && !estElementRevendable) {
-        alert("🚫 Seuls les biens de la section Immobilier Marseille (hors Hôtels), les Arrondissements et les Entreprises peuvent être revendus !");
-        return;
-      }
-
-      const ref = db.ref(`immobilier/${user}/${immoKey}`);
-      ref.once('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data || !data.achats || data.achats.length === 0) {
-          alert("Vous ne possédez aucun exemplaire de ce bien.");
-          return;
-        }
-
-        const maintenant = Date.now();
-        let estEntreprise = (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise);
-        let estImmobilierMarseille = (catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel");
-
-        let achatsEligibles = [];
-        let achatsBloquesCount = 0;
-
-        data.achats.forEach((dateAchat, idx) => {
-          const heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
-          if (estEntreprise && heuresEcoulees < 24) {
-            achatsBloquesCount++;
-          } else if (estImmobilierMarseille && heuresEcoulees < 2) {
-            achatsBloquesCount++;
-          } else {
-            achatsEligibles.push({ dateAchat, indexOriginal: idx });
-          }
-        });
-
-        if (achatsEligibles.length === 0) {
-          let delaiTexte = estEntreprise ? "24 heures" : "2 heures";
-          alert(`🔒 Toutes vos unités de "${catalogueRef.nom}" sont verrouillées (délai de ${delaiTexte} minimum non atteint).`);
-          return;
-        }
-
-        venteActiveContext = {
-          user,
-          immoKey,
-          catalogueRef,
-          achatsEligibles,
-          achatsBloquesCount,
-          quantiteMax: achatsEligibles.length,
-          quantiteSelectionnee: 1
-        };
-
-        afficherModalVenteHTML();
-        document.getElementById('venteQuantiteOverlay').classList.add('active');
-      });
-    }
-
-    function afficherModalVenteHTML() {
-      const body = document.getElementById('venteModalBody');
-      const ctx = venteActiveContext;
-      if (!ctx) return;
-
-      document.getElementById('venteModalTitle').innerText = `Revendre : ${ctx.catalogueRef.emoji} ${ctx.catalogueRef.nom}`;
-
-      let prixTotalRevente = 0;
-      for (let i = 0; i < ctx.quantiteSelectionnee; i++) {
-        let itemAchat = ctx.achatsEligibles[i];
-        let resCalc = calculerPrixReventeBien(itemAchat.dateAchat, ctx.catalogueRef.prix, (ctx.catalogueRef.cat === "Arrondissements Marseille" || ctx.catalogueRef.estUniqueProprietaire), ctx.immoKey, (ctx.catalogueRef.cat === "Entreprises Connues" || ctx.catalogueRef.estEntreprise));
-        prixTotalRevente += resCalc.prix;
-      }
-
-      let infoBloqueHtml = ctx.achatsBloquesCount > 0 ? `<div style="color:#f87171; font-size:11px; margin-top:4px;">🔒 ${ctx.achatsBloquesCount} unité(s) bloquée(s) (délai non atteint)</div>` : "";
-
-      body.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; background:#1a222d; padding:10px; border-radius:12px;">
-          <div>
-            <div style="font-weight:bold; color:white;">Unités disponibles :</div>
-            <div style="font-size:12px; color:#38ef7d;">${ctx.quantiteMax} unité(s) vendable(s)</div>
-            ${infoBloqueHtml}
-          </div>
-          <div style="text-align:right;">
-            <div style="font-weight:bold; color:white;">Prix unitaire base :</div>
-            <div style="font-size:12px; color:#38bdf8;">${ctx.catalogueRef.prix.toLocaleString('fr-FR')} €</div>
-          </div>
-        </div>
-
-        <div style="margin-bottom:14px;">
-          <label style="display:block; font-size:12px; font-weight:bold; color:#a0aec0; margin-bottom:6px;">Quantité à revendre :</label>
-          <div style="display:flex; align-items:center; gap:10px;">
-            <button class="btn-validation" style="width:48px; height:48px; font-size:20px; background:#2c2c2e; margin-bottom:0;" onclick="modifierQuantiteVente(-1)">-</button>
-            <input type="number" id="inputQteVente" value="${ctx.quantiteSelectionnee}" min="1" max="${ctx.quantiteMax}" oninput="changerQuantiteInputVente(this.value)" style="flex-grow:1; text-align:center; padding:12px; font-size:20px; font-weight:bold; border-radius:12px; background:#0d1117; color:#38ef7d; border:1px solid #4a5568;">
-            <button class="btn-validation" style="width:48px; height:48px; font-size:20px; background:#2c2c2e; margin-bottom:0;" onclick="modifierQuantiteVente(1)">+</button>
-          </div>
-        </div>
-
-        <div style="background:#1a222d; padding:12px; border-radius:12px; text-align:center; border:1px solid rgba(56,239,125,0.3);">
-          <div style="font-size:11px; text-transform:uppercase; color:#a0aec0; font-weight:bold;">Montant total de revente estimé</div>
-          <div style="font-size:24px; font-family:monospace; font-weight:bold; color:#38ef7d; margin-top:2px;">${prixTotalRevente.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2})} €</div>
-        </div>
-      `;
-    }
-
-    function modifierQuantiteVente(delta) {
-      if (!venteActiveContext) return;
-      let nouvelleQte = venteActiveContext.quantiteSelectionnee + delta;
-      if (nouvelleQte < 1) nouvelleQte = 1;
-      if (nouvelleQte > venteActiveContext.quantiteMax) nouvelleQte = venteActiveContext.quantiteMax;
-      venteActiveContext.quantiteSelectionnee = nouvelleQte;
-      afficherModalVenteHTML();
-    }
-
-    function changerQuantiteInputVente(valStr) {
-      if (!venteActiveContext) return;
-      let val = parseInt(valStr);
-      if (isNaN(val) || val < 1) val = 1;
-      if (val > venteActiveContext.quantiteMax) val = venteActiveContext.quantiteMax;
-      venteActiveContext.quantiteSelectionnee = val;
-      afficherModalVenteHTML();
-    }
-
-    function fermerModalVenteQuantite() {
-      document.getElementById('venteQuantiteOverlay').classList.remove('active');
-      venteActiveContext = null;
-    }
-
-    function validerVenteQuantite() {
-      if (!venteActiveContext) return;
-      const ctx = venteActiveContext;
-
-      const ref = db.ref(`immobilier/${ctx.user}/${ctx.immoKey}`);
-      ref.once('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data || !data.achats) return;
-
-        let qteAVendre = ctx.quantiteSelectionnee;
-        let achatsRestants = [...data.achats];
-        let paiementsRestants = data.derniersPaiements ? [...data.derniersPaiements] : [];
-
-        let prixTotalRevente = 0;
-        let indicesASupprimer = [];
-
-        for (let i = 0; i < qteAVendre; i++) {
-          let itemEligible = ctx.achatsEligibles[i];
-          let resCalc = calculerPrixReventeBien(itemEligible.dateAchat, ctx.catalogueRef.prix, (ctx.catalogueRef.cat === "Arrondissements Marseille" || ctx.catalogueRef.estUniqueProprietaire), ctx.immoKey, (ctx.catalogueRef.cat === "Entreprises Connues" || ctx.catalogueRef.estEntreprise));
-          prixTotalRevente += resCalc.prix;
-          indicesASupprimer.push(itemEligible.dateAchat);
-        }
-
-        indicesASupprimer.forEach(timestamp => {
-          let indexTrouve = achatsRestants.indexOf(timestamp);
-          if (indexTrouve !== -1) {
-            achatsRestants.splice(indexTrouve, 1);
-            if (paiementsRestants.length > indexTrouve) {
-              paiementsRestants.splice(indexTrouve, 1);
-            }
-          }
-        });
-
-        let nouvelleQuantiteTotale = achatsRestants.length;
-        let actionUpdate = {};
-
-        if (nouvelleQuantiteTotale <= 0) {
-          actionUpdate[`immobilier/${ctx.user}/${ctx.immoKey}`] = null;
-        } else {
-          actionUpdate[`immobilier/${ctx.user}/${ctx.immoKey}`] = {
-            quantite: nouvelleQuantiteTotale,
-            achats: achatsRestants,
-            derniersPaiements: paiementsRestants
-          };
-        }
-
-        db.ref().update(actionUpdate).then(() => {
-          let soldeActuel = comptesComplets[ctx.user] !== undefined ? comptesComplets[ctx.user] : 20000.00;
-          let nouveauSolde = Math.round((soldeActuel + prixTotalRevente) * 100) / 100;
-          db.ref(`banques/${ctx.user}`).set(nouveauSolde).then(() => {
-            fermerModalVenteQuantite();
-            alert(`💰 ${qteAVendre}x ${ctx.catalogueRef.nom} revendu(s) avec succès pour ${prixTotalRevente.toLocaleString('fr-FR', {minimumFractionDigits:2})} € !`);
-            afficherClassementEtPossessions();
-            if (categorieActive === "🏠 Mes Biens") afficherArticles();
-          });
-        });
-      });
-    }
-
-    // Fonctions de modification de quantité d'achat dans la carte produit
-    function stepQteAchat(artId, delta) {
-      const input = document.getElementById(`qte_input_${artId}`);
-      if (!input) return;
-      let val = parseInt(input.value) || 1;
-      val += delta;
-      if (val < 1) val = 1;
-      input.value = val;
-    }
-
-    function ajouterAuPanier(article, qteDemandee = 1) {
-      if (!joueurActif) {
-        alert("⚠️ Veuillez d'abord choisir un joueur dans le menu déroulant !");
-        demanderCodePin('select_player');
-        return;
-      }
-
-      qteDemandee = parseInt(qteDemandee);
-      if (isNaN(qteDemandee) || qteDemandee < 1) qteDemandee = 1;
-
-      if (article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire) {
-        let prop = obtenirProprietaireUnique(article.immoKey);
-        if (prop) {
-          alert(`🚫 "${article.nom}" appartient déjà à ${prop} !`);
-          return;
-        }
-        if (qteDemandee > 1) {
-          alert(`🚫 "${article.nom}" est un bien unique, vous ne pouvez en acheter qu'un seul exemplaire.`);
-          qteDemandee = 1;
-        }
-        let dejaDansPanier = panier.some(p => p.immoKey === article.immoKey);
-        if (dejaDansPanier) {
-          alert(`🚫 "${article.nom}" est déjà dans votre panier !`);
-          return;
-        }
-      }
-
-      if (article.cat === "Automobiles") {
-        let capaciteTotale = 0;
-        const userImmo = possessionsImmo[joueurActif] || {};
-        if (userImmo.garage5 && userImmo.garage5.quantite) capaciteTotale += userImmo.garage5.quantite * 5;
-        if (userImmo.garage20 && userImmo.garage20.quantite) capaciteTotale += userImmo.garage20.quantite * 20;
-        if (userImmo.parking && userImmo.parking.quantite) capaciteTotale += userImmo.parking.quantite * 1;
-
-        let voituresPossedees = 0;
-        baseArticles.filter(a => a.cat === "Automobiles").forEach(car => {
-          if (userImmo[car.immoKey] && userImmo[car.immoKey].quantite) {
-            voituresPossedees += userImmo[car.immoKey].quantite;
-          }
-        });
-
-        let voituresDansPanier = panier.filter(p => p.cat === "Automobiles").reduce((s, i) => s + i.qte, 0);
-
-        if (voituresPossedees + voituresDansPanier + qteDemandee > capaciteTotale) {
-          alert(`🚗 Capacité de garage / parking insuffisante !\nPlaces disponibles : ${capaciteTotale}\nVéhicules (possédés + panier) : ${voituresPossedees + voituresDansPanier}\nDemande : ${qteDemandee}\nAchetez un garage ou une place de parking dans "Immobilier Marseille" pour continuer.`);
-          return;
-        }
-      }
-
-      if (article.immoKey === 'hotel') {
-        let hotelsPossedes = (possessionsImmo[joueurActif] && possessionsImmo[joueurActif].hotel && possessionsImmo[joueurActif].hotel.quantite) || 0;
-        let hotelsPanier = panier.filter(p => p.immoKey === 'hotel').reduce((s, i) => s + i.qte, 0);
-        if (hotelsPossedes + hotelsPanier + qteDemandee > 10) {
-          alert("🏨 Limite atteinte : Vous ne pouvez pas posséder plus de 10 Hôtels !");
-          return;
-        }
-      }
-
-      let index = panier.findIndex(p => p.id === article.id);
-      if (index >= 0) {
-        panier[index].qte += qteDemandee;
-      } else {
-        panier.push({ ...article, qte: qteDemandee });
-      }
-
-      MettreAJourEcran();
-    }
-
-    function retirerDuPanier(index) {
-      if (panier[index].qte > 1) {
-        panier[index].qte -= 1;
-      } else {
-        panier.splice(index, 1);
-      }
-      MettreAJourEcran();
-    }
-
-    function reinitialiser() {
-      panier = [];
-      MettreAJourEcran();
-    }
-
-    function calculerTotalPanier() {
-      return panier.reduce((sum, item) => sum + (item.prix * item.qte), 0);
-    }
-
-    function MettreAJourEcran() {
-      const displayTotal = document.getElementById('totalDisplay');
-      const ticketList = document.getElementById('ticketList');
-      let total = calculerTotalPanier();
-
-      if (displayTotal) {
-        displayTotal.innerText = total.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-      }
-
-      if (ticketList) {
-        if (panier.length === 0) {
-          ticketList.innerHTML = '<div class="ticket-vide">Aucun article ajouté</div>';
-        } else {
-          let html = '';
-          panier.forEach((item, idx) => {
-            let st = item.prix * item.qte;
-            html += `
-              <div class="ligne-ticket">
-                <span>${item.emoji} ${item.nom} x${item.qte}</span>
-                <div>
-                  <span style="font-weight:bold;">${st.toLocaleString('fr-FR', {minimumFractionDigits: 2})} €</span>
-                  <button class="btn-suppr-ligne" onclick="retirerDuPanier(${idx})">✕</button>
+<body class="font-sans min-h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden pb-12">
+
+    <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
+        <div class="max-w-[1600px] mx-auto px-6 py-4 flex flex-col xl:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-pitch-600 flex items-center justify-center text-white shadow-lg shadow-pitch-600/30">
+                    <i class="fa-solid fa-futbol text-2xl"></i>
                 </div>
-              </div>
-            `;
-          });
-          ticketList.innerHTML = html;
-        }
-      }
-    }
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-3">
+                        Tournoi Foot <span class="text-xs font-semibold px-2.5 py-1 bg-pitch-600/20 text-pitch-400 border border-pitch-500/30 rounded-lg">Gestionnaire Planning</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium flex items-center gap-2">
+                        <span>Gestionnaire Scolaire</span> &bull; 
+                        <span id="save-status-badge" class="text-emerald-400 font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-floppy-disk"></i> Sauvegarde locale active
+                        </span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <div class="flex items-center gap-2 bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800">
+                    <i class="fa-solid fa-users text-pitch-500 text-sm"></i>
+                    <span class="text-xs text-slate-400 font-medium">Élèves:</span>
+                    <span id="total-players-count" class="text-sm font-bold text-white">0</span>
+                </div>
+                <div class="flex items-center gap-2 bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800">
+                    <i class="fa-solid fa-user-clock text-amber-400 text-sm"></i>
+                    <span class="text-xs text-slate-400 font-medium">Réserve:</span>
+                    <span id="unassigned-players-count" class="text-sm font-bold text-amber-400">0</span>
+                </div>
+                <div class="flex items-center gap-2 bg-slate-950 px-3.5 py-2 rounded-xl border border-slate-800">
+                    <i class="fa-solid fa-shield-halved text-blue-400 text-sm"></i>
+                    <span class="text-xs text-slate-400 font-medium">Équipes:</span>
+                    <span id="total-teams-count" class="text-sm font-bold text-blue-400">0</span>
+                </div>
 
-    function validerPaiement() {
-      let total = calculerTotalPanier();
-      if (total <= 0) {
-        alert("Votre panier est vide !");
-        return;
-      }
+                <div class="h-6 w-px bg-slate-800 hidden md:block"></div>
 
-      if (!lastUserValide) {
-        alert("Aucun joueur identifié.");
-        return;
-      }
+                <div class="flex items-center gap-2">
+                    <button onclick="exporterSauvegardeJSON()" title="Exporter toutes les données" class="touch-btn-sm bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-200 text-xs font-bold px-3.5 rounded-xl border border-slate-700 transition flex items-center gap-2">
+                        <i class="fa-solid fa-download text-pitch-400"></i>
+                        <span class="hidden sm:inline">Exporter JSON</span>
+                    </button>
+                    
+                    <label title="Importer un fichier JSON sauvegardé" class="touch-btn-sm bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-200 text-xs font-bold px-3.5 rounded-xl border border-slate-700 transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-upload text-amber-400"></i>
+                        <span class="hidden sm:inline">Importer JSON</span>
+                        <input type="file" id="jsonImportFile" accept=".json" class="hidden" onchange="importerSauvegardeJSON(event)">
+                    </label>
 
-      let soldeActuel = comptesComplets[lastUserValide] !== undefined ? comptesComplets[lastUserValide] : 20000.00;
-      if (soldeActuel < total) {
-        alert(`❌ Solde insuffisant !\nSolde : ${soldeActuel.toLocaleString('fr-FR')} €\nTotal panier : ${total.toLocaleString('fr-FR')} €`);
-        return;
-      }
+                    <button onclick="demanderResetComplet()" title="Réinitialiser toutes les données" class="touch-btn-sm bg-red-950/60 hover:bg-red-900 text-red-300 text-xs font-bold px-3 rounded-xl border border-red-800/60 transition flex items-center justify-center">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
 
-      const apOverlay = document.getElementById('applePayOverlay');
-      const apAmountDisplay = document.getElementById('apAmountDisplay');
-      const apStatusText = document.getElementById('apStatusText');
-      const apUserDisplay = document.getElementById('apUserDisplay');
-      const faceIdIcon = document.getElementById('faceIdIcon');
+    <main class="flex-1 max-w-[1600px] w-full mx-auto px-6 py-6 space-y-8">
 
-      apAmountDisplay.innerText = total.toLocaleString('fr-FR', {minimumFractionDigits: 2}) + ' €';
-      apStatusText.innerText = "Validation avec Face ID...";
-      apUserDisplay.innerText = `Compte : ${lastUserValide}`;
-      faceIdIcon.className = "face-id-icon";
-      faceIdIcon.innerText = "😃";
+        <!-- Étape 1 : Réserve Élèves -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+            <div class="flex items-center gap-2 text-pitch-500 font-bold text-xs uppercase tracking-wider mb-2">
+                <span class="w-7 h-7 rounded-lg bg-pitch-500/10 flex items-center justify-center text-sm font-extrabold border border-pitch-500/20">1</span>
+                Étape 1 &bull; Réserve Élèves
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-1">Importation Excel / CSV</h2>
+            <p class="text-slate-400 text-sm mb-6">
+                Chargez la liste des élèves. Les noms sont insérés dans la réserve globale sans affectation automatique.
+            </p>
 
-      apOverlay.classList.add('active');
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <label for="excelFile" class="md:col-span-2 touch-btn flex items-center justify-center gap-3 px-6 py-4 rounded-xl border-2 border-dashed border-slate-700 bg-slate-950/60 hover:bg-slate-800 hover:border-pitch-500 transition cursor-pointer text-slate-300">
+                    <i class="fa-solid fa-file-excel text-2xl text-pitch-500"></i>
+                    <span id="file-label-text" class="text-sm font-semibold truncate">Choisir un fichier Excel (.xlsx) ou CSV</span>
+                    <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(event)" />
+                </label>
 
-      setTimeout(() => {
-        faceIdIcon.className = "face-id-icon success";
-        faceIdIcon.innerText = "✓";
-        apStatusText.innerText = "Paiement réussi !";
+                <button onclick="importerExcel()" class="touch-btn bg-pitch-600 hover:bg-pitch-500 active:bg-pitch-700 text-white font-bold px-8 rounded-xl shadow-lg shadow-pitch-600/30 transition flex items-center justify-center gap-3 text-base">
+                    <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                    <span>Importer les noms</span>
+                </button>
+            </div>
+        </section>
 
-        setTimeout(() => {
-          apOverlay.classList.remove('active');
+        <!-- Étape 2 : Sélection Manuelle des Équipes -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+                <div>
+                    <div class="flex items-center gap-2 text-accent-500 font-bold text-xs uppercase tracking-wider mb-2">
+                        <span class="w-7 h-7 rounded-lg bg-accent-500/10 flex items-center justify-center text-sm font-extrabold border border-accent-500/20">2</span>
+                        Étape 2 &bull; Session de Jeu
+                    </div>
+                    <h2 class="text-2xl font-bold text-white">Sélection des Équipes pour le Match</h2>
+                    <p class="text-slate-400 text-sm">Cochez les équipes ou utilisez le bouton de planning automatique.</p>
+                </div>
 
-          let nouveauSolde = Math.round((soldeActuel - total) * 100) / 100;
-          let updates = {};
-          updates[`banques/${lastUserValide}`] = nouveauSolde;
+                <div class="flex flex-wrap items-center gap-3">
+                    <button onclick="selectionnerSelonPlanning()" class="touch-btn bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-bold px-5 rounded-xl shadow-lg shadow-amber-600/30 transition flex items-center gap-2 text-sm" title="Cocher automatiquement les équipes prévues pour le prochain match">
+                        <i class="fa-solid fa-calendar-check text-base"></i>
+                        <span>Auto-sélection Planning</span>
+                    </button>
 
-          panier.forEach(item => {
-            if (item.cat === "Arrondissements Marseille") {
-              let arrKey = item.immoKey;
-              let compteArrInitial = arrondissementsComptes[arrKey] || 0;
-              if (compteArrInitial > 0) {
-                nouveauSolde = Math.round((nouveauSolde + compteArrInitial) * 100) / 100;
-                updates[`banques/${lastUserValide}`] = nouveauSolde;
-                updates[`arrondissements_comptes/${arrKey}`] = 0;
-              }
-            } else if (item.cat === "Automobiles" || item.cat === "Immobilier Marseille" || item.cat === "Entreprises Connues") {
-              if (arrondissementSelectionneAchat) {
-                let montantTaxe5Pct = Math.round(item.prix * 0.05 * item.qte * 100) / 100;
-                let proprietaireArr = obtenirProprietaireUnique(arrondissementSelectionneAchat);
+                    <button onclick="validerSelectionMatch()" class="touch-btn bg-gradient-to-r from-pitch-600 to-pitch-500 hover:from-pitch-500 hover:to-pitch-600 active:scale-[0.98] text-white font-bold px-6 rounded-xl shadow-xl shadow-pitch-600/30 transition flex items-center gap-3">
+                        <i class="fa-solid fa-check-double text-xl"></i>
+                        <span class="text-base">Valider & Faire Jouer</span>
+                    </button>
 
-                if (proprietaireArr) {
-                  let soldeProp = comptesComplets[proprietaireArr] !== undefined ? comptesComplets[proprietaireArr] : 20000.00;
-                  updates[`banques/${proprietaireArr}`] = Math.round((soldeProp + montantTaxe5Pct) * 100) / 100;
-                } else {
-                  let compteArrActuel = arrondissementsComptes[arrondissementSelectionneAchat] || 0;
-                  let nouveauCompteArr = Math.round((compteArrActuel + montantTaxe5Pct) * 100) / 100;
-                  updates[`arrondissements_comptes/${arrondissementSelectionneAchat}`] = nouveauCompteArr;
+                    <button onclick="reinitialiserEquipesTerrain()" class="touch-btn bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-300 font-semibold px-4 rounded-xl border border-slate-700 transition flex items-center gap-2 text-sm" title="Vider les équipes actuellement sur le terrain">
+                        <i class="fa-solid fa-xmark text-red-400"></i>
+                        <span>Réinit. Terrain</span>
+                    </button>
+
+                    <button onclick="reinitialiserCompteursJoues()" class="touch-btn bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-300 font-semibold px-4 rounded-xl border border-slate-700 transition flex items-center gap-2 text-sm" title="Remettre à zéro tous les compteurs de matchs">
+                        <i class="fa-solid fa-rotate-right text-amber-400"></i>
+                        <span>Réinit. Compteurs Joués</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Équipes Actuellement Sélectionnées sur le Terrain -->
+            <div class="mt-6">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-display text-pitch-500"></i> Équipes actuellement sur le terrain
+                </h3>
+                <div id="playing-teams" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div class="col-span-full py-10 text-center border-2 border-dashed border-slate-800 rounded-2xl bg-slate-950/40">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-850 flex items-center justify-center mx-auto mb-2 text-slate-600">
+                            <i class="fa-solid fa-shield-halved text-2xl"></i>
+                        </div>
+                        <p class="text-slate-300 font-semibold text-base">Aucune équipe sur le terrain.</p>
+                        <p class="text-xs text-slate-500 mt-1">Cochez les équipes dans la liste ci-dessous puis cliquez sur "Valider & Faire Jouer".</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grille de Cochage avec Compteur -->
+            <div class="mt-8 pt-6 border-t border-slate-800">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-amber-400"></i> Cocher les équipes à faire jouer
+                </h3>
+                <div id="selection-teams-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <!-- Dynamiquement généré avec cases à cocher et compteurs -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Étape 3 : Attribution des Points -->
+        <section id="points-section" class="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl hidden">
+            <div class="flex items-center gap-2 text-pitch-500 font-bold text-xs uppercase tracking-wider mb-2">
+                <span class="w-7 h-7 rounded-lg bg-pitch-500/10 flex items-center justify-center text-sm font-extrabold border border-pitch-500/20">3</span>
+                Étape 3 &bull; Résultat des Matchs
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-1">Attribution des Points de la Session</h2>
+            <p class="text-slate-400 text-sm mb-6">Ajouter des points directement aux équipes actuellement sélectionnées sur le terrain.</p>
+
+            <div id="points-controls" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <!-- Populé dynamiquement -->
+            </div>
+        </section>
+
+        <!-- Étape 4 : Composition Tactique -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+                <div>
+                    <div class="flex items-center gap-2 text-pitch-500 font-bold text-xs uppercase tracking-wider mb-2">
+                        <span class="w-7 h-7 rounded-lg bg-pitch-500/10 flex items-center justify-center text-sm font-extrabold border border-pitch-500/20">4</span>
+                        Étape 4 &bull; Composition Tactique
+                    </div>
+                    <h2 class="text-2xl font-bold text-white">Gestion & Recherche par Équipe</h2>
+                    <p class="text-slate-400 text-sm">Tapez le nom d'un élève dans le champ d'une équipe pour afficher les suggestions et l'ajouter.</p>
+                </div>
+
+                <button onclick="ajouterNouvelleEquipe()" class="touch-btn bg-slate-800 hover:bg-pitch-600 text-slate-200 hover:text-white font-bold px-5 rounded-xl border border-slate-700 hover:border-pitch-500 transition shadow-md flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-plus text-pitch-500 text-base"></i>
+                    <span>Ajouter une équipe vide</span>
+                </button>
+            </div>
+
+            <div id="all-teams" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
+                <!-- Populé dynamiquement -->
+            </div>
+        </section>
+
+        <!-- Étape 5 : Classement -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+                <div>
+                    <div class="flex items-center gap-2 text-accent-500 font-bold text-xs uppercase tracking-wider mb-2">
+                        <span class="w-7 h-7 rounded-lg bg-accent-500/10 flex items-center justify-center text-sm font-extrabold border border-accent-500/20">5</span>
+                        Étape 5 &bull; Palmarès
+                    </div>
+                    <h2 class="text-2xl font-bold text-white">Classement Général des Équipes</h2>
+                    <p class="text-slate-400 text-sm">Cumul automatique des points obtenus par chaque équipe.</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                    <button onclick="reinitialiserTotalPoints()" class="touch-btn-sm bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-300 font-semibold px-4 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 text-xs shrink-0" title="Remettre le compteur de points de toutes les équipes à zero">
+                        <i class="fa-solid fa-rotate text-red-400"></i>
+                        <span>Réinit. Total Points</span>
+                    </button>
+
+                    <div class="relative w-full sm:w-72">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="text" id="leaderboard-filter" oninput="renderLeaderboard()" placeholder="Filtrer une équipe..." class="w-full h-12 bg-slate-950 text-slate-200 text-sm rounded-xl pl-11 pr-4 border border-slate-800 focus:outline-none focus:border-pitch-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto mt-6">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 font-bold text-xs uppercase tracking-wider bg-slate-950/60">
+                            <th class="py-4 px-6 rounded-l-xl">Rang</th>
+                            <th class="py-4 px-6">Équipe</th>
+                            <th class="py-4 px-6">Matchs Joués</th>
+                            <th class="py-4 px-6">Effectif</th>
+                            <th class="py-4 px-6 text-right rounded-r-xl">Total Points</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body" class="divide-y divide-slate-800/60">
+                        <tr>
+                            <td colspan="5" class="py-12 text-center text-slate-500 font-medium">Aucune équipe à afficher pour le moment.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal confirmation for reset -->
+    <div id="reset-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white">Réinitialiser tout le tournoi ?</h3>
+            <p class="text-sm text-slate-400">Cette action va supprimer l'intégralité des élèves, des équipes, des points et de l'historique de votre navigateur. Voulez-vous continuer ?</p>
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="fermerResetModal()" class="touch-btn-sm px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs">Annuler</button>
+                <button onclick="effectuerResetComplet()" class="touch-btn-sm px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-red-600/30">Oui, tout effacer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 max-w-md bg-slate-900 text-white border border-slate-700 px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
+        <i id="toast-icon" class="fa-solid fa-circle-info text-pitch-500 text-xl"></i>
+        <span id="toast-message" class="text-sm font-semibold">Notification</span>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'FOOTBALL_TOURNAMENT_APP_DATA_V3';
+
+        // Structure d'une équipe: { id, name, playCount: 0, checked: false, points: 0 }
+        let players = [];      // { id, name, teamId }
+        let teams = [];        // { id, name, playCount, checked, points }
+        let currentPlayingTeamIds = []; 
+
+        // Calendrier intégrant les phases de brassage
+        const PLANNING_MATCHS = [
+            { date: "2026-09-29", jour: "Mardi 29 Septembre (A)", teamIds: [6, 7, 8, 9, 10] },
+            { date: "2026-10-08", jour: "Jeudi 8 Octobre (B)", teamIds: [1, 2, 3, 4, 5] },
+            { date: "2026-10-13", jour: "Mardi 13 Octobre (A)", teamIds: [6, 7, 8, 9, 10] },
+            { date: "2026-11-05", jour: "Jeudi 5 Novembre (B)", teamIds: [1, 2, 3, 4, 5] },
+            { date: "2026-11-10", jour: "Mardi 10 Novembre (A)", teamIds: [6, 7, 8, 9, 10] },
+            { date: "2026-11-19", jour: "Jeudi 19 Novembre (B)", teamIds: [1, 2, 3, 4, 5] },
+            { date: "2026-11-24", jour: "Mardi 24 Novembre (A)", teamIds: [6, 7, 8, 9, 10] },
+            { date: "2026-12-03", jour: "Jeudi 3 Décembre (B)", teamIds: [2, 4, 6, 8, 10] },
+            { date: "2026-12-08", jour: "Mardi 8 Décembre (A)", teamIds: [1, 3, 5, 7, 9] },
+            { date: "2026-12-17", jour: "Jeudi 17 Décembre (B)", teamIds: [2, 4, 6, 8, 10] },
+            { date: "2027-01-05", jour: "Mardi 5 Janvier (A)", teamIds: [1, 3, 5, 7, 9] },
+            { date: "2027-01-14", jour: "Jeudi 14 Janvier (B)", teamIds: [2, 4, 6, 8, 10] },
+            { date: "2027-01-19", jour: "Mardi 19 Janvier (A)", teamIds: [1, 3, 5, 7, 9] },
+            { date: "2027-01-28", jour: "Jeudi 28 Janvier (B)", teamIds: [2, 4, 6, 8, 10] },
+            { date: "2027-02-02", jour: "Mardi 2 Février (A)", teamIds: [1, 3, 5, 7, 9] },
+            { date: "2027-02-25", jour: "Jeudi 25 Février (B)", teamIds: [3, 4, 5, 6, 10] },
+            { date: "2027-03-02", jour: "Mardi 2 Mars (A)", teamIds: [1, 2, 7, 8, 9] },
+            { date: "2027-03-11", jour: "Jeudi 11 Mars (B)", teamIds: [3, 4, 5, 6, 10] },
+            { date: "2027-03-16", jour: "Mardi 16 Mars (A)", teamIds: [1, 2, 7, 8, 9] },
+            { date: "2027-03-25", jour: "Jeudi 25 Mars (B)", teamIds: [3, 4, 5, 6, 10] },
+            { date: "2027-03-30", jour: "Mardi 30 Mars (A)", teamIds: [1, 2, 7, 8, 9] },
+            { date: "2027-04-08", jour: "Jeudi 8 Avril (B)", teamIds: [3, 4, 5, 6, 10] },
+            { date: "2027-04-27", jour: "Mardi 27 Avril (A)", teamIds: [2, 5, 6, 8, 9] },
+            { date: "2027-05-06", jour: "Jeudi 6 Mai (B)", teamIds: [1, 3, 4, 7, 10] },
+            { date: "2027-05-11", jour: "Mardi 11 Mai (A)", teamIds: [2, 5, 6, 8, 9] },
+            { date: "2027-05-20", jour: "Jeudi 20 Mai (B)", teamIds: [1, 3, 4, 7, 10] },
+            { date: "2027-05-25", jour: "Mardi 25 Mai (A)", teamIds: [2, 5, 6, 8, 9] },
+            { date: "2027-06-03", jour: "Jeudi 3 Juin (B)", teamIds: [1, 3, 4, 7, 10] },
+            { date: "2027-06-08", jour: "Mardi 8 Juin (A)", teamIds: [2, 5, 6, 8, 9] },
+            { date: "2027-06-17", jour: "Jeudi 17 Juin (B)", teamIds: [1, 3, 4, 7, 10] }
+        ];
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+                    event.preventDefault();
                 }
-              }
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.textContent = message;
+
+            if (type === 'success') {
+                toastIcon.className = 'fa-solid fa-circle-check text-pitch-500 text-xl';
+            } else if (type === 'warning') {
+                toastIcon.className = 'fa-solid fa-triangle-exclamation text-accent-500 text-xl';
+            } else if (type === 'error') {
+                toastIcon.className = 'fa-solid fa-circle-exclamation text-red-500 text-xl';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-info text-blue-400 text-xl';
             }
 
-            for (let i = 0; i < item.qte; i++) {
-              if (item.immoKey === "hotel") {
-                Object.keys(possessionsImmo).forEach(owner => {
-                  if (owner !== lastUserValide && possessionsImmo[owner] && possessionsImmo[owner][item.immoKey] && possessionsImmo[owner][item.immoKey].quantite > 0) {
-                    let royalty = Math.round(item.prix * 0.15 * 100) / 100;
-                    let ownerSolde = comptesComplets[owner] !== undefined ? comptesComplets[owner] : 20000.00;
-                    updates[`banques/${owner}`] = ownerSolde + royalty;
-                  }
-                });
-              }
-              ajouterPossessionImmo(lastUserValide, item);
-            }
-          });
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
 
-          db.ref().update(updates).then(() => {
-            alert(`✅ Paiement de ${total.toLocaleString('fr-FR')} € effectué avec succès pour ${lastUserValide} !`);
-            reinitialiser();
-            arrondissementSelectionneAchat = "";
-            mettreAJourSoldeJoueurActif();
-          });
-        }, 1000);
-      }, 1200);
-    }
-
-    function afficherOnglets() {
-      const container = document.getElementById('categoriesTabs');
-      if (!container) return;
-
-      const categories = ["Automobiles", "Immobilier Marseille", "Arrondissements Marseille", "Entreprises Connues", "🏠 Mes Biens"];
-      container.innerHTML = "";
-
-      categories.forEach(cat => {
-        let btn = document.createElement('button');
-        btn.className = `tab-btn ${cat === categorieActive ? 'active' : ''}`;
-        btn.innerText = cat;
-        btn.onclick = () => changerCategorie(cat);
-        container.appendChild(btn);
-      });
-    }
-
-    function changerCategorie(cat) {
-      categorieActive = cat;
-      afficherOnglets();
-      afficherArticles();
-    }
-
-    function afficherArticles() {
-      const grid = document.getElementById('articlesGrid');
-      if (!grid) return;
-
-      grid.innerHTML = "";
-
-      if (categorieActive === "🏠 Mes Biens") {
-        if (!joueurActif) {
-          grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#a0aec0; padding:20px; font-style:italic;">Veuillez sélectionner un joueur pour voir ses biens.</div>`;
-          return;
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3200);
         }
 
-        const userBiens = possessionsImmo[joueurActif] || {};
-        let nbBiensAffiches = 0;
-
-        Object.keys(userBiens).forEach(immoKey => {
-          const dataBien = userBiens[immoKey];
-          if (!dataBien || !dataBien.achats || dataBien.achats.length === 0) return;
-
-          const article = baseArticles.find(a => a.immoKey === immoKey);
-          if (!article) return;
-
-          nbBiensAffiches++;
-          const btn = document.createElement('div');
-          btn.className = "btn-article mes-biens-card";
-          btn.style.position = "relative";
-
-          let estRevendable = ((article.cat === "Immobilier Marseille" && immoKey !== "hotel") || article.cat === "Entreprises Connues" || article.estEntreprise || article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire);
-          let estEntreprise = (article.cat === "Entreprises Connues" || article.estEntreprise);
-          let estImmobilierMarseille = (article.cat === "Immobilier Marseille" && immoKey !== "hotel");
-          let isElementUnique = (article.cat === "Arrondissements Marseille" || article.estUniqueProprietaire);
-
-          const maintenant = Date.now();
-          let unitesEligibles = 0;
-          let prixTotalCourant = 0;
-
-          let pctMarche = 0;
-          if (estEntreprise) {
-            let entObj = bourseEntreprisesData[immoKey] || { pourcentageReel: 0 };
-            pctMarche = entObj.pourcentageReel * 10;
-          } else if (isElementUnique) {
-            pctMarche = marcheBoursePct * 10;
-          } else {
-            pctMarche = marcheImmoPct;
-          }
-
-          dataBien.achats.forEach(dateAchat => {
-            let heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
-            if (estEntreprise && heuresEcoulees < 24) {
-              // bloqué
-            } else if (estImmobilierMarseille && heuresEcoulees < 2) {
-              // bloqué
-            } else {
-              unitesEligibles++;
+        // Auto-sélection basée sur la date/session courante
+        function selectionnerSelonPlanning() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            
+            // Cherche le match d'aujourd'hui ou le tout premier disponible à partir d'aujourd'hui
+            let match = PLANNING_MATCHS.find(m => m.date >= todayStr);
+            if (!match) {
+                match = PLANNING_MATCHS[0];
             }
 
-            let resCalc = calculerPrixReventeBien(dateAchat, article.prix, isElementUnique, immoKey, estEntreprise);
-            prixTotalCourant += resCalc.prix;
-          });
+            teams.forEach(t => {
+                t.checked = match.teamIds.includes(t.id);
+            });
 
-          let htmlRevendre = "";
-          if (estRevendable) {
-            if (unitesEligibles > 0) {
-              htmlRevendre = `<button class="btn-vente-immo" onclick="ouvrirModalVenteBien('${joueurActif}', '${immoKey}')">🏷️ Vendre (${dataBien.quantite})</button>`;
-            } else {
-              let delaiLabel = estEntreprise ? "24h" : "2h";
-              htmlRevendre = `<button class="btn-vente-immo bloque" disabled>🔒 Bloqué (${delaiLabel})</button>`;
+            sauvegarderAutomatiquement();
+            renderSelectionGrid();
+            showToast(`Équipes cochées pour ${match.jour} !`, "success");
+        }
+
+        function sauvegarderAutomatiquement() {
+            try {
+                const payload = {
+                    version: 3,
+                    timestamp: new Date().toISOString(),
+                    players: players,
+                    teams: teams,
+                    currentPlayingTeamIds: currentPlayingTeamIds
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+            } catch (e) {
+                console.error("Erreur de sauvegarde :", e);
             }
-          } else {
-            htmlRevendre = `<span style="font-size:10px; color:#a0aec0; margin-top:2px;">Non revendable (${dataBien.quantite})</span>`;
-          }
+        }
 
-          let colorPct = pctMarche >= 0 ? '#38ef7d' : '#ff453a';
-          let signPct = pctMarche >= 0 ? '+' : '';
+        function chargerDepuisLocalStorage() {
+            try {
+                const dataRaw = localStorage.getItem(STORAGE_KEY);
+                if (dataRaw) {
+                    const parsed = JSON.parse(dataRaw);
+                    if (parsed && Array.isArray(parsed.players) && Array.isArray(parsed.teams)) {
+                        players = parsed.players;
+                        teams = parsed.teams.map(t => ({
+                            id: t.id,
+                            name: t.name,
+                            playCount: t.playCount || 0,
+                            checked: !!t.checked,
+                            points: t.points || 0
+                        }));
+                        currentPlayingTeamIds = parsed.currentPlayingTeamIds || [];
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.error("Erreur de chargement :", e);
+            }
+            return false;
+        }
 
-          btn.innerHTML = `
-            <div style="position: absolute; top: 6px; right: 8px; font-size: 10px; font-family: monospace; font-weight: bold; color: #38bdf8; background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 6px;" title="Prix courant">${prixTotalCourant.toLocaleString('fr-FR', {minimumFractionDigits:0, maximumFractionDigits:0})} €</div>
-            <div style="font-size:24px; margin-top:10px;">${article.emoji}</div>
-            <div style="font-weight:bold; font-size:13px; line-height:1.2;">${article.nom}</div>
-            <div style="font-size:11px; font-weight:bold; color: ${colorPct};">${signPct}${pctMarche.toFixed(1)}%</div>
-            <div class="prix-tag" style="background:rgba(255,255,255,0.1); color:#cbd5e0; font-size:10px; border:1px solid rgba(255,255,255,0.15); margin-top:2px;">Qté : ${dataBien.quantite}</div>
-            ${htmlRevendre}
-          `;
-          grid.appendChild(btn);
+        function exporterSauvegardeJSON() {
+            if (players.length === 0 && teams.length === 0) {
+                showToast("Aucune donnée à exporter.", "warning");
+                return;
+            }
+
+            const dataToExport = {
+                appName: "TournoiFoot",
+                exportDate: new Date().toISOString(),
+                players: players,
+                teams: teams,
+                currentPlayingTeamIds: currentPlayingTeamIds
+            };
+
+            const jsonStr = JSON.stringify(dataToExport, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const nowStr = new Date().toISOString().slice(0,10);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sauvegarde_tournoi_foot_${nowStr}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast("Sauvegarde JSON téléchargée !", "success");
+        }
+
+        function importerSauvegardeJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && Array.isArray(parsed.players) && Array.isArray(parsed.teams)) {
+                        players = parsed.players;
+                        teams = parsed.teams.map(t => ({
+                            id: t.id,
+                            name: t.name,
+                            playCount: t.playCount || 0,
+                            checked: !!t.checked,
+                            points: t.points || 0
+                        }));
+                        currentPlayingTeamIds = parsed.currentPlayingTeamIds || [];
+                        
+                        sauvegarderAutomatiquement();
+                        renderAll();
+                        showToast("Sauvegarde JSON chargée avec succès !", "success");
+                    } else {
+                        showToast("Format du fichier JSON invalide.", "error");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast("Erreur lors de la lecture du fichier JSON.", "error");
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function demanderResetComplet() {
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
+
+        function fermerResetModal() {
+            document.getElementById('reset-modal').classList.add('hidden');
+        }
+
+        function effectuerResetComplet() {
+            players = [];
+            teams = [];
+            currentPlayingTeamIds = [];
+            localStorage.removeItem(STORAGE_KEY);
+            fermerResetModal();
+            renderAll();
+            showToast("Toutes les données ont été réinitialisées.", "info");
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            const labelText = document.getElementById('file-label-text');
+            if (file) {
+                labelText.textContent = file.name;
+            } else {
+                labelText.textContent = "Choisir un fichier Excel (.xlsx) ou CSV";
+            }
+        }
+
+        function importerExcel() {
+            const fileInput = document.getElementById('excelFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showToast("Veuillez sélectionner un fichier Excel ou CSV.", "warning");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const firstSheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                    let loadedNames = [];
+                    jsonData.forEach(row => {
+                        if (row && row[0] !== undefined && row[0] !== null) {
+                            const name = String(row[0]).trim();
+                            if (name !== "" && name.toLowerCase() !== "nom" && name.toLowerCase() !== "élèves" && name.toLowerCase() !== "eleves") {
+                                loadedNames.push(name);
+                            }
+                        }
+                    });
+
+                    if (loadedNames.length === 0) {
+                        showToast("Aucun nom d'élève valide trouvé dans la première colonne.", "error");
+                        return;
+                    }
+
+                    let startId = players.length > 0 ? Math.max(...players.map(p => p.id)) + 1 : 1;
+                    let countAdded = 0;
+
+                    loadedNames.forEach(name => {
+                        if (!players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                            players.push({
+                                id: startId++,
+                                name: name,
+                                teamId: null
+                            });
+                            countAdded++;
+                        }
+                    });
+
+                    if (teams.length === 0) {
+                        for (let i = 1; i <= 10; i++) {
+                            teams.push({
+                                id: i,
+                                name: `Équipe ${i}`,
+                                playCount: 0,
+                                checked: false,
+                                points: 0
+                            });
+                        }
+                    }
+
+                    showToast(`${countAdded} élève(s) ajouté(s) à la réserve !`, "success");
+                    renderAll();
+                } catch (err) {
+                    console.error(err);
+                    showToast("Erreur lors de l'analyse du fichier Excel.", "error");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function toggleTeamSelection(teamId) {
+            const team = teams.find(t => t.id === teamId);
+            if (team) {
+                team.checked = !team.checked;
+                sauvegarderAutomatiquement();
+                renderSelectionGrid();
+            }
+        }
+
+        function validerSelectionMatch() {
+            const selectedTeams = teams.filter(t => t.checked);
+            
+            if (selectedTeams.length === 0) {
+                showToast("Veuillez cocher au moins une équipe à faire jouer.", "warning");
+                return;
+            }
+
+            selectedTeams.forEach(t => {
+                t.playCount = (t.playCount || 0) + 1;
+            });
+
+            currentPlayingTeamIds = selectedTeams.map(t => t.id);
+
+            sauvegarderAutomatiquement();
+            renderAll();
+            showToast(`${selectedTeams.length} équipe(s) envoyée(s) sur le terrain (+1 match au compteur) !`, "success");
+        }
+
+        function reinitialiserEquipesTerrain() {
+            currentPlayingTeamIds = [];
+            teams.forEach(t => t.checked = false);
+            sauvegarderAutomatiquement();
+            renderAll();
+            showToast("Le terrain et la sélection ont été réinitialisés.", "info");
+        }
+
+        function reinitialiserCompteursJoues() {
+            teams.forEach(t => t.playCount = 0);
+            sauvegarderAutomatiquement();
+            renderAll();
+            showToast("Tous les compteurs de matchs ont été réinitialisés à 0.", "info");
+        }
+
+        function reinitialiserTotalPoints() {
+            teams.forEach(t => t.points = 0);
+            sauvegarderAutomatiquement();
+            renderLeaderboard();
+            showToast("Le total des points a été réinitialisé à 0.", "info");
+        }
+
+        function ajouterNouvelleEquipe() {
+            const newId = teams.length > 0 ? Math.max(...teams.map(t => t.id)) + 1 : 1;
+            teams.push({
+                id: newId,
+                name: `Équipe ${newId}`,
+                playCount: 0,
+                checked: false,
+                points: 0
+            });
+            showToast(`Nouvelle équipe "${teams[teams.length - 1].name}" ajoutée !`, "success");
+            renderAll();
+        }
+
+        function changerNomEquipe(teamId, newName) {
+            const team = teams.find(t => t.id === teamId);
+            if (team && newName.trim() !== "") {
+                team.name = newName.trim();
+                renderAll();
+            }
+        }
+
+        function supprimerEquipe(teamId) {
+            const team = teams.find(t => t.id === teamId);
+            if (!team) return;
+
+            players.forEach(p => {
+                if (p.teamId === teamId) p.teamId = null;
+            });
+
+            teams = teams.filter(t => t.id !== teamId);
+            currentPlayingTeamIds = currentPlayingTeamIds.filter(id => id !== teamId);
+
+            showToast(`L'équipe "${team.name}" a été supprimée.`, "info");
+            renderAll();
+        }
+
+        function filtrerSuggestions(teamId, query) {
+            const listContainer = document.getElementById(`suggestions-${teamId}`);
+            if (!listContainer) return;
+
+            if (!query.trim()) {
+                listContainer.innerHTML = '';
+                listContainer.classList.add('hidden');
+                return;
+            }
+
+            const matches = players.filter(p => 
+                p.name.toLowerCase().includes(query.toLowerCase())
+            );
+
+            if (matches.length === 0) {
+                listContainer.innerHTML = `<li class="p-3 text-xs text-slate-500 text-center font-medium">Aucun élève trouvé</li>`;
+                listContainer.classList.remove('hidden');
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            matches.slice(0, 6).forEach(p => {
+                const currentTeam = teams.find(t => t.id === p.teamId);
+                const teamLabel = currentTeam 
+                    ? `<span class="text-amber-400 font-semibold">${currentTeam.name}</span>` 
+                    : `<span class="text-pitch-400 font-semibold">Disponible</span>`;
+                
+                const item = document.createElement('li');
+                item.className = 'touch-btn-sm px-4 py-3 hover:bg-slate-800 cursor-pointer text-xs flex items-center justify-between transition border-b border-slate-800/80 last:border-0';
+                item.innerHTML = `
+                    <span class="font-bold text-slate-200">${p.name}</span>
+                    <span class="text-[10px] bg-slate-950 px-2.5 py-1 rounded-md border border-slate-800">${teamLabel}</span>
+                `;
+                item.onclick = function() {
+                    assignerJoueurAEquipe(p.id, teamId);
+                };
+                listContainer.appendChild(item);
+            });
+
+            listContainer.classList.remove('hidden');
+        }
+
+        function assignerJoueurAEquipe(playerId, targetTeamId) {
+            const player = players.find(p => p.id === playerId);
+            const team = teams.find(t => t.id === targetTeamId);
+            
+            if (player && team) {
+                player.teamId = targetTeamId;
+                showToast(`${player.name} placé dans ${team.name}`, "success");
+                renderAll();
+            }
+        }
+
+        function retirerJoueurDeEquipe(playerId) {
+            const player = players.find(p => p.id === playerId);
+            if (player) {
+                player.teamId = null;
+                showToast(`${player.name} retiré de l'équipe`, "info");
+                renderAll();
+            }
+        }
+
+        function ajouterPointsEquipe(teamId, pts) {
+            const team = teams.find(t => t.id === teamId);
+            if (team) {
+                team.points = (team.points || 0) + pts;
+                sauvegarderAutomatiquement();
+                renderLeaderboard();
+                showToast(`+${pts} pt(s) attribué(s) à l'équipe ${team.name} !`, pts === 0 ? "info" : "success");
+            }
+        }
+
+        function renderAll() {
+            sauvegarderAutomatiquement();
+            renderSelectionGrid();
+            renderPlayingTeams();
+            renderAllTeams();
+            renderLeaderboard();
+            updateStatsBadges();
+        }
+
+        function updateStatsBadges() {
+            document.getElementById('total-players-count').textContent = players.length;
+            const unassigned = players.filter(p => p.teamId === null).length;
+            document.getElementById('unassigned-players-count').textContent = unassigned;
+            document.getElementById('total-teams-count').textContent = teams.length;
+        }
+
+        function renderSelectionGrid() {
+            const grid = document.getElementById('selection-teams-grid');
+            if (teams.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-slate-500 text-sm text-center py-4">Aucune équipe créée pour le moment.</p>`;
+                return;
+            }
+
+            grid.innerHTML = '';
+            teams.forEach(team => {
+                const count = team.playCount || 0;
+                let badgeColor = 'bg-slate-800 text-slate-400 border-slate-700';
+                
+                if (count === 0) {
+                    badgeColor = 'bg-red-500/20 text-red-400 border-red-500/40 font-bold';
+                } else if (count === 1) {
+                    badgeColor = 'bg-amber-500/20 text-amber-400 border-amber-500/40';
+                } else {
+                    badgeColor = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40';
+                }
+
+                grid.innerHTML += `
+                    <div onclick="toggleTeamSelection(${team.id})" class="touch-btn cursor-pointer p-4 rounded-xl border ${team.checked ? 'border-pitch-500 bg-pitch-950/40 shadow-lg shadow-pitch-950/50' : 'border-slate-800 bg-slate-950/60 hover:bg-slate-850'} transition flex items-center justify-between">
+                        <div class="flex items-center gap-3 truncate">
+                            <input type="checkbox" ${team.checked ? 'checked' : ''} class="w-5 h-5 rounded border-slate-700 text-pitch-600 focus:ring-pitch-500 pointer-events-none">
+                            <span class="font-bold text-sm text-slate-200 truncate">${team.name}</span>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 rounded-lg border ${badgeColor} shrink-0 flex items-center gap-1" title="${count === 0 ? 'N\'a pas encore joué !' : 'Nombre de fois sélectionnée'}">
+                            <i class="fa-solid fa-gamepad text-[10px]"></i>
+                            ${count === 0 ? 'Jamais joué' : count + ' match(s)'}
+                        </span>
+                    </div>
+                `;
+            });
+        }
+
+        function renderPlayingTeams() {
+            const container = document.getElementById('playing-teams');
+            const pointsSection = document.getElementById('points-section');
+            const pointsControls = document.getElementById('points-controls');
+
+            const selectedTeams = teams.filter(t => currentPlayingTeamIds.includes(t.id));
+
+            if (selectedTeams.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-10 text-center border-2 border-dashed border-slate-800 rounded-2xl bg-slate-950/40">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-850 flex items-center justify-center mx-auto mb-2 text-slate-600">
+                            <i class="fa-solid fa-shield-halved text-2xl"></i>
+                        </div>
+                        <p class="text-slate-300 font-semibold text-base">Aucune équipe sur le terrain.</p>
+                        <p class="text-xs text-slate-500 mt-1">Cochez les équipes dans la liste ci-dessous puis cliquez sur "Valider & Faire Jouer".</p>
+                    </div>
+                `;
+                pointsSection.classList.add('hidden');
+                return;
+            }
+
+            container.innerHTML = '';
+            pointsControls.innerHTML = '';
+
+            selectedTeams.forEach(team => {
+                const teamPlayers = players.filter(p => p.teamId === team.id);
+                let playersHtml = teamPlayers.map(p => `
+                    <li class="flex items-center gap-2 text-xs py-1.5 text-slate-200">
+                        <i class="fa-solid fa-user text-pitch-500 text-xs"></i>
+                        <span class="font-bold">${p.name}</span>
+                    </li>
+                `).join('');
+
+                if (teamPlayers.length === 0) {
+                    playersHtml = `<li class="text-xs text-slate-500 italic py-2">Équipe vide</li>`;
+                }
+
+                container.innerHTML += `
+                    <div class="bg-slate-950 border-2 border-pitch-500/80 rounded-2xl p-5 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                        <div class="absolute top-0 right-0 bg-pitch-600 text-white text-[10px] font-black tracking-wider uppercase px-3 py-1 rounded-bl-xl">
+                            SUR LE TERRAIN
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-800">
+                                <i class="fa-solid fa-shield-cat text-pitch-500 text-xl"></i>
+                                <div>
+                                    <h3 class="font-extrabold text-white text-lg truncate">${team.name}</h3>
+                                    <p class="text-[10px] text-pitch-400 font-semibold">${team.playCount || 0} match(s) joué(s)</p>
+                                </div>
+                            </div>
+                            <ul class="space-y-1 mb-4">
+                                ${playersHtml}
+                            </ul>
+                        </div>
+                        <div class="text-xs text-slate-400 border-t border-slate-900 pt-3 flex justify-between items-center">
+                            <span>Effectif</span>
+                            <span class="font-bold text-white bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">${teamPlayers.length} joueur(s)</span>
+                        </div>
+                    </div>
+                `;
+
+                pointsControls.innerHTML += `
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-lg">
+                        <div class="font-extrabold text-white mb-4 text-center text-base truncate">${team.name}</div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="ajouterPointsEquipe(${team.id}, 3)" class="touch-btn bg-pitch-600 hover:bg-pitch-500 active:bg-pitch-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 shadow-md">
+                                <i class="fa-solid fa-trophy text-xs"></i> +3 (Victoire)
+                            </button>
+                            <button onclick="ajouterPointsEquipe(${team.id}, 1)" class="touch-btn bg-accent-600 hover:bg-accent-500 active:bg-accent-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 shadow-md">
+                                <i class="fa-solid fa-handshake text-xs"></i> +1 (Nul)
+                            </button>
+                            <button onclick="ajouterPointsEquipe(${team.id}, 0)" class="touch-btn bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 shadow-md">
+                                <i class="fa-solid fa-xmark text-xs"></i> +0 (Perdu)
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            pointsSection.classList.remove('hidden');
+        }
+
+        function renderAllTeams() {
+            const container = document.getElementById('all-teams');
+            if (teams.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-12 text-center border-2 border-dashed border-slate-800 rounded-2xl">
+                        <p class="text-slate-400 font-medium">Aucune équipe n'existe encore. Cliquez sur "Ajouter une équipe vide".</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+
+            teams.forEach(team => {
+                const teamPlayers = players.filter(p => p.teamId === team.id);
+                
+                let playersHtml = teamPlayers.map(p => `
+                    <li class="flex items-center justify-between bg-slate-900/90 hover:bg-slate-850 px-3.5 py-2 rounded-xl border border-slate-800/80 transition">
+                        <span class="text-xs font-bold text-slate-200 truncate">👤 ${p.name}</span>
+                        <button onclick="retirerJoueurDeEquipe(${p.id})" title="Retirer de l'équipe" class="touch-btn-sm text-slate-500 hover:text-red-400 transition flex items-center justify-center">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    </li>
+                `).join('');
+
+                container.innerHTML += `
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-800">
+                                <input 
+                                    type="text" 
+                                    value="${team.name}" 
+                                    onchange="changerNomEquipe(${team.id}, this.value)"
+                                    title="Cliquer pour modifier le nom"
+                                    class="bg-transparent font-extrabold text-slate-100 text-base focus:outline-none focus:bg-slate-900 focus:px-2 focus:py-1 rounded-lg border border-transparent focus:border-pitch-500 w-full truncate"
+                                />
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800 shrink-0">
+                                        ${teamPlayers.length}/5
+                                    </span>
+                                    <button onclick="supprimerEquipe(${team.id})" title="Supprimer l'équipe" class="touch-btn-sm text-slate-600 hover:text-red-400 transition flex items-center justify-center">
+                                        <i class="fa-solid fa-trash-can text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <ul class="space-y-2 mb-4 max-h-56 overflow-y-auto pr-1">
+                                ${playersHtml.length > 0 ? playersHtml : '<li class="text-xs text-slate-500 text-center py-6 italic border border-dashed border-slate-900 rounded-xl">Équipe vide</li>'}
+                            </ul>
+                        </div>
+
+                        <div class="relative mt-2">
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                                <input 
+                                    type="text" 
+                                    placeholder="🔍 Ajouter un élève..." 
+                                    oninput="filtrerSuggestions(${team.id}, this.value)"
+                                    onfocus="filtrerSuggestions(${team.id}, this.value)"
+                                    class="w-full h-11 bg-slate-900 text-slate-200 text-xs rounded-xl pl-10 pr-3 border border-slate-800 focus:outline-none focus:border-pitch-500 transition"
+                                />
+                            </div>
+                            <ul id="suggestions-${team.id}" class="suggestions-dropdown hidden absolute left-0 right-0 bottom-full mb-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-30 max-h-48 overflow-y-auto">
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderLeaderboard() {
+            const tbody = document.getElementById('leaderboard-body');
+            const filterInput = document.getElementById('leaderboard-filter');
+            const filterQuery = filterInput ? filterInput.value.toLowerCase().trim() : '';
+
+            if (teams.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-slate-500 font-medium">Aucune équipe disponible.</td></tr>`;
+                return;
+            }
+
+            let teamsRanking = teams.map(team => {
+                const teamPlayers = players.filter(p => p.teamId === team.id);
+                return {
+                    id: team.id,
+                    name: team.name,
+                    playCount: team.playCount || 0,
+                    playerCount: teamPlayers.length,
+                    points: team.points || 0
+                };
+            });
+
+            let filtered = teamsRanking.filter(t => t.name.toLowerCase().includes(filterQuery));
+            filtered.sort((a, b) => b.points - a.points);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-slate-500 font-medium">Aucune équipe ne correspond à votre recherche.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            filtered.forEach((t, index) => {
+                let rankBadge = `<span class="font-bold text-slate-400 text-sm">#${index + 1}</span>`;
+                if (index === 0) rankBadge = `<span class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 font-black text-sm flex items-center justify-center">🥇</span>`;
+                if (index === 1) rankBadge = `<span class="w-8 h-8 rounded-xl bg-slate-400/20 text-slate-300 border border-slate-400/40 font-black text-sm flex items-center justify-center">🥈</span>`;
+                if (index === 2) rankBadge = `<span class="w-8 h-8 rounded-xl bg-amber-700/20 text-amber-600 border border-amber-700/40 font-black text-sm flex items-center justify-center">🥉</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-900/80 transition">
+                        <td class="py-4 px-6">${rankBadge}</td>
+                        <td class="py-4 px-6 font-bold text-slate-100 text-base">
+                            <span class="inline-flex items-center gap-2">
+                                <i class="fa-solid fa-shield text-pitch-500 text-sm"></i>
+                                ${t.name}
+                            </span>
+                        </td>
+                        <td class="py-4 px-6 text-slate-300 text-sm font-semibold">${t.playCount} match(s)</td>
+                        <td class="py-4 px-6 text-slate-400 text-sm font-medium">${t.playerCount} joueur(s)</td>
+                        <td class="py-4 px-6 text-right font-black text-pitch-400 text-lg">${t.points} <span class="text-xs font-medium text-slate-500">pts</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.relative')) {
+                document.querySelectorAll('.suggestions-dropdown').forEach(el => el.classList.add('hidden'));
+            }
         });
 
-        if (nbBiensAffiches === 0) {
-          grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:#a0aec0; padding:20px; font-style:italic;">Aucun bien possédé par ${joueurActif}.</div>`;
-        }
-        return;
-      }
-
-      let articlesFiltres = baseArticles.filter(a => a.cat === categorieActive);
-
-      articlesFiltres.forEach(art => {
-        let card = document.createElement('div');
-        card.className = "btn-article";
-
-        let estUnique = (art.cat === "Entreprises Connues" || art.estEntreprise || art.cat === "Arrondissements Marseille" || art.estUniqueProprietaire);
-        let prop = estUnique ? obtenirProprietaireUnique(art.immoKey) : null;
-        
-        let entObj = (art.cat === "Entreprises Connues" || art.estEntreprise) ? (bourseEntreprisesData[art.immoKey] || { pourcentageReel: 0 }) : null;
-        let pctTexte = entObj ? `${entObj.pourcentageReel >= 0 ? '+' : ''}${entObj.pourcentageReel.toFixed(1)}%` : '';
-
-        let badgeArrHtml = "";
-        if (art.cat === "Arrondissements Marseille") {
-          let soldeArr = arrondissementsComptes[art.immoKey] || 0;
-          badgeArrHtml = `<div style="position: absolute; top: 6px; left: 8px; font-size: 10px; font-family: monospace; font-weight: bold; color: #38ef7d; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 6px;" title="Compte Arrondissement">${soldeArr.toLocaleString('fr-FR', {minimumFractionDigits:0, maximumFractionDigits:0})} €</div>`;
-        }
-
-        if (prop) {
-          card.style.opacity = '0.55';
-          card.style.backgroundColor = '#1e293b';
-          card.style.borderColor = '#475569';
-
-          card.innerHTML = `
-            ${badgeArrHtml}
-            <span class="emoji" style="margin-top:10px;">${art.emoji}</span>
-            <span style="line-height:1.2; text-decoration: line-through;">${art.nom}</span>
-            <span class="prix-tag" style="background:#334155; color:#94a3b8;">${art.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
-            <span style="font-size:10px; color:#f87171; font-weight:bold; margin-top:2px;">🔒 ${prop}</span>
-          `;
-        } else {
-          let badgeGainHtml = entObj ? `<span style="font-size:10px; color:${entObj.pourcentageReel >= 0 ? '#38ef7d' : '#ff453a'}; font-weight:bold;">Bourse: ${pctTexte}/h</span>` : '';
-          
-          let controlsQteHtml = "";
-          if (estUnique) {
-            controlsQteHtml = `<button class="btn-ajouter-panier" onclick="ajouterAuPanier(baseArticles.find(a=>a.id===${art.id}), 1)">+ Ajouter</button>`;
-          } else {
-            controlsQteHtml = `
-              <div class="qte-picker">
-                <button class="btn-qte-step" onclick="stepQteAchat(${art.id}, -1)">-</button>
-                <input type="number" id="qte_input_${art.id}" class="input-qte-buy" value="1" min="1">
-                <button class="btn-qte-step" onclick="stepQteAchat(${art.id}, 1)">+</button>
-              </div>
-              <button class="btn-ajouter-panier" onclick="ajouterAuPanier(baseArticles.find(a=>a.id===${art.id}), document.getElementById('qte_input_${art.id}').value)">+ Ajouter</button>
-            `;
-          }
-
-          card.innerHTML = `
-            ${badgeArrHtml}
-            <span class="emoji">${art.emoji}</span>
-            <span style="line-height:1.2;">${art.nom}</span>
-            <span class="prix-tag">${art.prix.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
-            ${badgeGainHtml}
-            ${controlsQteHtml}
-          `;
-        }
-
-        grid.appendChild(card);
-      });
-    }
-
-    /* GESTION COMPTES BANCAIRES & CLASSEMENT */
-    function ouvrirBanque() {
-      document.getElementById('banqueOverlay').classList.add('active');
-      afficherSoldesBanque();
-    }
-
-    function fermerBanque() {
-      document.getElementById('banqueOverlay').classList.remove('active');
-    }
-
-    function afficherSoldesBanque() {
-      const list = document.getElementById('soldesList');
-      if (!list) return;
-
-      list.innerHTML = "";
-
-      let usersPries = USERS_LIST.slice().sort((a,b) => {
-        let pA = ObtenirPrenomUser(a);
-        let pB = ObtenirPrenomUser(b);
-        let sA = comptesComplets[pA] !== undefined ? comptesComplets[pA] : 20000.00;
-        let sB = comptesComplets[pB] !== undefined ? comptesComplets[pB] : 20000.00;
-        return sB - sA;
-      });
-
-      usersPries.forEach(u => {
-        let prenom = ObtenirPrenomUser(u);
-        let solde = comptesComplets[prenom] !== undefined ? comptesComplets[prenom] : 20000.00;
-        let groupe = ObtenirGroupeUser(prenom);
-
-        let div = document.createElement('div');
-        div.className = "dark-card-item";
-        div.onclick = () => { fermerBanque(); ouvrirDetailJoueur(prenom); };
-
-        div.innerHTML = `
-          <div>
-            <div class="dark-card-name">${prenom}</div>
-            <div class="dark-card-sub">Groupe : ${groupe}</div>
-          </div>
-          <div class="dark-card-amount ${solde < 0 ? 'deficit' : ''}">${solde.toLocaleString('fr-FR', {minimumFractionDigits:2})} €</div>
-        `;
-        list.appendChild(div);
-      });
-    }
-
-    function ouvrirHistorique() {
-      joueurSelectionneVueDetail = null;
-      document.getElementById('historiqueOverlay').classList.add('active');
-      afficherClassementEtPossessions();
-    }
-
-    function fermerHistorique() {
-      document.getElementById('historiqueOverlay').classList.remove('active');
-    }
-
-    function changerOngletClassement(f) {
-      filtreClassementActif = f;
-      document.getElementById('btnTabClassementTous').className = `tab-btn ${f === 'tous' ? 'active' : ''}`;
-      document.getElementById('btnTabClassementFamille').className = `tab-btn ${f === 'famille' ? 'active' : ''}`;
-      document.getElementById('btnTabClassementEcole').className = `tab-btn ${f === 'ecole' ? 'active' : ''}`;
-      afficherClassementEtPossessions();
-    }
-
-    function afficherClassementEtPossessions() {
-      const list = document.getElementById('historiqueList');
-      if (!list) return;
-
-      if (joueurSelectionneVueDetail) {
-        afficherDetailJoueur(joueurSelectionneVueDetail);
-        return;
-      }
-
-      document.getElementById('historiqueTitle').innerText = "Classement Général 🧾";
-      document.getElementById('tabsClassementGroupe').style.display = "flex";
-      list.innerHTML = "";
-
-      let usersFiltres = USERS_LIST.filter(u => {
-        let grp = ObtenirGroupeUser(ObtenirPrenomUser(u));
-        if (filtreClassementActif === 'famille') return grp === 'Famille';
-        if (filtreClassementActif === 'ecole') return grp === 'École';
-        return true;
-      });
-
-      usersFiltres.sort((a,b) => {
-        let pA = ObtenirPrenomUser(a);
-        let pB = ObtenirPrenomUser(b);
-        let sA = comptesComplets[pA] !== undefined ? comptesComplets[pA] : 20000.00;
-        let sB = comptesComplets[pB] !== undefined ? comptesComplets[pB] : 20000.00;
-        return sB - sA;
-      });
-
-      usersFiltres.forEach((u, index) => {
-        let prenom = ObtenirPrenomUser(u);
-        let solde = comptesComplets[prenom] !== undefined ? comptesComplets[prenom] : 20000.00;
-        let badgeInfo = ObtenirInfosBadge(solde);
-
-        let div = document.createElement('div');
-        div.className = "dark-card-item";
-        div.onclick = () => ouvrirDetailJoueur(prenom);
-
-        let medal = index === 0 ? "🥇 " : index === 1 ? "🥈 " : index === 2 ? "🥉 " : `#${index+1} `;
-        let badgeTag = badgeInfo.badgeActuel ? `<span class="badge-tag">${badgeInfo.badgeActuel.nom}</span>` : "";
-
-        div.innerHTML = `
-          <div>
-            <div class="dark-card-name">${medal}${prenom} ${badgeTag}</div>
-            <div class="dark-card-sub">Cliquez pour voir les acquisitions</div>
-          </div>
-          <div class="dark-card-amount ${solde < 0 ? 'deficit' : ''}">${solde.toLocaleString('fr-FR', {minimumFractionDigits:2})} €</div>
-        `;
-        list.appendChild(div);
-      });
-    }
-
-    function ouvrirDetailJoueur(prenom) {
-      joueurSelectionneVueDetail = prenom;
-      afficherDetailJoueur(prenom);
-    }
-
-    function afficherDetailJoueur(prenom) {
-      const list = document.getElementById('historiqueList');
-      if (!list) return;
-
-      document.getElementById('historiqueTitle').innerText = `Acquisitions : ${prenom}`;
-      document.getElementById('tabsClassementGroupe').style.display = "none";
-
-      list.innerHTML = `
-        <button class="btn-back" onclick="joueurSelectionneVueDetail=null; afficherClassementEtPossessions();">← Retour au classement</button>
-      `;
-
-      const userBiens = possessionsImmo[prenom] || {};
-      let auMoinsUn = false;
-
-      Object.keys(userBiens).forEach(immoKey => {
-        const dataBien = userBiens[immoKey];
-        if (!dataBien || !dataBien.achats || dataBien.achats.length === 0) return;
-
-        const catalogueRef = baseArticles.find(a => a.immoKey === immoKey);
-        if (!catalogueRef) return;
-
-        auMoinsUn = true;
-        let div = document.createElement('div');
-        div.className = "possession-pill";
-
-        let estRevendable = ((catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel") || catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise || catalogueRef.cat === "Arrondissements Marseille" || catalogueRef.estUniqueProprietaire);
-        let estEntreprise = (catalogueRef.cat === "Entreprises Connues" || catalogueRef.estEntreprise);
-        let estImmobilierMarseille = (catalogueRef.cat === "Immobilier Marseille" && immoKey !== "hotel");
-
-        const maintenant = Date.now();
-        let unitesEligibles = 0;
-        dataBien.achats.forEach(dateAchat => {
-          let heuresEcoulees = (maintenant - dateAchat) / (1000 * 3600);
-          if (estEntreprise && heuresEcoulees < 24) {
-            // bloqué
-          } else if (estImmobilierMarseille && heuresEcoulees < 2) {
-            // bloqué
-          } else {
-            unitesEligibles++;
-          }
-        });
-
-        let btnVendreHtml = "";
-        if (estRevendable) {
-          if (unitesEligibles > 0) {
-            btnVendreHtml = `<button class="btn-vente-immo" onclick="ouvrirModalVenteBien('${prenom}', '${immoKey}')">🏷️ Vendre (Quantité: ${dataBien.quantite})</button>`;
-          } else {
-            let delaiLabel = estEntreprise ? "24h" : "2h";
-            btnVendreHtml = `<button class="btn-vente-immo bloque" disabled>🔒 Bloqué (${delaiLabel})</button>`;
-          }
-        } else {
-          btnVendreHtml = `<span style="font-size:11px; color:#a0aec0;">Non revendable</span>`;
-        }
-
-        div.innerHTML = `
-          <div>
-            <div style="font-weight:bold; color:white;">${catalogueRef.emoji} ${catalogueRef.nom}</div>
-            <div style="font-size:11px; color:#a0aec0;">Quantité possédée : ${dataBien.quantite}</div>
-            ${btnVendreHtml}
-          </div>
-          <div class="possession-badge-green">${(catalogueRef.prix * dataBien.quantite).toLocaleString('fr-FR')} €</div>
-        `;
-        list.appendChild(div);
-      });
-
-      if (!auMoinsUn) {
-        list.innerHTML += `<div style="text-align:center; color:#a0aec0; margin-top:30px;">Aucun bien possédé par ${prenom}.</div>`;
-      }
-    }
-  </script>
+        window.onload = function() {
+            const hasRestored = chargerDepuisLocalStorage();
+            if (hasRestored) {
+                showToast("Dernière session restaurée automatiquement.", "info");
+            }
+            renderAll();
+        };
+    </script>
 </body>
 </html>
