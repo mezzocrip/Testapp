@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
-    <title>Gestionnaire de Tournoi de Football - Manuel avec Compteur</title>
+    <title>Gestionnaire de Tournoi de Football - Classement Interactif</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -90,7 +90,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-3">
-                        Tournoi Foot <span class="text-xs font-semibold px-2.5 py-1 bg-pitch-600/20 text-pitch-400 border border-pitch-500/30 rounded-lg">Sélection Manuel</span>
+                        Tournoi Foot <span class="text-xs font-semibold px-2.5 py-1 bg-pitch-600/20 text-pitch-400 border border-pitch-500/30 rounded-lg">Classement Interactif</span>
                     </h1>
                     <p class="text-xs text-slate-400 font-medium flex items-center gap-2">
                         <span>Gestionnaire Scolaire</span> &bull; 
@@ -261,16 +261,16 @@
             </div>
         </section>
 
-        <!-- Étape 5 : Classement -->
+        <!-- Étape 5 : Classement Général Interactif -->
         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
                 <div>
                     <div class="flex items-center gap-2 text-accent-500 font-bold text-xs uppercase tracking-wider mb-2">
                         <span class="w-7 h-7 rounded-lg bg-accent-500/10 flex items-center justify-center text-sm font-extrabold border border-accent-500/20">5</span>
-                        Étape 5 &bull; Palmarès
+                        Étape 5 &bull; Palmarès & Gestion des Points
                     </div>
                     <h2 class="text-2xl font-bold text-white">Classement Général des Équipes</h2>
-                    <p class="text-slate-400 text-sm">Cumul automatique des points, matchs joués et matchs nuls avec option d'ajustement manuel.</p>
+                    <p class="text-slate-400 text-sm">Ajoutez des points (victoire, nul) ou ajustez directement en cas d'erreur de saisie.</p>
                 </div>
                 
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
@@ -293,15 +293,14 @@
                             <th class="py-4 px-6 rounded-l-xl">Rang</th>
                             <th class="py-4 px-6">Équipe</th>
                             <th class="py-4 px-6">Matchs Joués</th>
-                            <th class="py-4 px-6">Matchs Nuls</th>
                             <th class="py-4 px-6">Effectif</th>
-                            <th class="py-4 px-6 text-right">Total Points</th>
-                            <th class="py-4 px-6 text-center rounded-r-xl">Ajuster</th>
+                            <th class="py-4 px-6 text-center">Actions Rapides / Correction</th>
+                            <th class="py-4 px-6 text-right rounded-r-xl">Total Points</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboard-body" class="divide-y divide-slate-800/60">
                         <tr>
-                            <td colspan="7" class="py-12 text-center text-slate-500 font-medium">Aucune équipe à afficher pour le moment.</td>
+                            <td colspan="6" class="py-12 text-center text-slate-500 font-medium">Aucune équipe à afficher pour le moment.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -309,43 +308,6 @@
         </section>
 
     </main>
-
-    <!-- Modal d'ajustement en cas d'erreur -->
-    <div id="adjust-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-pitch-500/20 border border-pitch-500/30 text-pitch-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-sliders"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold text-white" id="modal-team-title">Ajuster l'équipe</h3>
-                    <p class="text-xs text-slate-400">Corrigez directement les statistiques en cas d'erreur.</p>
-                </div>
-            </div>
-
-            <input type="hidden" id="adjust-team-id">
-
-            <div class="space-y-3 pt-2">
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Total Points</label>
-                    <input type="number" id="adjust-points" class="w-full h-11 bg-slate-950 text-slate-100 px-4 rounded-xl border border-slate-800 focus:outline-none focus:border-pitch-500 text-sm font-bold">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Matchs Joués</label>
-                    <input type="number" id="adjust-playcount" class="w-full h-11 bg-slate-950 text-slate-100 px-4 rounded-xl border border-slate-800 focus:outline-none focus:border-pitch-500 text-sm font-bold">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Matchs Nuls</label>
-                    <input type="number" id="adjust-drawcount" class="w-full h-11 bg-slate-950 text-slate-100 px-4 rounded-xl border border-slate-800 focus:outline-none focus:border-pitch-500 text-sm font-bold">
-                </div>
-            </div>
-
-            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
-                <button onclick="fermerModalAjustement()" class="touch-btn-sm px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs">Annuler</button>
-                <button onclick="sauvegarderAjustementEquipe()" class="touch-btn-sm px-4 py-2 bg-pitch-600 hover:bg-pitch-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-pitch-600/30">Enregistrer</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Modal confirmation for reset -->
     <div id="reset-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -371,9 +333,8 @@
     <script>
         const STORAGE_KEY = 'FOOTBALL_TOURNAMENT_APP_DATA_V4';
 
-        // Structure d'une équipe: { id, name, playCount: 0, drawCount: 0, checked: false, points: 0 }
         let players = [];      // { id, name, teamId }
-        let teams = [];        // { id, name, playCount, drawCount, checked, points }
+        let teams = [];        // { id, name, playCount, checked, points }
         let currentPlayingTeamIds = []; 
 
         let lastTouchEnd = 0;
@@ -443,7 +404,6 @@
                             id: t.id,
                             name: t.name,
                             playCount: t.playCount || 0,
-                            drawCount: t.drawCount || 0,
                             checked: !!t.checked,
                             points: t.points || 0
                         }));
@@ -501,7 +461,6 @@
                             id: t.id,
                             name: t.name,
                             playCount: t.playCount || 0,
-                            drawCount: t.drawCount || 0,
                             checked: !!t.checked,
                             points: t.points || 0
                         }));
@@ -607,7 +566,6 @@
                                 id: i,
                                 name: `Équipe ${i}`,
                                 playCount: 0,
-                                drawCount: 0,
                                 checked: false,
                                 points: 0
                             });
@@ -665,13 +623,10 @@
         }
 
         function reinitialiserCompteursJoues() {
-            teams.forEach(t => {
-                t.playCount = 0;
-                t.drawCount = 0;
-            });
+            teams.forEach(t => t.playCount = 0);
             sauvegarderAutomatiquement();
             renderAll();
-            showToast("Tous les compteurs de matchs et nuls ont été réinitialisés à 0.", "info");
+            showToast("Tous les compteurs de matchs ont été réinitialisés à 0.", "info");
         }
 
         function reinitialiserTotalPoints() {
@@ -691,7 +646,6 @@
                 id: newId,
                 name: `Équipe ${newId}`,
                 playCount: 0,
-                drawCount: 0,
                 checked: false,
                 points: 0
             });
@@ -787,55 +741,27 @@
         function ajouterPointsEquipe(teamId, pts) {
             const team = teams.find(t => t.id === teamId);
             if (team) {
-                team.points = (team.points || 0) + pts;
-                // Si c'est un match nul (+1 point), on incrémente aussi le compteur de matchs nuls
-                if (pts === 1) {
-                    team.drawCount = (team.drawCount || 0) + 1;
-                }
+                team.points = Math.max(0, (team.points || 0) + pts);
                 sauvegarderAutomatiquement();
                 renderLeaderboard();
-                showToast(`+${pts} pt(s) attribué(s) à l'équipe ${team.name} !`, pts === 0 ? "info" : "success");
+                if (pts > 0) {
+                    showToast(`+${pts} pt(s) attribué(s) à ${team.name} !`, "success");
+                } else if (pts < 0) {
+                    showToast(`${pts} pt(s) corrigé(s) pour ${team.name}.`, "warning");
+                } else {
+                    showToast(`Match nul (0 pt) pour ${team.name}.`, "info");
+                }
             }
         }
 
-        // ==========================================
-        // GESTION DU MODAL D'AJUSTEMENT MANUEL
-        // ==========================================
-
-        function ouvrirModalAjustement(teamId) {
+        function modifierPointsDirect(teamId, valInput) {
+            const val = parseInt(valInput, 10);
             const team = teams.find(t => t.id === teamId);
-            if (!team) return;
-
-            document.getElementById('adjust-team-id').value = team.id;
-            document.getElementById('modal-team-title').textContent = `Ajuster : ${team.name}`;
-            document.getElementById('adjust-points').value = team.points || 0;
-            document.getElementById('adjust-playcount').value = team.playCount || 0;
-            document.getElementById('adjust-drawcount').value = team.drawCount || 0;
-
-            document.getElementById('adjust-modal').classList.remove('hidden');
-        }
-
-        function fermerModalAjustement() {
-            document.getElementById('adjust-modal').classList.add('hidden');
-        }
-
-        function sauvegarderAjustementEquipe() {
-            const teamId = parseInt(document.getElementById('adjust-team-id').value);
-            const team = teams.find(t => t.id === teamId);
-            if (!team) return;
-
-            const newPts = parseInt(document.getElementById('adjust-points').value);
-            const newPlay = parseInt(document.getElementById('adjust-playcount').value);
-            const newDraw = parseInt(document.getElementById('adjust-drawcount').value);
-
-            team.points = isNaN(newPts) ? 0 : newPts;
-            team.playCount = isNaN(newPlay) ? 0 : newPlay;
-            team.drawCount = isNaN(newDraw) ? 0 : newDraw;
-
-            fermerModalAjustement();
-            sauvegarderAutomatiquement();
-            renderAll();
-            showToast(`Ajustement enregistré pour l'équipe ${team.name} !`, "success");
+            if (team && !isNaN(val)) {
+                team.points = Math.max(0, val);
+                sauvegarderAutomatiquement();
+                renderLeaderboard();
+            }
         }
 
         // ==========================================
@@ -1051,7 +977,7 @@
             const filterQuery = filterInput ? filterInput.value.toLowerCase().trim() : '';
 
             if (teams.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-500 font-medium">Aucune équipe disponible.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-500 font-medium">Aucune équipe disponible.</td></tr>`;
                 return;
             }
 
@@ -1061,7 +987,6 @@
                     id: team.id,
                     name: team.name,
                     playCount: team.playCount || 0,
-                    drawCount: team.drawCount || 0,
                     playerCount: teamPlayers.length,
                     points: team.points || 0
                 };
@@ -1071,7 +996,7 @@
             filtered.sort((a, b) => b.points - a.points);
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-500 font-medium">Aucune équipe ne correspond à votre recherche.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-500 font-medium">Aucune équipe ne correspond à votre recherche.</td></tr>`;
                 return;
             }
 
@@ -1092,15 +1017,33 @@
                             </span>
                         </td>
                         <td class="py-4 px-6 text-slate-300 text-sm font-semibold">${t.playCount} match(s)</td>
-                        <td class="py-4 px-6 text-amber-400 text-sm font-semibold">${t.drawCount} nul(s)</td>
                         <td class="py-4 px-6 text-slate-400 text-sm font-medium">${t.playerCount} joueur(s)</td>
-                        <td class="py-4 px-6 text-right font-black text-pitch-400 text-lg">${t.points} <span class="text-xs font-medium text-slate-500">pts</span></td>
                         <td class="py-4 px-6 text-center">
-                            <button onclick="ouvrirModalAjustement(${t.id})" class="touch-btn-sm px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700 transition text-xs font-bold inline-flex items-center gap-1.5 shadow" title="Ajuster les scores de cette équipe">
-                                <i class="fa-solid fa-pen-to-square text-amber-400"></i>
-                                <span>Ajuster</span>
-                            </button>
+                            <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                                <button onclick="ajouterPointsEquipe(${t.id}, 3)" title="Ajouter une victoire (+3 pts)" class="touch-btn-sm px-2.5 py-1.5 bg-pitch-600/20 hover:bg-pitch-600 hover:text-white text-pitch-400 border border-pitch-500/30 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                                    <i class="fa-solid fa-trophy text-[10px]"></i> +3
+                                </button>
+                                <button onclick="ajouterPointsEquipe(${t.id}, 1)" title="Ajouter un match nul (+1 pt)" class="touch-btn-sm px-2.5 py-1.5 bg-amber-500/20 hover:bg-amber-500 hover:text-slate-950 text-amber-400 border border-amber-500/30 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                                    <i class="fa-solid fa-handshake text-[10px]"></i> +1
+                                </button>
+                                <button onclick="ajouterPointsEquipe(${t.id}, 1)" title="Correction +1 point" class="touch-btn-sm px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition" title="Ajustement +1">
+                                    +1
+                                </button>
+                                <button onclick="ajouterPointsEquipe(${t.id}, -1)" title="Correction -1 point (en cas d'erreur)" class="touch-btn-sm px-2 py-1.5 bg-red-950/50 hover:bg-red-900 text-red-300 border border-red-800/50 rounded-lg text-xs font-bold transition" title="Ajustement -1">
+                                    -1
+                                </button>
+                                <div class="relative inline-block">
+                                    <input 
+                                        type="number" 
+                                        value="${t.points}" 
+                                        onchange="modifierPointsDirect(${t.id}, this.value)"
+                                        title="Saisir directement le total de points"
+                                        class="w-16 h-9 bg-slate-950 text-pitch-400 font-extrabold text-center text-xs rounded-lg border border-slate-800 focus:outline-none focus:border-pitch-500"
+                                    />
+                                </div>
+                            </div>
                         </td>
+                        <td class="py-4 px-6 text-right font-black text-pitch-400 text-lg">${t.points} <span class="text-xs font-medium text-slate-500">pts</span></td>
                     </tr>
                 `;
             });
