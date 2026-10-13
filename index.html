@@ -185,7 +185,6 @@
                         <span class="text-base">Valider & Faire Jouer les Sélectionnées</span>
                     </button>
 
-                    <!-- NOUVEAU BOUTON : Réinitialiser le terrain -->
                     <button onclick="reinitialiserEquipesTerrain()" class="touch-btn bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-300 font-semibold px-4 rounded-xl border border-slate-700 transition flex items-center gap-2 text-sm" title="Vider les équipes actuellement sur le terrain">
                         <i class="fa-solid fa-xmark text-red-400"></i>
                         <span>Réinit. Terrain</span>
@@ -271,11 +270,10 @@
                         Étape 5 &bull; Palmarès
                     </div>
                     <h2 class="text-2xl font-bold text-white">Classement Général des Équipes</h2>
-                    <p class="text-slate-400 text-sm">Cumul automatique des points obtenus par chaque équipe.</p>
+                    <p class="text-slate-400 text-sm">Cumul automatique des points, matchs joués et matchs nuls avec option d'ajustement manuel.</p>
                 </div>
                 
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-                    <!-- NOUVEAU BOUTON : Réinitialiser le total de points -->
                     <button onclick="reinitialiserTotalPoints()" class="touch-btn-sm bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-300 font-semibold px-4 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 text-xs shrink-0" title="Remettre le compteur de points de toutes les équipes à zero">
                         <i class="fa-solid fa-rotate text-red-400"></i>
                         <span>Réinit. Total Points</span>
@@ -295,13 +293,15 @@
                             <th class="py-4 px-6 rounded-l-xl">Rang</th>
                             <th class="py-4 px-6">Équipe</th>
                             <th class="py-4 px-6">Matchs Joués</th>
+                            <th class="py-4 px-6">Matchs Nuls</th>
                             <th class="py-4 px-6">Effectif</th>
-                            <th class="py-4 px-6 text-right rounded-r-xl">Total Points</th>
+                            <th class="py-4 px-6 text-right">Total Points</th>
+                            <th class="py-4 px-6 text-center rounded-r-xl">Ajuster</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboard-body" class="divide-y divide-slate-800/60">
                         <tr>
-                            <td colspan="5" class="py-12 text-center text-slate-500 font-medium">Aucune équipe à afficher pour le moment.</td>
+                            <td colspan="7" class="py-12 text-center text-slate-500 font-medium">Aucune équipe à afficher pour le moment.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -309,6 +309,43 @@
         </section>
 
     </main>
+
+    <!-- Modal d'ajustement en cas d'erreur -->
+    <div id="adjust-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-pitch-500/20 border border-pitch-500/30 text-pitch-400 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white" id="modal-team-title">Ajuster l'équipe</h3>
+                    <p class="text-xs text-slate-400">Corrigez directement les statistiques en cas d'erreur.</p>
+                </div>
+            </div>
+
+            <input type="hidden" id="adjust-team-id">
+
+            <div class="space-y-3 pt-2">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Total Points</label>
+                    <input type="number" id="adjust-points" class="w-full h-11 bg-slate-950 text-slate-100 px-4 rounded-xl border border-slate-800 focus:outline-none focus:border-pitch-500 text-sm font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Matchs Joués</label>
+                    <input type="number" id="adjust-playcount" class="w-full h-11 bg-slate-950 text-slate-100 px-4 rounded-xl border border-slate-800 focus:outline-none focus:border-pitch-500 text-sm font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Matchs Nuls</label>
+                    <input type="number" id="adjust-drawcount" class="w-full h-11 bg-slate-950 text-slate-100 px-4 rounded-xl border border-slate-800 focus:outline-none focus:border-pitch-500 text-sm font-bold">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+                <button onclick="fermerModalAjustement()" class="touch-btn-sm px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs">Annuler</button>
+                <button onclick="sauvegarderAjustementEquipe()" class="touch-btn-sm px-4 py-2 bg-pitch-600 hover:bg-pitch-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-pitch-600/30">Enregistrer</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal confirmation for reset -->
     <div id="reset-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -332,11 +369,11 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'FOOTBALL_TOURNAMENT_APP_DATA_V3';
+        const STORAGE_KEY = 'FOOTBALL_TOURNAMENT_APP_DATA_V4';
 
-        // Structure d'une équipe: { id, name, playCount: 0, checked: false, points: 0 }
+        // Structure d'une équipe: { id, name, playCount: 0, drawCount: 0, checked: false, points: 0 }
         let players = [];      // { id, name, teamId }
-        let teams = [];        // { id, name, playCount, checked, points }
+        let teams = [];        // { id, name, playCount, drawCount, checked, points }
         let currentPlayingTeamIds = []; 
 
         let lastTouchEnd = 0;
@@ -383,7 +420,7 @@
         function sauvegarderAutomatiquement() {
             try {
                 const payload = {
-                    version: 3,
+                    version: 4,
                     timestamp: new Date().toISOString(),
                     players: players,
                     teams: teams,
@@ -406,6 +443,7 @@
                             id: t.id,
                             name: t.name,
                             playCount: t.playCount || 0,
+                            drawCount: t.drawCount || 0,
                             checked: !!t.checked,
                             points: t.points || 0
                         }));
@@ -463,6 +501,7 @@
                             id: t.id,
                             name: t.name,
                             playCount: t.playCount || 0,
+                            drawCount: t.drawCount || 0,
                             checked: !!t.checked,
                             points: t.points || 0
                         }));
@@ -568,6 +607,7 @@
                                 id: i,
                                 name: `Équipe ${i}`,
                                 playCount: 0,
+                                drawCount: 0,
                                 checked: false,
                                 points: 0
                             });
@@ -605,7 +645,6 @@
                 return;
             }
 
-            // Incrémenter le compteur de sélection des équipes cochées
             selectedTeams.forEach(t => {
                 t.playCount = (t.playCount || 0) + 1;
             });
@@ -617,7 +656,6 @@
             showToast(`${selectedTeams.length} équipe(s) envoyée(s) sur le terrain (+1 match au compteur) !`, "success");
         }
 
-        // NOUVELLE FONCTION : Réinitialiser les équipes du terrain
         function reinitialiserEquipesTerrain() {
             currentPlayingTeamIds = [];
             teams.forEach(t => t.checked = false);
@@ -627,13 +665,15 @@
         }
 
         function reinitialiserCompteursJoues() {
-            teams.forEach(t => t.playCount = 0);
+            teams.forEach(t => {
+                t.playCount = 0;
+                t.drawCount = 0;
+            });
             sauvegarderAutomatiquement();
             renderAll();
-            showToast("Tous les compteurs de matchs ont été réinitialisés à 0.", "info");
+            showToast("Tous les compteurs de matchs et nuls ont été réinitialisés à 0.", "info");
         }
 
-        // NOUVELLE FONCTION : Réinitialiser le total des points
         function reinitialiserTotalPoints() {
             teams.forEach(t => t.points = 0);
             sauvegarderAutomatiquement();
@@ -651,6 +691,7 @@
                 id: newId,
                 name: `Équipe ${newId}`,
                 playCount: 0,
+                drawCount: 0,
                 checked: false,
                 points: 0
             });
@@ -747,10 +788,54 @@
             const team = teams.find(t => t.id === teamId);
             if (team) {
                 team.points = (team.points || 0) + pts;
+                // Si c'est un match nul (+1 point), on incrémente aussi le compteur de matchs nuls
+                if (pts === 1) {
+                    team.drawCount = (team.drawCount || 0) + 1;
+                }
                 sauvegarderAutomatiquement();
                 renderLeaderboard();
                 showToast(`+${pts} pt(s) attribué(s) à l'équipe ${team.name} !`, pts === 0 ? "info" : "success");
             }
+        }
+
+        // ==========================================
+        // GESTION DU MODAL D'AJUSTEMENT MANUEL
+        // ==========================================
+
+        function ouvrirModalAjustement(teamId) {
+            const team = teams.find(t => t.id === teamId);
+            if (!team) return;
+
+            document.getElementById('adjust-team-id').value = team.id;
+            document.getElementById('modal-team-title').textContent = `Ajuster : ${team.name}`;
+            document.getElementById('adjust-points').value = team.points || 0;
+            document.getElementById('adjust-playcount').value = team.playCount || 0;
+            document.getElementById('adjust-drawcount').value = team.drawCount || 0;
+
+            document.getElementById('adjust-modal').classList.remove('hidden');
+        }
+
+        function fermerModalAjustement() {
+            document.getElementById('adjust-modal').classList.add('hidden');
+        }
+
+        function sauvegarderAjustementEquipe() {
+            const teamId = parseInt(document.getElementById('adjust-team-id').value);
+            const team = teams.find(t => t.id === teamId);
+            if (!team) return;
+
+            const newPts = parseInt(document.getElementById('adjust-points').value);
+            const newPlay = parseInt(document.getElementById('adjust-playcount').value);
+            const newDraw = parseInt(document.getElementById('adjust-drawcount').value);
+
+            team.points = isNaN(newPts) ? 0 : newPts;
+            team.playCount = isNaN(newPlay) ? 0 : newPlay;
+            team.drawCount = isNaN(newDraw) ? 0 : newDraw;
+
+            fermerModalAjustement();
+            sauvegarderAutomatiquement();
+            renderAll();
+            showToast(`Ajustement enregistré pour l'équipe ${team.name} !`, "success");
         }
 
         // ==========================================
@@ -785,9 +870,8 @@
                 const count = team.playCount || 0;
                 let badgeColor = 'bg-slate-800 text-slate-400 border-slate-700';
                 
-                // Code couleur visuel selon si l'équipe a joué ou non
                 if (count === 0) {
-                    badgeColor = 'bg-red-500/20 text-red-400 border-red-500/40 font-bold'; // Jamais joué
+                    badgeColor = 'bg-red-500/20 text-red-400 border-red-500/40 font-bold';
                 } else if (count === 1) {
                     badgeColor = 'bg-amber-500/20 text-amber-400 border-amber-500/40';
                 } else {
@@ -967,7 +1051,7 @@
             const filterQuery = filterInput ? filterInput.value.toLowerCase().trim() : '';
 
             if (teams.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-slate-500 font-medium">Aucune équipe disponible.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-500 font-medium">Aucune équipe disponible.</td></tr>`;
                 return;
             }
 
@@ -977,6 +1061,7 @@
                     id: team.id,
                     name: team.name,
                     playCount: team.playCount || 0,
+                    drawCount: team.drawCount || 0,
                     playerCount: teamPlayers.length,
                     points: team.points || 0
                 };
@@ -986,7 +1071,7 @@
             filtered.sort((a, b) => b.points - a.points);
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-slate-500 font-medium">Aucune équipe ne correspond à votre recherche.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-500 font-medium">Aucune équipe ne correspond à votre recherche.</td></tr>`;
                 return;
             }
 
@@ -1007,8 +1092,15 @@
                             </span>
                         </td>
                         <td class="py-4 px-6 text-slate-300 text-sm font-semibold">${t.playCount} match(s)</td>
+                        <td class="py-4 px-6 text-amber-400 text-sm font-semibold">${t.drawCount} nul(s)</td>
                         <td class="py-4 px-6 text-slate-400 text-sm font-medium">${t.playerCount} joueur(s)</td>
                         <td class="py-4 px-6 text-right font-black text-pitch-400 text-lg">${t.points} <span class="text-xs font-medium text-slate-500">pts</span></td>
+                        <td class="py-4 px-6 text-center">
+                            <button onclick="ouvrirModalAjustement(${t.id})" class="touch-btn-sm px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-700 transition text-xs font-bold inline-flex items-center gap-1.5 shadow" title="Ajuster les scores de cette équipe">
+                                <i class="fa-solid fa-pen-to-square text-amber-400"></i>
+                                <span>Ajuster</span>
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
