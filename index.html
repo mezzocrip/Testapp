@@ -7,9 +7,9 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS for Excel (.xlsx / .csv) parsing -->
+    <!-- SheetJS pour parsing Excel (.xlsx / .csv) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- FontAwesome icons -->
+    <!-- Icônes FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -82,6 +82,7 @@
 </head>
 <body class="font-sans min-h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden pb-12">
 
+    <!-- En-tête / Barre de navigation -->
     <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
         <div class="max-w-[1600px] mx-auto px-6 py-4 flex flex-col xl:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-4">
@@ -185,7 +186,6 @@
                         <span class="text-base">Valider & Faire Jouer les Sélectionnées</span>
                     </button>
 
-                    <!-- Réinitialiser le terrain -->
                     <button onclick="reinitialiserEquipesTerrain()" class="touch-btn bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-300 font-semibold px-4 rounded-xl border border-slate-700 transition flex items-center gap-2 text-sm" title="Vider les équipes actuellement sur le terrain">
                         <i class="fa-solid fa-xmark text-red-400"></i>
                         <span>Réinit. Terrain</span>
@@ -257,11 +257,10 @@
                         Étape 4 &bull; Palmarès
                     </div>
                     <h2 class="text-2xl font-bold text-white">Classement Général des Équipes</h2>
-                    <p class="text-slate-400 text-sm">Attribution des points en direct (incrémente les matchs joués), ajustement en cas d'erreur et cumul du classement.</p>
+                    <p class="text-slate-400 text-sm">Attribution des points en direct (incrémente les matchs joués), ajustement des matchs/points et cumul du classement.</p>
                 </div>
                 
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-                    <!-- Réinitialiser le total de points -->
                     <button onclick="reinitialiserTotalPoints()" class="touch-btn-sm bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-300 font-semibold px-4 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 text-xs shrink-0" title="Remettre le compteur de points de toutes les équipes à zéro">
                         <i class="fa-solid fa-rotate text-red-400"></i>
                         <span>Réinit. Total Points</span>
@@ -733,13 +732,14 @@
             const team = teams.find(t => t.id === teamId);
             if (team) {
                 team.points = (team.points || 0) + pts;
-                team.playCount = (team.playCount || 0) + 1; // Ajustement automatique des matchs joués
+                team.playCount = (team.playCount || 0) + 1; // Incrémente également les matchs joués
                 sauvegarderAutomatiquement();
                 renderAll();
                 showToast(`${pts >= 0 ? '+' + pts : pts} pt(s) attribué(s) à ${team.name} (+1 match joué) !`, "success");
             }
         }
 
+        // Fonction ajustant à la fois le nombre de matchs joués et les points
         function ajusterMatchsEtPoints(teamId) {
             const team = teams.find(t => t.id === teamId);
             if (!team) return;
@@ -1010,7 +1010,7 @@
                             </div>
                         </td>
 
-                        <!-- Bouton d'Ajustement complet -->
+                        <!-- Bouton d'Ajustement des matchs et points -->
                         <td class="py-4 px-4 text-center">
                             <button onclick="ajusterMatchsEtPoints(${t.id})" title="Ajuster les matchs joués et les points" class="touch-btn-sm bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-700 transition inline-flex items-center gap-2">
                                 <i class="fa-solid fa-sliders text-amber-400 text-xs"></i>
