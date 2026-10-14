@@ -446,7 +446,7 @@
 
  <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-2xs">
  <div class="text-xs text-slate-500 font-semibold">Incidents</div>
- <div class="text-xl sm:text-2xl font-extrabold text-orange-600 my-0.5" id="countIncidents">0</div>
+ <div class="text-xl sm:text-2xl font-extrabold text-indigo-700 my-0.5" id="countIncidents">0</div>
  </div>
  </div>
  </div>
@@ -495,7 +495,7 @@
  <th class="py-2.5 px-4">Date & Heure</th>
  <th class="py-2.5 px-4">Événement / Punition</th>
  <th class="py-2.5 px-4">Statut / Détail</th>
- <th class="py-2.5 px-4">Motif / Commentaire / Auteur</th>
+ <th class="py-2.5 px-4">Motif / Commentaire</th>
  <th class="py-2.5 px-4 text-right no-print">Action</th>
  </tr>
  </thead>
@@ -623,7 +623,7 @@
  </section>
 
  <footer class="mt-8 text-center text-[11px] text-slate-400 no-print pb-4">
- VieScolaire Pro &bull; Version <span class="font-mono font-semibold">7.0 Mobile Pro</span> &bull; Seuils Avancés & Onglet Incident Excel
+ VieScolaire Pro &bull; Version <span class="font-mono font-semibold">7.0 Mobile Pro</span> &bull; Seuils Avancés & Infobulle Alerte CPE
  </footer>
 
  </main>
@@ -712,16 +712,6 @@
      <span class="absolute right-2.5 top-2 text-[10px] text-slate-400">exclusion(s)</span>
    </div>
  </div>
-
- <div>
-   <label class="block text-[11px] font-bold text-slate-700 mb-1">
-     Incidents
-   </label>
-   <div class="relative">
-     <input type="number" id="settingCpeThresholdIncident" min="0" max="100" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500">
-     <span class="absolute right-2.5 top-2 text-[10px] text-slate-400">incident(s)</span>
-   </div>
- </div>
  </div>
 
  <div class="border-t border-slate-100 pt-3">
@@ -756,7 +746,7 @@
  <i data-lucide="alert-triangle" class="w-6 h-6"></i>
  </div>
  <div>
- <h3 class="font-bold text-base text-slate-800">Attention : Importation PRONOTE / Fichier Excel</h3>
+ <h3 class="font-bold text-base text-slate-800">Attention : Importation PRONOTE</h3>
  <p class="text-xs text-slate-600 mt-1.5">L'importation de nouvelles données <b>effacera toutes les anciennes données Vie Scolaire</b> existantes.</p>
  <p class="text-xs font-semibold text-amber-700 mt-2">Souhaitez-vous continuer ?</p>
  </div>
@@ -918,7 +908,7 @@
 
  <div id="authorField" class="hidden">
  <label class="block text-xs font-semibold text-slate-600 mb-1">Auteur du signalement</label>
- <input type="text" id="eventAuthorInput" placeholder="Ex: M. Dupont (Professeur)..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <input type="text" id="eventAuthorInput" placeholder="Ex: M. Dupont" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
  </div>
 
  <div>
@@ -1035,7 +1025,7 @@
  // 1. STATE & CONSTANTS
  // =========================================================
  const STORAGE_KEY = 'viescolaire_students_db_v7';
- const SETTINGS_STORAGE_KEY = 'viescolaire_settings_v2';
+ const SETTINGS_STORAGE_KEY = 'viescolaire_settings_v1';
 
  let appSettings = {
  cpeThreshold: 15, // rétrocompatibilité
@@ -1089,8 +1079,7 @@
  events: [
  { id: 'e1', type: 'retard', date: '2026-03-10T08:12', motif: '10/03/2026 08:12 - Problème de bus - oui' },
  { id: 'e2', type: 'absence', date: '2026-03-12T08:00', justified: 'Oui', motif: '12/03/2026 - Rendez-vous médical' },
- { id: 'e3', type: 'emploi_bloque', date: '2026-03-14T14:30', motif: '14/03/2026 14:30 - emploi du temps bloqué suite retards' },
- { id: 'e7', type: 'incident', date: '2026-03-18T10:00', motif: 'Bavardages répétés et insolence', author: 'M. Dupont (Professeur)' }
+ { id: 'e3', type: 'emploi_bloque', date: '2026-03-14T14:30', motif: '14/03/2026 14:30 - emploi du temps bloqué suite retards' }
  ]
  },
  {
@@ -1123,7 +1112,8 @@
  badgeRepere: 'REP-103',
  badgeCantine: 'DP-30985',
  events: [
- { id: 'e6', type: 'exclusion', date: '2026-03-16T10:30', motif: '16/03/2026 - Exclusion de cours pour comportement perturbateur' }
+ { id: 'e6', type: 'exclusion', date: '2026-03-16T10:30', motif: '16/03/2026 - Exclusion de cours pour comportement perturbateur' },
+ { id: 'e7', type: 'incident', date: '2026-03-18T11:00', author: 'Mme Durand', motif: '18/03/2026 11:00 - Incident signalé en permanence' }
  ]
  }
  ];
@@ -1226,7 +1216,7 @@
  reasons.push(`${exclusion} exclusion(s) de cours (seuil: ${tExcl})`);
  }
 
- const tInc = parseInt(appSettings.cpeThresholdIncident ?? 1, 10);
+ const tInc = parseInt(appSettings.cpeThresholdIncident || 1, 10);
  if (tInc > 0 && incidents >= tInc) {
  reasons.push(`${incidents} incident(s) (seuil: ${tInc})`);
  }
@@ -1447,7 +1437,6 @@
  document.getElementById('settingCpeThresholdRetenues').value = appSettings.cpeThresholdRetenues ?? 2;
  document.getElementById('settingCpeThresholdEmploiBloque').value = appSettings.cpeThresholdEmploiBloque ?? 1;
  document.getElementById('settingCpeThresholdExclusion').value = appSettings.cpeThresholdExclusion ?? 1;
- document.getElementById('settingCpeThresholdIncident').value = appSettings.cpeThresholdIncident ?? 1;
  populateSettingsLevelsUI();
  document.getElementById('settingsModal').classList.remove('hidden');
  lucide.createIcons();
@@ -1503,7 +1492,6 @@
  appSettings.cpeThresholdRetenues = getVal('settingCpeThresholdRetenues', 0);
  appSettings.cpeThresholdEmploiBloque = getVal('settingCpeThresholdEmploiBloque', 0);
  appSettings.cpeThresholdExclusion = getVal('settingCpeThresholdExclusion', 0);
- appSettings.cpeThresholdIncident = getVal('settingCpeThresholdIncident', 1);
 
  const checkboxes = document.querySelectorAll('input[name="cpeLevelCheckbox"]:checked');
  appSettings.cpeLevels = Array.from(checkboxes).map(cb => cb.value);
@@ -1704,24 +1692,24 @@
 
  <div class="grid grid-cols-5 gap-1 mt-3 pt-2.5 border-t ${isNoExit ? 'border-red-200/60' : 'border-slate-100'} text-center cursor-pointer" onclick="openStudentDetail('${safeId}')">
  <div class="bg-white/90 py-1 rounded-lg border border-slate-200/60">
- <span class="block text-[9px] text-slate-400 font-bold uppercase">Retards</span>
- <span class="font-extrabold text-xs sm:text-sm ${retards > 0 ? 'text-amber-600' : 'text-slate-600'}">${retards}</span>
+ <span class="block text-[9px] text-slate-400 font-bold uppercase">Ret.</span>
+ <span class="font-extrabold text-xs ${retards > 0 ? 'text-amber-600' : 'text-slate-600'}">${retards}</span>
  </div>
  <div class="bg-white/90 py-1 rounded-lg border border-slate-200/60">
- <span class="block text-[9px] text-slate-400 font-bold uppercase">Absences</span>
- <span class="font-extrabold text-xs sm:text-sm ${absences > 0 ? 'text-rose-600' : 'text-slate-600'}">${absences}</span>
+ <span class="block text-[9px] text-slate-400 font-bold uppercase">Abs.</span>
+ <span class="font-extrabold text-xs ${absences > 0 ? 'text-rose-600' : 'text-slate-600'}">${absences}</span>
  </div>
  <div class="bg-white/90 py-1 rounded-lg border border-slate-200/60">
  <span class="block text-[9px] text-slate-400 font-bold uppercase">Colles</span>
- <span class="font-extrabold text-xs sm:text-sm ${retenues > 0 ? 'text-purple-600' : 'text-slate-600'}">${formattedRetenues}h</span>
+ <span class="font-extrabold text-xs ${retenues > 0 ? 'text-purple-600' : 'text-slate-600'}">${formattedRetenues}h</span>
  </div>
  <div class="bg-white/90 py-1 rounded-lg border border-slate-200/60">
- <span class="block text-[9px] text-slate-400 font-bold uppercase">Incidents</span>
- <span class="font-extrabold text-xs sm:text-sm ${incidents > 0 ? 'text-orange-600' : 'text-slate-600'}">${incidents}</span>
+ <span class="block text-[9px] text-slate-400 font-bold uppercase">EDT</span>
+ <span class="font-extrabold text-xs ${emploiBloque > 0 ? 'text-amber-800' : 'text-slate-600'}">${emploiBloque}</span>
  </div>
  <div class="bg-white/90 py-1 rounded-lg border border-slate-200/60">
- <span class="block text-[9px] text-slate-400 font-bold uppercase">EDT Bloq.</span>
- <span class="font-extrabold text-xs sm:text-sm ${emploiBloque > 0 ? 'text-amber-800' : 'text-slate-600'}">${emploiBloque}</span>
+ <span class="block text-[9px] text-slate-400 font-bold uppercase">Inc.</span>
+ <span class="font-extrabold text-xs ${incidents > 0 ? 'text-indigo-700' : 'text-slate-600'}">${incidents}</span>
  </div>
  </div>
  `;
@@ -1872,7 +1860,7 @@
  else if (ev.type === 'retenue') { badgeClass = "bg-purple-100 text-purple-800"; typeLabel = ev.pronoteType ? `RETENUE (${ev.pronoteType.toUpperCase()})` : "RETENUE"; }
  else if (ev.type === 'emploi_bloque') { badgeClass = "bg-amber-100 text-amber-900"; typeLabel = "EMPLOI DU TEMPS BLOQUÉ"; }
  else if (ev.type === 'exclusion') { badgeClass = "bg-rose-100 text-rose-900"; typeLabel = "EXCLUSION DE COURS"; }
- else if (ev.type === 'incident') { badgeClass = "bg-orange-100 text-orange-900 font-bold"; typeLabel = "INCIDENT"; }
+ else if (ev.type === 'incident') { badgeClass = "bg-indigo-100 text-indigo-900 font-bold"; typeLabel = "INCIDENT"; }
  else if (ev.type === 'observation') { badgeClass = "bg-blue-100 text-blue-800"; typeLabel = "OBSERVATION"; }
  else if (ev.type === 'abs_injustifiee' || (ev.pronoteType && ev.pronoteType.toLowerCase().includes('absence injustifiée'))) { badgeClass = "bg-red-100 text-red-800 font-bold"; typeLabel = "ABSENCE INJUSTIFIÉE"; }
  else if (ev.type === 'carnet') { badgeClass = "bg-slate-200 text-slate-800"; typeLabel = "OUBLI CARNET"; }
@@ -1888,11 +1876,13 @@
  const hours = getRetenueHours(ev);
  const formattedHours = Number.isInteger(hours) ? hours : hours.toFixed(1);
  detailText = `<span class="font-semibold text-xs text-purple-800">Durée: ${formattedHours}h</span>`;
+ } else if (ev.type === 'incident' || motifStatut === 'Incident') {
+ const author = ev.author ? `Auteur: ${sanitize(ev.author)}` : 'Incident';
+ detailText = `<span class="inline-block text-xs px-2.5 py-0.5 rounded-full border bg-indigo-100 text-indigo-800 border-indigo-300 font-semibold">${author}</span>`;
  } else if (motifStatut) {
  let badgeColor = "bg-slate-100 text-slate-800 border-slate-300";
  if (motifStatut === 'Exclusion de cours') badgeColor = "bg-rose-100 text-rose-800 border-rose-300 font-semibold";
  else if (motifStatut === 'emploi du temps bloqué') badgeColor = "bg-amber-100 text-amber-800 border-amber-300 font-semibold";
- else if (motifStatut === 'Incident') badgeColor = "bg-orange-100 text-orange-800 border-orange-300 font-bold";
  else if (motifStatut === 'Observations') badgeColor = "bg-blue-100 text-blue-800 border-blue-300 font-semibold";
 
  detailText = `<span class="inline-block text-xs px-2.5 py-0.5 rounded-full border ${badgeColor}">${sanitize(motifStatut)}</span>`;
@@ -1910,8 +1900,6 @@
  detailText = `<span class="font-semibold text-xs text-amber-800">emploi du temps bloqué</span>`;
  } else if (ev.type === 'exclusion') {
  detailText = `<span class="font-semibold text-xs text-rose-800">Exclusion de cours</span>`;
- } else if (ev.type === 'incident') {
- detailText = `<span class="font-semibold text-xs text-orange-800">Signalé par: ${sanitize(ev.author || 'Non renseigné')}</span>`;
  }
 
  const eventDateStr = extractDateFromText(ev.motif) || ev.date;
@@ -1923,13 +1911,12 @@
  : sanitize(ev.date || '--');
 
  const safeMotif = sanitize(ev.motif || '-');
- const authorSuffix = ev.author ? `<br><span class="text-[10px] text-indigo-700 font-semibold">Auteur : ${sanitize(ev.author)}</span>` : '';
 
  tr.innerHTML = `
  <td class="py-2.5 px-4 font-mono text-[11px] text-slate-600">${sanitize(formattedDate)}</td>
  <td class="py-2.5 px-4"><span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${badgeClass}">${sanitize(typeLabel)}</span></td>
  <td class="py-2.5 px-4 text-xs">${detailText}</td>
- <td class="py-2.5 px-4 text-xs text-slate-600">${safeMotif}${authorSuffix}</td>
+ <td class="py-2.5 px-4 text-xs text-slate-600">${safeMotif}</td>
  <td class="py-2.5 px-4 text-right no-print">
  <button onclick="deleteEvent('${safeEvId}')" class="text-rose-600 hover:text-rose-800 p-1.5 rounded-lg hover:bg-rose-50 transition">
  <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -2037,7 +2024,7 @@
  const formattedDate = !isNaN(parsed.getTime()) ? parsed.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '--';
  
  let detail = sanitize(e.motif || '');
- if (e.author) detail += ` (Auteur: ${sanitize(e.author)})`;
+ if (e.author) detail = `[Par: ${sanitize(e.author)}] ${detail}`;
  if (e.pronoteType) detail = `[${sanitize(e.pronoteType)}] ${detail}`;
  
  const isJust = e.justified === 'Oui' || /\boui\b/i.test(e.motif || '');
@@ -2231,17 +2218,17 @@
  <span class="block text-[10px] text-purple-800 font-semibold">Retenues</span>
  <span class="font-extrabold text-purple-700 text-sm">${formattedRetenues}h</span>
  </div>
- <div class="bg-orange-50 p-2 rounded-xl border border-orange-200/80">
- <span class="block text-[10px] text-orange-800 font-semibold">Incidents</span>
- <span class="font-extrabold text-orange-700 text-sm">${incidents}</span>
- </div>
  <div class="bg-amber-50/70 p-2 rounded-xl border border-amber-200/60">
  <span class="block text-[10px] text-amber-900 font-semibold">EDT Bloqué</span>
  <span class="font-extrabold text-amber-800 text-sm">${emploiBloque}</span>
  </div>
- <div class="bg-red-50 p-2 rounded-xl border border-red-200/80">
- <span class="block text-[10px] text-red-800 font-semibold">Abs. Injustifiées</span>
- <span class="font-extrabold text-red-700 text-sm">${absInjustifiees}</span>
+ <div class="bg-rose-50/70 p-2 rounded-xl border border-rose-200/60">
+ <span class="block text-[10px] text-rose-900 font-semibold">Exclusions</span>
+ <span class="font-extrabold text-rose-700 text-sm">${exclusions}</span>
+ </div>
+ <div class="bg-indigo-50 p-2 rounded-xl border border-indigo-200/80">
+ <span class="block text-[10px] text-indigo-900 font-semibold">Incidents</span>
+ <span class="font-extrabold text-indigo-700 text-sm">${incidents}</span>
  </div>
  </div>
  </div>
@@ -2606,8 +2593,8 @@
  const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + getRetenueHours(e), 0);
  const emploiBloque = events.filter(e => e.type === 'emploi_bloque' || getStatutDetailFromMotif(e.motif) === 'emploi du temps bloqué').length;
  const exclusions = events.filter(e => e.type === 'exclusion' || getStatutDetailFromMotif(e.motif) === 'Exclusion de cours').length;
- const absInjustifiees = countUnjustifiedAbsences(student);
  const incidents = events.filter(e => e.type === 'incident' || getStatutDetailFromMotif(e.motif) === 'Incident').length;
+ const absInjustifiees = countUnjustifiedAbsences(student);
 
  const formattedRetenues = Number.isInteger(retenues) ? retenues : retenues.toFixed(1);
 
@@ -2785,40 +2772,96 @@
  parsePronoteText(fullText);
  };
  reader.readAsArrayBuffer(file);
- } else if (name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.csv')) {
+ } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
  const reader = new FileReader();
  reader.onload = function(e) {
  const data = new Uint8Array(e.target.result);
  const workbook = XLSX.read(data, { type: 'array' });
  
- // On vérifie si une feuille contient les colonnes spécifiques d'incidents (Classe, Nom, Date, Heure, Motifs, Auteur du signalement)
- let parsedViaColumns = false;
+ // Traitement spécifique de l'onglet "incident" s'il existe
+ let incidentImportCount = 0;
  workbook.SheetNames.forEach(sheetName => {
+ const lowerSheetName = sheetName.toLowerCase();
+ if (lowerSheetName.includes('incident')) {
  const sheet = workbook.Sheets[sheetName];
  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
- if (rows && rows.length > 0) {
+ 
+ // Détection des indices de colonnes pour: Classe, Nom, Date et Heure de l'evenement, Motifs, Auteur du signalement
+ if (rows.length > 0) {
  const headers = rows[0].map(h => String(h || '').trim().toLowerCase());
- const idxClasse = headers.findIndex(h => h.includes('classe'));
- const idxNom = headers.findIndex(h => h.includes('nom'));
- const idxDate = headers.findIndex(h => h.includes('date'));
- const idxHeure = headers.findIndex(h => h.includes('heure'));
- const idxMotifs = headers.findIndex(h => h.includes('motif') || h.includes('motifs'));
- const idxAuteur = headers.findIndex(h => h.includes('auteur') || h.includes('signalement'));
+ let idxClasse = headers.findIndex(h => h.includes('classe'));
+ let idxNom = headers.findIndex(h => h.includes('nom') || h.includes('élève') || h.includes('eleve'));
+ let idxDate = headers.findIndex(h => h.includes('date') || h.includes('heure') || h.includes('événement') || h.includes('evenement'));
+ let idxMotifs = headers.findIndex(h => h.includes('motif') || h.includes('commentaire') || h.includes('description'));
+ let idxAuteur = headers.findIndex(h => h.includes('auteur') || h.includes('signalement') || h.includes('auteur du signalement') || h.includes('par'));
 
- if (idxNom !== -1 && (idxMotifs !== -1 || idxAuteur !== -1)) {
- parsedViaColumns = true;
- parseExcelIncidentRows(rows, idxClasse, idxNom, idxDate, idxHeure, idxMotifs, idxAuteur);
+ for (let r = 1; r < rows.length; r++) {
+ const row = rows[r];
+ if (!row || row.length === 0) continue;
+ 
+ const valClasse = idxClasse !== -1 ? String(row[idxClasse] || '').trim() : '';
+ const valNomComplet = idxNom !== -1 ? String(row[idxNom] || '').trim() : '';
+ const valDate = idxDate !== -1 ? String(row[idxDate] || '').trim() : '';
+ const valMotifs = idxMotifs !== -1 ? String(row[idxMotifs] || '').trim() : '';
+ const valAuteur = idxAuteur !== -1 ? String(row[idxAuteur] || '').trim() : '';
+
+ if (valNomComplet) {
+ // Recherche ou création de l'élève
+ let student = students.find(s => {
+ const fullName = `${s.nom} ${s.prenom}`.toLowerCase();
+ const revName = `${s.prenom} ${s.nom}`.toLowerCase();
+ const target = valNomComplet.toLowerCase();
+ return fullName.includes(target) || target.includes(s.nom.toLowerCase());
+ });
+
+ if (!student) {
+ const nameParts = valNomComplet.split(/\s+/);
+ const nom = nameParts[0] ? nameParts[0].toUpperCase() : 'INCONNU';
+ const prenom = nameParts.slice(1).join(' ') || 'Élève';
+ student = {
+ id: generateUUID(),
+ nom,
+ prenom,
+ classe: valClasse || 'Sans Classe',
+ regime: 'Demi-pensionnaire',
+ autorisationSortie: 'Oui',
+ alerteCPE: false,
+ docNonRendu: false,
+ badgeRepere: '',
+ badgeCantine: '',
+ events: []
+ };
+ students.push(student);
+ }
+
+ const detectedDate = extractDateFromText(`${valDate} ${valMotifs}`) || new Date().toISOString();
+ const newEv = {
+ id: generateUUID(),
+ type: 'incident',
+ date: detectedDate,
+ author: valAuteur || 'Inconnu',
+ motif: `${valDate ? valDate + ' - ' : ''}${valMotifs || 'Incident signalé'}${valAuteur ? ' (Auteur: ' + valAuteur + ')' : ''}`
+ };
+
+ if (!student.events) student.events = [];
+ student.events.push(newEv);
+ incidentImportCount++;
+ }
+ }
  }
  }
  });
 
- if (!parsedViaColumns) {
+ // Parsing global standard pour les autres onglets
  let fullText = '';
  workbook.SheetNames.forEach(name => {
  const sheet = workbook.Sheets[name];
  fullText += XLSX.utils.sheet_to_csv(sheet) + '\n';
  });
  parsePronoteText(fullText);
+
+ if (incidentImportCount > 0) {
+ alert(`Importation réussie : ${incidentImportCount} incident(s) importé(s) depuis l'onglet incident.`);
  }
  };
  reader.readAsArrayBuffer(file);
@@ -2836,82 +2879,8 @@
  e.target.value = '';
  }
 
- function parseExcelIncidentRows(rows, idxClasse, idxNom, idxDate, idxHeure, idxMotifs, idxAuteur) {
- let importedCount = 0;
- for (let i = 1; i < rows.length; i++) {
- const row = rows[i];
- if (!row || row.length === 0) continue;
-
- const nomBrut = idxNom !== -1 ? String(row[idxNom] || '').trim() : '';
- if (!nomBrut) continue;
-
- const classeBrute = idxClasse !== -1 ? String(row[idxClasse] || '').trim() : '';
- const dateBrute = idxDate !== -1 ? String(row[idxDate] || '').trim() : '';
- const heureBrute = idxHeure !== -1 ? String(row[idxHeure] || '').trim() : '';
- const motifsBrut = idxMotifs !== -1 ? String(row[idxMotifs] || '').trim() : 'Incident signalé';
- const auteurBrut = idxAuteur !== -1 ? String(row[idxAuteur] || '').trim() : '';
-
- // Recherche de l'élève par Nom (et prénom si présent dans la chaîne ou création automatique)
- let student = students.find(s => {
- const sNom = (s.nom || '').trim().toUpperCase();
- const nomUpper = nomBrut.toUpperCase();
- return nomUpper.includes(sNom) || sNom.includes(nomUpper);
- });
-
- if (!student) {
- // Création automatique de l'élève si non présent
- const partsNom = nomBrut.split(/\s+/);
- const nom = partsNom[0] ? partsNom[0].toUpperCase() : 'ELEVE';
- const prenom = partsNom.slice(1).join(' ') || 'Inconnu';
- student = {
- id: generateUUID(),
- nom,
- prenom,
- classe: classeBrute || 'Sans Classe',
- regime: 'Demi-pensionnaire',
- autorisationSortie: 'Oui',
- alerteCPE: false,
- docNonRendu: false,
- profPrincipal: '',
- badgeRepere: '',
- badgeCantine: '',
- events: []
- };
- students.push(student);
- }
-
- // Formatage de la date et de l'heure
- let dateTimeStr = new Date().toISOString();
- if (dateBrute) {
- let cleanedDate = dateBrute;
- if (heureBrute) cleanedDate += `T${heureBrute}`;
- const extracted = extractDateFromText(cleanedDate);
- if (extracted) dateTimeStr = extracted;
- }
-
- const newEv = {
- id: generateUUID(),
- type: 'incident',
- date: dateTimeStr,
- motif: motifsBrut,
- author: auteurBrut
- };
-
- if (!student.events) student.events = [];
- student.events.push(newEv);
- importedCount++;
- }
-
- saveStorage();
- populateClassFilter();
- filterStudents();
- alert(`Importation Excel / Incidents réussie : ${importedCount} incident(s) importé(s).`);
- }
-
  function parsePronoteText(text) {
  if (!text) return;
-
- students.forEach(s => s.events = []);
 
  const lines = text.split(/\r?\n/);
  let importedCount = 0;
@@ -2966,7 +2935,6 @@
  saveStorage();
  populateClassFilter();
  filterStudents();
- alert(`Importation PRONOTE terminée : ${importedCount} événement(s) associé(s) aux élèves.`);
  }
 
  function triggerFileImport() {
@@ -3239,6 +3207,7 @@
  const incidents = events.filter(e => e.type === 'incident' || getStatutDetailFromMotif(e.motif) === 'Incident').length;
  const absInjustifiees = countUnjustifiedAbsences(s);
 
+ // GROS TITRE EN HAUT DE CHAQUE FEUILLE DE FICHE CPE
  doc.setFont('Helvetica', 'bold');
  doc.setFontSize(22);
  doc.setTextColor(190, 18, 60);
@@ -3260,6 +3229,7 @@
 
  let currentY = 47;
 
+ // AFFICHAGE DES DÉTAILS DE L'ALERTE CPE / SEUILS DÉPASSÉS
  const thresholdInfo = getExceededThresholdsInfo(s);
  if (thresholdInfo.hasExceeded) {
  doc.setFillColor(254, 242, 242);
@@ -3281,13 +3251,14 @@
  currentY += 18;
  }
 
+ // TABLEAU RÉCAPITULATIF DES COMPTEURS
  doc.autoTable({
  startY: currentY,
- head: [['Retards', 'Absences Total', 'Abs. Injust.', 'Incidents', 'Colles', 'EDT Blq.', 'Excl.']],
- body: [[retards, absences, absInjustifiees, incidents, `${formattedRetenues} h`, emploiBloque, exclusions]],
+ head: [['Retards', 'Absences Total', 'Abs. Injustifiées', 'Colles', 'EDT', 'Excl.', 'Incidents']],
+ body: [[retards, absences, absInjustifiees, `${formattedRetenues} h`, emploiBloque, exclusions, incidents]],
  theme: 'grid',
  headStyles: { fillColor: [190, 18, 60], textColor: [255, 255, 255], fontStyle: 'bold' },
- styles: { fontSize: 8, halign: 'center', cellPadding: 2 }
+ styles: { fontSize: 8.5, halign: 'center', cellPadding: 2.5 }
  });
 
  currentY = doc.lastAutoTable.finalY + 8;
@@ -3295,7 +3266,7 @@
  doc.setFont('Helvetica', 'bold');
  doc.setFontSize(11);
  doc.setTextColor(30, 41, 59);
- doc.text("Historique des Événements & Incidents", 14, currentY);
+ doc.text("Historique des Événements & Punitions", 14, currentY);
  currentY += 4;
 
  if (events.length === 0) {
@@ -3329,19 +3300,16 @@
  else if (ev.type === 'incident') typeLabel = "INCIDENT";
  else if (ev.type === 'abs_injustifiee' || (ev.pronoteType && ev.pronoteType.toLowerCase().includes('absence injustifiée'))) typeLabel = "ABS. INJUSTIFIÉE";
 
- let motifCol = ev.motif || '--';
- if (ev.author) motifCol += ` (Auteur: ${ev.author})`;
-
  return [
  formattedDate,
  typeLabel,
- motifCol
+ ev.motif || '--'
  ];
  });
 
  doc.autoTable({
  startY: currentY,
- head: [['Date & Heure', 'Événement', 'Motif / Remarque / Auteur']],
+ head: [['Date & Heure', 'Événement', 'Motif / Remarque PRONOTE']],
  body: evData,
  theme: 'striped',
  headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold' },
@@ -3645,20 +3613,20 @@
  item.retards,
  item.absences,
  `${formattedRetenues} h`,
- item.incidents,
  item.emploiBloque,
  item.exclusions,
+ item.incidents,
  item.absInjustifiees
  ];
  });
 
  doc.autoTable({
  startY: currentY,
- head: [['Élève', 'Classe', 'Régime', 'Alertes', 'Sortie', 'Ret.', 'Abs.', 'Colles', 'Incid.', 'EDT Blq.', 'Excl.', 'Abs. Inj.']],
+ head: [['Élève', 'Classe', 'Régime', 'Alertes', 'Sortie', 'Ret.', 'Abs.', 'Colles', 'EDT', 'Excl.', 'Inc.', 'Abs. Injust.']],
  body: tableData,
  theme: 'striped',
  headStyles: { fillColor: [30, 41, 59] },
- styles: { fontSize: 6.5, cellPadding: 1.5 }
+ styles: { fontSize: 7, cellPadding: 1.5 }
  });
 
  currentY = doc.lastAutoTable.finalY + 10;
@@ -3699,19 +3667,16 @@
  hDetail = `RETENUE (${Number.isInteger(h) ? h : h.toFixed(1)}h)`;
  }
 
- let motifCol = ev.motif || '--';
- if (ev.author) motifCol += ` (Auteur: ${ev.author})`;
-
  return [
  formattedDate,
  hDetail,
- motifCol
+ ev.motif || '--'
  ];
  });
 
  doc.autoTable({
  startY: currentY,
- head: [['Date', 'Type', 'Motif / Détail / Auteur']],
+ head: [['Date', 'Type', 'Motif / Détail']],
  body: evData,
  theme: 'plain',
  styles: { fontSize: 7 },
@@ -3748,13 +3713,12 @@
  const retards = events.filter(e => e.type === 'retard').length;
  const absences = events.filter(e => e.type === 'absence').length;
  const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + getRetenueHours(e), 0);
- const incidents = events.filter(e => e.type === 'incident' || getStatutDetailFromMotif(e.motif) === 'Incident').length;
  const formattedRetenues = Number.isInteger(retenues) ? retenues : retenues.toFixed(1);
 
  doc.autoTable({
  startY: 37,
- head: [['Retards', 'Absences', 'Heures de Retenue', 'Incidents']],
- body: [[retards, absences, `${formattedRetenues} h`, incidents]],
+ head: [['Retards', 'Absences', 'Heures de Retenue']],
+ body: [[retards, absences, `${formattedRetenues} h`]],
  theme: 'grid',
  headStyles: { fillColor: [49, 46, 129] }
  });
@@ -3770,15 +3734,12 @@
  detail = `RETENUE (${Number.isInteger(h) ? h : h.toFixed(1)}h)`;
  }
 
- let motifCol = ev.motif || '--';
- if (ev.author) motifCol += ` (Auteur: ${ev.author})`;
-
- return [formattedDate, detail, motifCol];
+ return [formattedDate, detail, ev.motif || '--'];
  });
 
  doc.autoTable({
  startY: doc.lastAutoTable.finalY + 8,
- head: [['Date & Heure', 'Événement', 'Commentaire / Motif / Auteur']],
+ head: [['Date & Heure', 'Événement', 'Commentaire / Motif']],
  body: evData,
  theme: 'striped',
  styles: { fontSize: 8 }
