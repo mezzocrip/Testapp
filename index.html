@@ -712,12 +712,12 @@
                 <div>
                     <label class="block text-xs font-bold uppercase text-slate-500 mb-1.5">Date du premier Lundi de la période</label>
                     <input type="date" id="ics-start-date" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800">
-                    <p class="text-[10px] text-slate-400 mt-1">Les créneaux de la semaine seront générés à partir de cette date en mode récurrent.</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Les créneaux de la semaine seront générés à partir de cette date en mode récurrent (hors vacances scolaires de Marseille).</p>
                 </div>
 
                 <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-xl text-indigo-900 text-xs flex items-start gap-2">
                     <i class="fa-solid fa-circle-info text-indigo-600 mt-0.5"></i>
-                    <span>Le fichier téléchargé permettra d'importer l'emploi du temps individuel directement dans Apple Calendar, Google Calendar ou Outlook.</span>
+                    <span>Le fichier téléchargé permettra d'importer l'emploi du temps individuel directement dans Apple Calendar, Google Calendar ou Outlook en ignorant automatiquement les vacances scolaires de l'académie d'Aix-Marseille.</span>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
@@ -1003,6 +1003,71 @@
             });
         };
 
+        /* Gestion des vacances scolaires de Marseille (Zone B) pour l'export ICS */
+        function isMarseilleSchoolHoliday(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1; // 1-12
+            const d = date.getDate();
+
+            // Fonction utilitaire pour vérifier si une date est comprise entre deux bornes (incluses)
+            const isBetween = (startMonth, startDay, endMonth, endDay) => {
+                const currentM = month * 100 + d;
+                const startM = startMonth * 100 + startDay;
+                const endM = endMonth * 100 + endDay;
+                if (startM <= endM) {
+                    return currentM >= startM && currentM <= endM;
+                } else {
+                    // Période à cheval sur le Nouvel An (ex: Noël)
+                    return currentM >= startM || currentM <= endM;
+                }
+            };
+
+            // Vacances d'été (juillet - août) : se terminent début septembre (généralement le 1er ou 2 sept)
+            if (month === 7 || month === 8) return true;
+            if (month === 9 && d < 2) return true; // Rentrée début septembre
+
+            // Gestion des années spécifiques à partir de 2026
+            if (year === 2026) {
+                // Toussaint 2026 : du 17 octobre au 2 novembre 2026 inclus
+                if ((month === 10 && d >= 17) || (month === 11 && d <= 2)) return true;
+                // Noël 2026 : du 19 décembre 2026 au 4 janvier 2027 inclus
+                if (month === 12 && d >= 19) return true;
+            }
+
+            if (year === 2027) {
+                // Suite Noël 2026 / début 2027 : jusqu'au 4 janvier 2027 inclus
+                if (month === 1 && d <= 4) return true;
+                // Hiver 2027 : du 20 février au 8 mars 2027 inclus
+                if ((month === 2 && d >= 20) || (month === 3 && d <= 8)) return true;
+                // Printemps 2027 : du 17 avril au 3 mai 2027 inclus
+                if ((month === 4 && d >= 17) || (month === 5 && d <= 3)) return true;
+                // Été 2027 : à partir du 3 juillet 2027
+                if (month === 7 && d >= 3) return true;
+                // Toussaint 2027 : estimée / standard zone B (fin octobre - début novembre)
+                if ((month === 10 && d >= 23) || (month === 11 && d <= 8)) return true;
+                // Noël 2027 : à partir du 18 décembre 2027
+                if (month === 12 && d >= 18) return true;
+            }
+
+            if (year >= 2028) {
+                // Algorithme par défaut appliqué aux périodes scolaires standard Zone B pour les années ultérieures :
+                // - Noël / Nouvel An (mi-décembre au 1er lundi de janvier)
+                if (month === 1 && d <= 5) return true;
+                if (month === 12 && d >= 18) return true;
+                // - Hiver (fin février / début mars - environ 2 semaines)
+                if (month === 2 && d >= 18) return true;
+                if (month === 3 && d <= 10) return true;
+                // - Printemps (mi-avril / début mai - environ 2 semaines)
+                if (month === 4 && d >= 16) return true;
+                if (month === 5 && d <= 5) return true;
+                // - Toussaint (fin octobre / début novembre)
+                if (month === 10 && d >= 20) return true;
+                if (month === 11 && d <= 5) return true;
+            }
+
+            return false;
+        }
+
         /* Export iCal / .ics pour chaque personne */
         function openIcsExportModal() {
             const modal = document.getElementById('ics-modal');
@@ -1070,70 +1135,73 @@
                 return `${yyyy}${mm}${dd}T${hh}${min}${ss}`;
             };
 
-            // 1. Ajouter les plages horaires de présence générale
-            DAYS.forEach(day => {
-                const pres = aed.presence ? aed.presence[day] : null;
-                if (pres && pres.active) {
+            // Génération sur plusieurs semaines (par exemple 40 semaines scolaires à partir de la date de départ pour couvrir l'année)
+            const numWeeks = 40;
+
+            for (let w = 0; w < numWeeks; w++) {
+                const weekStartDate = new Date(startDate);
+                weekStartDate.setDate(startDate.getDate() + (w * 7));
+
+                // Pour chaque jour de la semaine
+                DAYS.forEach(day => {
                     const offset = dayOffsets[day];
-                    const dayDate = new Date(startDate);
-                    dayDate.setDate(startDate.getDate() + offset);
+                    const dayDate = new Date(weekStartDate);
+                    dayDate.setDate(weekStartDate.getDate() + offset);
 
-                    // Créneau 1
-                    if (pres.start1 && pres.end1) {
-                        const dtStart = formatICSDate(dayDate, pres.start1);
-                        const dtEnd = formatICSDate(dayDate, pres.end1);
-                        const uid = `presence-c1-${aed.id}-${day}-${Date.now()}@viescolaire`;
+                    // VÉRIFICATION : NE PAS PRENDRE EN COMPTE LES HORAIRES QUAND C'EST LES VACANCES SCOLAIRES DE MARSEILLE
+                    if (isMarseilleSchoolHoliday(dayDate)) {
+                        return; // Ignore cette journée si vacances scolaires
+                    }
+
+                    const pres = aed.presence ? aed.presence[day] : null;
+                    if (pres && pres.active) {
+                        // 1. Ajouter les plages horaires de présence générale
+                        if (pres.start1 && pres.end1) {
+                            const dtStart = formatICSDate(dayDate, pres.start1);
+                            const dtEnd = formatICSDate(dayDate, pres.end1);
+                            const uid = `presence-c1-${aed.id}-${day}-${w}-${Date.now()}@viescolaire`;
+
+                            icsContent.push('BEGIN:VEVENT');
+                            icsContent.push(`UID:${uid}`);
+                            icsContent.push(`SUMMARY:Présence Vie Scolaire - ${aed.name}`);
+                            icsContent.push(`DESCRIPTION:Service Général Vie Scolaire`);
+                            icsContent.push(`DTSTART:${dtStart}`);
+                            icsContent.push(`DTEND:${dtEnd}`);
+                            icsContent.push('END:VEVENT');
+                        }
+
+                        if (pres.split && pres.start2 && pres.end2) {
+                            const dtStart = formatICSDate(dayDate, pres.start2);
+                            const dtEnd = formatICSDate(dayDate, pres.end2);
+                            const uid = `presence-c2-${aed.id}-${day}-${w}-${Date.now()}@viescolaire`;
+
+                            icsContent.push('BEGIN:VEVENT');
+                            icsContent.push(`UID:${uid}`);
+                            icsContent.push(`SUMMARY:Présence Vie Scolaire - ${aed.name}`);
+                            icsContent.push(`DESCRIPTION:Service Général Vie Scolaire (Après-midi)`);
+                            icsContent.push(`DTSTART:${dtStart}`);
+                            icsContent.push(`DTEND:${dtEnd}`);
+                            icsContent.push('END:VEVENT');
+                        }
+                    }
+
+                    // 2. Ajouter les missions spécifiques attribuées pour ce jour
+                    const dayMissions = (appState.missions || []).filter(m => m.aedId === aed.id && m.day === day);
+                    dayMissions.forEach(m => {
+                        const dtStart = formatICSDate(dayDate, m.startTime);
+                        const dtEnd = formatICSDate(dayDate, m.endTime);
+                        const uid = `mission-${m.id}-${w}-${Date.now()}@viescolaire`;
 
                         icsContent.push('BEGIN:VEVENT');
                         icsContent.push(`UID:${uid}`);
-                        icsContent.push(`SUMMARY:Présence Vie Scolaire - ${aed.name}`);
-                        icsContent.push(`DESCRIPTION:Service Général Vie Scolaire`);
+                        icsContent.push(`SUMMARY:Poste : ${m.type}`);
+                        icsContent.push(`DESCRIPTION:Poste Vie Scolaire : ${m.type}${m.notes ? '\\nNotes: ' + m.notes : ''}`);
                         icsContent.push(`DTSTART:${dtStart}`);
                         icsContent.push(`DTEND:${dtEnd}`);
-                        icsContent.push('RRULE:FREQ=WEEKLY');
                         icsContent.push('END:VEVENT');
-                    }
-
-                    // Créneau 2 (si journée coupée)
-                    if (pres.split && pres.start2 && pres.end2) {
-                        const dtStart = formatICSDate(dayDate, pres.start2);
-                        const dtEnd = formatICSDate(dayDate, pres.end2);
-                        const uid = `presence-c2-${aed.id}-${day}-${Date.now()}@viescolaire`;
-
-                        icsContent.push('BEGIN:VEVENT');
-                        icsContent.push(`UID:${uid}`);
-                        icsContent.push(`SUMMARY:Présence Vie Scolaire - ${aed.name}`);
-                        icsContent.push(`DESCRIPTION:Service Général Vie Scolaire (Après-midi)`);
-                        icsContent.push(`DTSTART:${dtStart}`);
-                        icsContent.push(`DTEND:${dtEnd}`);
-                        icsContent.push('RRULE:FREQ=WEEKLY');
-                        icsContent.push('END:VEVENT');
-                    }
-                }
-            });
-
-            // 2. Ajouter les missions spécifiques attribuées
-            const aedMissions = (appState.missions || []).filter(m => m.aedId === aed.id);
-            aedMissions.forEach(m => {
-                const offset = dayOffsets[m.day];
-                if (offset !== undefined) {
-                    const dayDate = new Date(startDate);
-                    dayDate.setDate(startDate.getDate() + offset);
-
-                    const dtStart = formatICSDate(dayDate, m.startTime);
-                    const dtEnd = formatICSDate(dayDate, m.endTime);
-                    const uid = `mission-${m.id}-${Date.now()}@viescolaire`;
-
-                    icsContent.push('BEGIN:VEVENT');
-                    icsContent.push(`UID:${uid}`);
-                    icsContent.push(`SUMMARY:Poste : ${m.type}`);
-                    icsContent.push(`DESCRIPTION:Poste Vie Scolaire : ${m.type}${m.notes ? '\\nNotes: ' + m.notes : ''}`);
-                    icsContent.push(`DTSTART:${dtStart}`);
-                    icsContent.push(`DTEND:${dtEnd}`);
-                    icsContent.push('RRULE:FREQ=WEEKLY');
-                    icsContent.push('END:VEVENT');
-                }
-            });
+                    });
+                });
+            }
 
             icsContent.push('END:VCALENDAR');
 
@@ -1147,7 +1215,7 @@
             document.body.removeChild(link);
 
             closeIcsExportModal();
-            showToast(`Planning .ics exporté pour ${aed.name}`);
+            showToast(`Planning .ics exporté pour ${aed.name} (vacances de Marseille exclues)`);
         }
 
         /* Gestion des Pauses des AEDs */
