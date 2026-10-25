@@ -712,12 +712,12 @@
                 <div>
                     <label class="block text-xs font-bold uppercase text-slate-500 mb-1.5">Date du premier Lundi de la période</label>
                     <input type="date" id="ics-start-date" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800">
-                    <p class="text-[10px] text-slate-400 mt-1">Les créneaux de la semaine seront générés à partir de cette date en mode récurrent (hors vacances scolaires de Marseille).</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Les postes et missions de la semaine seront générés à partir de cette date en mode récurrent (hors vacances scolaires de Marseille).</p>
                 </div>
 
                 <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-xl text-indigo-900 text-xs flex items-start gap-2">
                     <i class="fa-solid fa-circle-info text-indigo-600 mt-0.5"></i>
-                    <span>Le fichier téléchargé permettra d'importer l'emploi du temps individuel directement dans Apple Calendar, Google Calendar ou Outlook en ignorant automatiquement les vacances scolaires de l'académie d'Aix-Marseille.</span>
+                    <span>Le fichier téléchargé permettra d'importer les postes et missions spécifiques de l'emploi du temps individuel directement dans Apple Calendar, Google Calendar ou Outlook (les horaires généraux de présence Vie Scolaire ne sont pas inclus) en ignorant automatiquement les vacances scolaires de l'académie d'Aix-Marseille.</span>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
@@ -1068,7 +1068,7 @@
             return false;
         }
 
-        /* Export iCal / .ics pour chaque personne */
+        /* Export iCal / .ics pour chaque personne (Postes et missions uniquement, sans l'horaire de présence générale Vie Scolaire) */
         function openIcsExportModal() {
             const modal = document.getElementById('ics-modal');
             const select = document.getElementById('ics-aed-select');
@@ -1153,39 +1153,9 @@
                         return; // Ignore cette journée si vacances scolaires
                     }
 
-                    const pres = aed.presence ? aed.presence[day] : null;
-                    if (pres && pres.active) {
-                        // 1. Ajouter les plages horaires de présence générale
-                        if (pres.start1 && pres.end1) {
-                            const dtStart = formatICSDate(dayDate, pres.start1);
-                            const dtEnd = formatICSDate(dayDate, pres.end1);
-                            const uid = `presence-c1-${aed.id}-${day}-${w}-${Date.now()}@viescolaire`;
-
-                            icsContent.push('BEGIN:VEVENT');
-                            icsContent.push(`UID:${uid}`);
-                            icsContent.push(`SUMMARY:Présence Vie Scolaire - ${aed.name}`);
-                            icsContent.push(`DESCRIPTION:Service Général Vie Scolaire`);
-                            icsContent.push(`DTSTART:${dtStart}`);
-                            icsContent.push(`DTEND:${dtEnd}`);
-                            icsContent.push('END:VEVENT');
-                        }
-
-                        if (pres.split && pres.start2 && pres.end2) {
-                            const dtStart = formatICSDate(dayDate, pres.start2);
-                            const dtEnd = formatICSDate(dayDate, pres.end2);
-                            const uid = `presence-c2-${aed.id}-${day}-${w}-${Date.now()}@viescolaire`;
-
-                            icsContent.push('BEGIN:VEVENT');
-                            icsContent.push(`UID:${uid}`);
-                            icsContent.push(`SUMMARY:Présence Vie Scolaire - ${aed.name}`);
-                            icsContent.push(`DESCRIPTION:Service Général Vie Scolaire (Après-midi)`);
-                            icsContent.push(`DTSTART:${dtStart}`);
-                            icsContent.push(`DTEND:${dtEnd}`);
-                            icsContent.push('END:VEVENT');
-                        }
-                    }
-
-                    // 2. Ajouter les missions spécifiques attribuées pour ce jour
+                    // NOTE : Les plages horaires de présence générale Vie Scolaire ne sont volontairement PAS prises en compte ici.
+                    
+                    // Ajouter uniquement les missions/postes spécifiques attribués pour ce jour
                     const dayMissions = (appState.missions || []).filter(m => m.aedId === aed.id && m.day === day);
                     dayMissions.forEach(m => {
                         const dtStart = formatICSDate(dayDate, m.startTime);
@@ -1209,13 +1179,13 @@
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
             const safeName = aed.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            link.download = `planning_${safeName}.ics`;
+            link.download = `planning_postes_${safeName}.ics`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
             closeIcsExportModal();
-            showToast(`Planning .ics exporté pour ${aed.name} (vacances de Marseille exclues)`);
+            showToast(`Planning .ics (postes spécifiques) exporté pour ${aed.name} (vacances de Marseille exclues)`);
         }
 
         /* Gestion des Pauses des AEDs */
