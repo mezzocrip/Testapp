@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full bg-slate-100">
+<html lang="fr" class="h-full bg-slate-900 text-slate-100">
 <head>
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -23,145 +23,145 @@
  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
- <!-- Google Fonts Inter -->
- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+ <!-- Google Fonts Plus Jakarta Sans -->
+ <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
  
-<style>
+ <style>
  * {
- touch-action: manipulation;
- font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
- -webkit-tap-highlight-color: transparent;
+   touch-action: manipulation;
+   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+   -webkit-tap-highlight-color: transparent;
  }
  
-.no-scrollbar::-webkit-scrollbar {
- display: none;
+ .no-scrollbar::-webkit-scrollbar {
+   display: none;
  }
  .no-scrollbar {
- -ms-overflow-style: none;
- scrollbar-width: none;
+   -ms-overflow-style: none;
+   scrollbar-width: none;
  }
 
  @media print {
- .no-print { display: none !important; }
- .print-only { display: block !important; }
- body { background: white !important; color: black !important; }
- .shadow-lg, .shadow-md, .shadow-sm { box-shadow: none !important; }
- .border { border-color: #cbd5e1 !important; }
+   .no-print { display: none !important; }
+   .print-only { display: block !important; }
+   body { background: white !important; color: black !important; }
+   .shadow-lg, .shadow-md, .shadow-sm { box-shadow: none !important; }
+   .border { border-color: #cbd5e1 !important; }
  }
  
-.page-fade {
- animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+ .page-fade {
+   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
  }
  @keyframes fadeIn {
- from { opacity: 0; transform: translateY(6px); }
- to { opacity: 1; transform: translateY(0); }
+   from { opacity: 0; transform: translateY(8px); }
+   to { opacity: 1; transform: translateY(0); }
  }
  
-.card-no-exit {
- background-color: rgba(254, 242, 242, 0.9) !important;
- border-color: #fca5a5 !important;
- }
- .card-no-exit:hover {
- background-color: rgba(254, 226, 226, 1) !important;
+ .card-no-exit {
+   background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(153, 27, 27, 0.08) 100%) !important;
+   border-color: rgba(239, 68, 68, 0.35) !important;
  }
 
  .pb-safe {
- padding-bottom: env(safe-area-inset-bottom, 1rem);
+   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+ }
+ .pt-safe {
+   padding-top: env(safe-area-inset-top, 0px);
  }
  </style>
 </head>
-<body class="h-full text-slate-800 antialiased flex flex-col min-h-screen pb-20 md:pb-0">
+<body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col min-h-screen pb-24 md:pb-6 selection:bg-indigo-500 selection:text-white">
 
  <!-- EN-TÊTE PRINCIPAL -->
- <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-30 no-print border-b border-indigo-800/50">
- <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+ <header class="bg-slate-900/80 backdrop-blur-xl text-white sticky top-0 z-30 no-print border-b border-slate-800/80 pt-safe transition-all">
+ <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
  
-<div class="flex items-center space-x-2.5 cursor-pointer shrink-0" onclick="showListPage()">
- <div class="bg-indigo-600/80 p-2 rounded-xl border border-indigo-400/30 shadow-inner">
- <i data-lucide="graduation-cap" class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-100"></i>
+ <div class="flex items-center space-x-3 cursor-pointer shrink-0" onclick="showListPage()">
+ <div class="bg-gradient-to-tr from-indigo-600 to-violet-500 p-2.5 rounded-2xl shadow-lg shadow-indigo-500/20 border border-indigo-400/30">
+ <i data-lucide="graduation-cap" class="w-5 h-5 text-white"></i>
  </div>
  <div>
  <div class="flex items-center gap-2">
- <h1 class="font-extrabold text-base sm:text-lg leading-tight tracking-tight">VieScolaire</h1>
- <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+ <h1 class="font-extrabold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">VieScolaire</h1>
+ <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
  v6.9 Mobile Pro
  </span>
  </div>
- <p class="text-[10px] sm:text-xs text-indigo-200/80 hidden sm:block">Suivi des élèves & discipline Pronote</p>
+ <p class="text-[10px] text-slate-400 hidden sm:block">Suivi des élèves & discipline Pronote</p>
  </div>
  </div>
  
-<div class="hidden md:flex items-center space-x-1.5 lg:space-x-2 overflow-x-auto no-scrollbar py-1">
- <button onclick="showListPage()" class="inline-flex items-center gap-1.5 bg-indigo-800/80 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-2 rounded-xl transition border border-indigo-700">
- <i data-lucide="users" class="w-4 h-4"></i>
+ <div class="hidden md:flex items-center space-x-2 overflow-x-auto no-scrollbar py-1">
+ <button onclick="showListPage()" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-xl transition border border-slate-700">
+ <i data-lucide="users" class="w-4 h-4 text-indigo-400"></i>
  <span>Élèves</span>
  </button>
- <button onclick="showRecapPage()" class="inline-flex items-center gap-1.5 bg-indigo-950/80 hover:bg-indigo-900 text-amber-300 text-xs font-semibold px-3 py-2 rounded-xl transition border border-amber-400/30 shadow-xs">
+ <button onclick="showRecapPage()" class="inline-flex items-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold px-3.5 py-2 rounded-xl transition border border-amber-500/30">
  <i data-lucide="list-checks" class="w-4 h-4 text-amber-400"></i>
  <span>Récapitulatif</span>
  </button>
- <button onclick="exportCpeAlertPDF()" class="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow-xs">
+ <button onclick="exportCpeAlertPDF()" class="inline-flex items-center gap-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow-md shadow-rose-900/20">
  <i data-lucide="siren" class="w-4 h-4"></i>
  <span>PDF Alerte CPE</span>
  </button>
- <button onclick="exportUnjustifiedAbsencesPDF()" class="inline-flex items-center gap-1.5 bg-red-700 hover:bg-red-600 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow-xs" title="Export PDF Absences Injustifiées par feuille">
+ <button onclick="exportUnjustifiedAbsencesPDF()" class="inline-flex items-center gap-2 bg-red-700 hover:bg-red-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow-md shadow-red-900/20" title="Export PDF Absences Injustifiées par feuille">
  <i data-lucide="user-x" class="w-4 h-4"></i>
  <span>PDF Abs. Injustifiées</span>
  </button>
- <button onclick="openAddStudentModal()" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow-sm">
+ <button onclick="openAddStudentModal()" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow-md shadow-emerald-900/20">
  <i data-lucide="user-plus" class="w-4 h-4"></i>
  <span>Nouvel Élève</span>
  </button>
- <button onclick="openSettingsModal()" class="inline-flex items-center gap-1.5 bg-indigo-800/80 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded-xl transition border border-indigo-700 shadow-xs" title="Réglages Alerte CPE">
+ <button onclick="openSettingsModal()" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-xl transition border border-slate-700" title="Réglages Alerte CPE">
  <i data-lucide="settings" class="w-4 h-4"></i>
  <span>Réglages</span>
  </button>
 
- <div class="h-5 w-px bg-indigo-700/60"></div>
+ <div class="h-5 w-px bg-slate-800"></div>
 
- <button onclick="openResetModal()" class="inline-flex items-center p-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-semibold rounded-xl transition shadow-xs border border-rose-500" title="Effacer la base de données">
+ <button onclick="openResetModal()" class="inline-flex items-center p-2 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 hover:text-white text-xs font-semibold rounded-xl transition border border-rose-800/40" title="Effacer la base de données">
  <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
  </button>
  </div>
 
- <div class="flex md:hidden items-center gap-2">
- <button onclick="openSettingsModal()" class="p-2 bg-indigo-800 active:bg-indigo-700 text-white rounded-xl shadow-xs" title="Réglages Alerte CPE">
- <i data-lucide="settings" class="w-5 h-5"></i>
+ <div class="flex md:hidden items-center gap-1.5">
+ <button onclick="openSettingsModal()" class="p-2.5 bg-slate-800 active:bg-slate-700 text-slate-300 rounded-xl border border-slate-700" title="Réglages Alerte CPE">
+ <i data-lucide="settings" class="w-4 h-4"></i>
  </button>
- <button onclick="exportUnjustifiedAbsencesPDF()" class="p-2 bg-red-700 active:bg-red-800 text-white rounded-xl shadow-xs" title="PDF Abs. Injustifiées">
- <i data-lucide="user-x" class="w-5 h-5"></i>
+ <button onclick="exportUnjustifiedAbsencesPDF()" class="p-2.5 bg-red-900/60 active:bg-red-800 text-red-300 border border-red-700/50 rounded-xl" title="PDF Abs. Injustifiées">
+ <i data-lucide="user-x" class="w-4 h-4"></i>
  </button>
- <button onclick="exportCpeAlertPDF()" class="p-2 bg-rose-600 active:bg-rose-700 text-white rounded-xl shadow-xs" title="PDF Alerte CPE">
- <i data-lucide="siren" class="w-5 h-5"></i>
+ <button onclick="exportCpeAlertPDF()" class="p-2.5 bg-rose-900/60 active:bg-rose-800 text-rose-300 border border-rose-700/50 rounded-xl" title="PDF Alerte CPE">
+ <i data-lucide="siren" class="w-4 h-4"></i>
  </button>
- <button onclick="openAddStudentModal()" class="p-2 bg-emerald-500 active:bg-emerald-600 text-white rounded-xl shadow-xs">
- <i data-lucide="user-plus" class="w-5 h-5"></i>
+ <button onclick="openAddStudentModal()" class="p-2.5 bg-emerald-600 active:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-900/30">
+ <i data-lucide="user-plus" class="w-4 h-4"></i>
  </button>
  </div>
  </div>
  </header>
 
- <!-- NAVIGATION MOBILE -->
- <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 z-40 px-4 py-2 flex justify-around items-center shadow-lg pb-safe no-print">
- <button onclick="showListPage()" class="flex flex-col items-center gap-1 text-slate-600 active:text-indigo-600">
+ <!-- NAVIGATION MOBILE ÉPURÉE (DOCK BOTTOM) -->
+ <nav class="md:hidden fixed bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-2xl border border-slate-800/80 rounded-2xl z-40 px-3 py-2 flex justify-around items-center shadow-2xl pb-safe no-print">
+ <button onclick="showListPage()" class="flex flex-col items-center gap-1 text-slate-400 active:text-indigo-400 focus:text-indigo-400">
  <i data-lucide="users" class="w-5 h-5"></i>
- <span class="text-[10px] font-semibold">Élèves</span>
+ <span class="text-[10px] font-semibold tracking-tight">Élèves</span>
  </button>
- <button onclick="showRecapPage()" class="flex flex-col items-center gap-1 text-slate-600 active:text-indigo-600">
- <i data-lucide="list-checks" class="w-5 h-5 text-amber-500"></i>
- <span class="text-[10px] font-semibold">Récap</span>
+ <button onclick="showRecapPage()" class="flex flex-col items-center gap-1 text-slate-400 active:text-amber-400 focus:text-amber-400">
+ <i data-lucide="list-checks" class="w-5 h-5 text-amber-400"></i>
+ <span class="text-[10px] font-semibold tracking-tight">Récap</span>
  </button>
- <button onclick="exportUnjustifiedAbsencesPDF()" class="flex flex-col items-center gap-1 text-slate-600 active:text-red-700">
- <i data-lucide="user-x" class="w-5 h-5 text-red-700"></i>
- <span class="text-[10px] font-semibold">Abs. Injust.</span>
+ <button onclick="exportUnjustifiedAbsencesPDF()" class="flex flex-col items-center gap-1 text-slate-400 active:text-red-400 focus:text-red-400">
+ <i data-lucide="user-x" class="w-5 h-5 text-red-400"></i>
+ <span class="text-[10px] font-semibold tracking-tight">Abs. Inj.</span>
  </button>
- <button onclick="exportCpeAlertPDF()" class="flex flex-col items-center gap-1 text-slate-600 active:text-rose-600">
- <i data-lucide="siren" class="w-5 h-5 text-rose-600"></i>
- <span class="text-[10px] font-semibold">PDF CPE</span>
+ <button onclick="exportCpeAlertPDF()" class="flex flex-col items-center gap-1 text-slate-400 active:text-rose-400 focus:text-rose-400">
+ <i data-lucide="siren" class="w-5 h-5 text-rose-400"></i>
+ <span class="text-[10px] font-semibold tracking-tight">PDF CPE</span>
  </button>
- <button onclick="openSettingsModal()" class="flex flex-col items-center gap-1 text-slate-600 active:text-indigo-600">
- <i data-lucide="settings" class="w-5 h-5 text-indigo-600"></i>
- <span class="text-[10px] font-semibold">Réglages</span>
+ <button onclick="openSettingsModal()" class="flex flex-col items-center gap-1 text-slate-400 active:text-indigo-400 focus:text-indigo-400">
+ <i data-lucide="settings" class="w-5 h-5 text-indigo-400"></i>
+ <span class="text-[10px] font-semibold tracking-tight">Réglages</span>
  </button>
  </nav>
 
@@ -169,121 +169,121 @@
 
  <!-- PAGE 1 : LISTE DES ÉLÈVES -->
  <section id="pageList" class="page-fade space-y-4">
- <div class="bg-white rounded-2xl p-3.5 sm:p-5 shadow-xs border border-slate-200/80 flex flex-col gap-4">
+ <div class="bg-slate-900/90 rounded-3xl p-4 sm:p-6 border border-slate-800/80 shadow-xl flex flex-col gap-4">
  
-<div class="flex flex-col lg:flex-row gap-3 justify-between items-stretch lg:items-center">
- <div class="relative w-full lg:w-80">
- <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+ <div class="flex flex-col lg:flex-row gap-3 justify-between items-stretch lg:items-center">
+ <div class="relative w-full lg:w-96">
+ <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
  <i data-lucide="search" class="w-4 h-4"></i>
  </div>
- <input type="text" id="searchInput" list="studentSuggestions" placeholder="Nom, prénom, classe ou badge..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition">
+ <input type="text" id="searchInput" list="studentSuggestions" oninput="filterStudents()" placeholder="Rechercher par nom, classe, badge..." class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition shadow-inner">
  <datalist id="studentSuggestions"></datalist>
  </div>
 
  <div class="flex flex-wrap items-center gap-2 justify-start lg:justify-end">
- <select id="classFilter" onchange="filterStudents()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+ <select id="classFilter" onchange="filterStudents()" class="bg-slate-950/80 border border-slate-800 text-slate-200 text-xs sm:text-sm rounded-2xl px-3.5 py-3 outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
  <option value="">Toutes les classes</option>
  </select>
 
- <button onclick="exportUnjustifiedAbsencesPDF()" class="inline-flex items-center gap-1.5 bg-red-700 hover:bg-red-800 text-white text-xs font-semibold px-3 py-2.5 rounded-xl transition shadow-2xs">
- <i data-lucide="user-x" class="w-4 h-4"></i>
+ <button onclick="exportUnjustifiedAbsencesPDF()" class="inline-flex items-center gap-2 bg-red-950/50 hover:bg-red-900/70 text-red-300 text-xs font-semibold px-3.5 py-3 rounded-2xl transition border border-red-800/40">
+ <i data-lucide="user-x" class="w-4 h-4 text-red-400"></i>
  <span>PDF Abs. Injustifiées</span>
  </button>
 
- <button onclick="exportCpeAlertPDF()" class="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3 py-2.5 rounded-xl transition shadow-2xs">
- <i data-lucide="siren" class="w-4 h-4"></i>
+ <button onclick="exportCpeAlertPDF()" class="inline-flex items-center gap-2 bg-rose-950/50 hover:bg-rose-900/70 text-rose-300 text-xs font-semibold px-3.5 py-3 rounded-2xl transition border border-rose-800/40">
+ <i data-lucide="siren" class="w-4 h-4 text-rose-400"></i>
  <span>PDF Alerte CPE</span>
  </button>
 
- <button onclick="triggerAbsenceImport()" class="hidden sm:inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 text-amber-900 text-xs font-semibold px-3 py-2.5 rounded-xl border border-amber-300/80 transition shadow-2xs">
- <i data-lucide="file-check-2" class="w-4 h-4 text-amber-600"></i>
+ <button onclick="triggerAbsenceImport()" class="hidden sm:inline-flex items-center gap-2 bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 text-xs font-semibold px-3.5 py-3 rounded-2xl border border-amber-800/40 transition">
+ <i data-lucide="file-check-2" class="w-4 h-4 text-amber-400"></i>
  <span>Importer Vie Scolaire / PRONOTE</span>
  </button>
  <input type="file" id="absenceFileInput" accept=".pdf, .xlsx, .xls, .csv, .txt" class="hidden" onchange="importAbsenceDataFile(event)">
 
- <button onclick="openClearVieScolaireModal()" class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-800 text-xs font-semibold px-3 py-2.5 rounded-xl border border-rose-200 transition shadow-2xs" title="Effacer l'importation Vie Scolaire">
- <i data-lucide="trash" class="w-4 h-4 text-rose-600"></i>
+ <button onclick="openClearVieScolaireModal()" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-rose-950/40 text-slate-300 hover:text-rose-300 text-xs font-semibold px-3 py-3 rounded-2xl border border-slate-700 transition" title="Effacer l'importation Vie Scolaire">
+ <i data-lucide="trash" class="w-4 h-4 text-rose-400"></i>
  <span class="hidden sm:inline">Effacer Import</span>
  </button>
 
- <button onclick="triggerFileImport()" class="inline-flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-2.5 rounded-xl border border-slate-200 transition" title="Importer la liste d'élèves">
- <i data-lucide="file-spreadsheets" class="w-4 h-4 text-emerald-600"></i>
+ <button onclick="triggerFileImport()" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium px-3.5 py-3 rounded-2xl border border-slate-700 transition" title="Importer la liste d'élèves">
+ <i data-lucide="file-spreadsheets" class="w-4 h-4 text-emerald-400"></i>
  <span class="hidden md:inline">Importer Élèves</span>
  </button>
  <input type="file" id="fileInput" accept=".xlsx, .xls, .csv, .txt" class="hidden" onchange="importDataFile(event)">
 
- <button onclick="openExportClassModal()" class="hidden sm:inline-flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-2.5 rounded-xl border border-indigo-200 transition">
- <i data-lucide="file-text" class="w-4 h-4 text-indigo-600"></i>
+ <button onclick="openExportClassModal()" class="hidden sm:inline-flex items-center gap-2 bg-indigo-950/50 hover:bg-indigo-900/70 text-indigo-300 text-xs font-semibold px-3.5 py-3 rounded-2xl border border-indigo-800/40 transition">
+ <i data-lucide="file-text" class="w-4 h-4 text-indigo-400"></i>
  <span class="hidden md:inline">Export PDF Classe</span>
  </button>
 
- <button onclick="exportGlobalCSV()" class="inline-flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium px-3 py-2.5 rounded-xl border border-slate-200 transition" title="Exporter toute la base en CSV">
- <i data-lucide="download-cloud" class="w-4 h-4 text-indigo-600"></i>
+ <button onclick="exportGlobalCSV()" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium px-3.5 py-3 rounded-2xl border border-slate-700 transition" title="Exporter toute la base en CSV">
+ <i data-lucide="download-cloud" class="w-4 h-4 text-indigo-400"></i>
  <span class="hidden md:inline">Export CSV</span>
  </button>
  </div>
  </div>
 
  <!-- SECTION SAUVEGARDES -->
- <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs">
- <span class="font-bold text-slate-400 uppercase tracking-wider mr-1">Sauvegardes :</span>
+ <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-800 text-xs">
+ <span class="font-bold text-slate-500 uppercase tracking-wider text-[10px] mr-1">Sauvegardes :</span>
  
-<button onclick="exportCanteenCardsJSON()" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold px-3 py-2 rounded-xl border border-amber-300 transition shadow-2xs" title="Sauvegarder les QR codes et numéros de cartes de cantine">
- <i data-lucide="qr-code" class="w-4 h-4 text-amber-600"></i>
+ <button onclick="exportCanteenCardsJSON()" class="inline-flex items-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-semibold px-3 py-2 rounded-xl border border-amber-500/20 transition" title="Sauvegarder les QR codes et numéros de cartes de cantine">
+ <i data-lucide="qr-code" class="w-3.5 h-3.5 text-amber-400"></i>
  <span>Export Cantine (QR & Cartes)</span>
  </button>
- <button onclick="triggerCanteenCardsImport()" class="inline-flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium px-3 py-2 rounded-xl border border-slate-200 transition" title="Restaurer les QR codes et numéros de cartes de cantine">
- <i data-lucide="credit-card" class="w-4 h-4 text-emerald-600"></i>
+ <button onclick="triggerCanteenCardsImport()" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-3 py-2 rounded-xl border border-slate-700 transition" title="Restaurer les QR codes et numéros de cartes de cantine">
+ <i data-lucide="credit-card" class="w-3.5 h-3.5 text-emerald-400"></i>
  <span>Import Cantine</span>
  </button>
  <input type="file" id="canteenCardsInput" accept=".json" class="hidden" onchange="importCanteenCardsJSON(event)">
 
- <div class="h-4 w-px bg-slate-200 mx-1"></div>
+ <div class="h-4 w-px bg-slate-800 mx-1"></div>
 
- <button onclick="exportJSON()" class="inline-flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-semibold px-3 py-2 rounded-xl border border-indigo-200 transition shadow-2xs" title="Sauvegarder toute l'application">
- <i data-lucide="share" class="w-4 h-4 text-indigo-600"></i>
+ <button onclick="exportJSON()" class="inline-flex items-center gap-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 font-semibold px-3 py-2 rounded-xl border border-indigo-500/20 transition" title="Sauvegarder toute l'application">
+ <i data-lucide="share" class="w-3.5 h-3.5 text-indigo-400"></i>
  <span>Export Application</span>
  </button>
- <button onclick="triggerJsonImport()" class="inline-flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium px-3 py-2 rounded-xl border border-slate-200 transition" title="Restaurer toute l'application">
- <i data-lucide="upload" class="w-4 h-4 text-indigo-600"></i>
+ <button onclick="triggerJsonImport()" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-3 py-2 rounded-xl border border-slate-700 transition" title="Restaurer toute l'application">
+ <i data-lucide="upload" class="w-3.5 h-3.5 text-indigo-400"></i>
  <span>Import Application</span>
  </button>
  <input type="file" id="jsonInput" accept=".json" class="hidden" onchange="importJSON(event)">
 
- <div class="h-4 w-px bg-slate-200 mx-1"></div>
+ <div class="h-4 w-px bg-slate-800 mx-1"></div>
 
- <button onclick="triggerAbsenceImport()" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 text-amber-900 font-semibold px-3 py-2 rounded-xl border border-amber-300 transition shadow-2xs" title="Importer Vie Scolaire / PRONOTE">
- <i data-lucide="file-check-2" class="w-4 h-4 text-amber-600"></i>
+ <button onclick="triggerAbsenceImport()" class="inline-flex items-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-semibold px-3 py-2 rounded-xl border border-amber-500/20 transition" title="Importer Vie Scolaire / PRONOTE">
+ <i data-lucide="file-check-2" class="w-3.5 h-3.5 text-amber-400"></i>
  <span>Import PRONOTE</span>
  </button>
  </div>
 
- <div class="flex items-center justify-between gap-2 border-t border-slate-100 pt-3 overflow-x-auto no-scrollbar">
+ <div class="flex items-center justify-between gap-2 border-t border-slate-800 pt-3 overflow-x-auto no-scrollbar">
  <div class="flex items-center gap-2 shrink-0">
- <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">Filtres :</span>
- <button id="btnFilterAll" onclick="setQuickFilter('all')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-2xs flex items-center gap-1.5 transition">
+ <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mr-1 hidden sm:inline">Filtres :</span>
+ <button id="btnFilterAll" onclick="setQuickFilter('all')" class="px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition">
  <i data-lucide="users" class="w-3.5 h-3.5"></i>
  <span>Tous</span>
  </button>
- <button id="btnFilterCPE" onclick="setQuickFilter('cpe')" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 hover:bg-rose-50 hover:text-rose-700 flex items-center gap-1.5 transition">
- <i data-lucide="siren" class="w-3.5 h-3.5 text-rose-600"></i>
+ <button id="btnFilterCPE" onclick="setQuickFilter('cpe')" class="px-3 py-2 rounded-xl text-xs font-medium bg-slate-800/80 text-slate-400 border border-slate-700/60 hover:bg-rose-950/40 hover:text-rose-300 flex items-center gap-1.5 transition">
+ <i data-lucide="siren" class="w-3.5 h-3.5 text-rose-400"></i>
  <span>Alerte CPE</span>
  </button>
- <button id="btnFilterDoc" onclick="setQuickFilter('doc')" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-1.5 transition">
- <i data-lucide="file-warning" class="w-3.5 h-3.5 text-amber-600"></i>
+ <button id="btnFilterDoc" onclick="setQuickFilter('doc')" class="px-3 py-2 rounded-xl text-xs font-medium bg-slate-800/80 text-slate-400 border border-slate-700/60 hover:bg-amber-950/40 hover:text-amber-300 flex items-center gap-1.5 transition">
+ <i data-lucide="file-warning" class="w-3.5 h-3.5 text-amber-400"></i>
  <span>Doc. non rendu</span>
  </button>
- <button id="btnFilterCanteen" onclick="setQuickFilter('canteen')" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-1.5 transition">
- <i data-lucide="utensils" class="w-3.5 h-3.5 text-emerald-600"></i>
+ <button id="btnFilterCanteen" onclick="setQuickFilter('canteen')" class="px-3 py-2 rounded-xl text-xs font-medium bg-slate-800/80 text-slate-400 border border-slate-700/60 hover:bg-emerald-950/40 hover:text-emerald-300 flex items-center gap-1.5 transition">
+ <i data-lucide="utensils" class="w-3.5 h-3.5 text-emerald-400"></i>
  <span>Cantine</span>
  </button>
- <button id="btnFilterNoExit" onclick="setQuickFilter('no-exit')" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 hover:bg-rose-50 hover:text-rose-700 flex items-center gap-1.5 transition">
- <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-600"></i>
+ <button id="btnFilterNoExit" onclick="setQuickFilter('no-exit')" class="px-3 py-2 rounded-xl text-xs font-medium bg-slate-800/80 text-slate-400 border border-slate-700/60 hover:bg-rose-950/40 hover:text-rose-300 flex items-center gap-1.5 transition">
+ <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-400"></i>
  <span>Interdits de Sortie</span>
  </button>
  </div>
 
- <div class="text-xs text-slate-500 font-semibold shrink-0 ml-auto" id="studentsCountLabel">
+ <div class="text-xs text-slate-400 font-semibold shrink-0 ml-auto" id="studentsCountLabel">
  Élèves : 0
  </div>
  </div>
@@ -291,211 +291,211 @@
 
  <div id="studentsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
 
- <div id="emptyMessage" class="hidden text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-6">
- <i data-lucide="user-x" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
- <h3 class="text-base font-semibold text-slate-700">Aucun élève trouvé</h3>
- <p class="text-sm text-slate-500 mt-1">Essayez de modifier vos critères de recherche ou de filtrage.</p>
+ <div id="emptyMessage" class="hidden text-center py-12 bg-slate-900/60 rounded-3xl border border-dashed border-slate-800 p-6">
+ <i data-lucide="user-x" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
+ <h3 class="text-base font-semibold text-slate-300">Aucun élève trouvé</h3>
+ <p class="text-xs text-slate-500 mt-1">Essayez de modifier vos critères de recherche ou de filtrage.</p>
  </div>
  </section>
 
  <!-- PAGE 2 : FICHE DÉTAILLÉE ÉLÈVE -->
  <section id="pageDetail" class="hidden page-fade space-y-4 sm:space-y-6">
  <div class="flex items-center justify-between gap-2 no-print">
- <button onclick="showListPage()" class="inline-flex items-center gap-2 bg-white active:bg-slate-100 text-slate-700 font-semibold px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs transition text-xs sm:text-sm">
+ <button onclick="showListPage()" class="inline-flex items-center gap-2 bg-slate-900 active:bg-slate-800 text-slate-200 font-semibold px-4 py-2.5 rounded-2xl border border-slate-800 transition text-xs sm:text-sm">
  <i data-lucide="arrow-left" class="w-4 h-4"></i>
  <span>Retour</span>
  </button>
 
  <div class="flex items-center gap-2">
- <button onclick="exportSingleStudentUnjustifiedAbsencesPDF()" class="inline-flex items-center gap-1.5 bg-red-700 hover:bg-red-800 text-white font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition text-xs sm:text-sm" title="Exporter uniquement les absences injustifiées de cet élève">
- <i data-lucide="user-x" class="w-4 h-4"></i>
+ <button onclick="exportSingleStudentUnjustifiedAbsencesPDF()" class="inline-flex items-center gap-2 bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/50 font-semibold px-3.5 py-2.5 rounded-2xl transition text-xs sm:text-sm" title="Exporter uniquement les absences injustifiées de cet élève">
+ <i data-lucide="user-x" class="w-4 h-4 text-red-400"></i>
  <span class="hidden sm:inline">PDF Abs.</span> Injustifiées
  </button>
- <button onclick="exportStudentPDF()" class="inline-flex items-center gap-1.5 bg-rose-600 active:bg-rose-700 text-white font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition text-xs sm:text-sm">
+ <button onclick="exportStudentPDF()" class="inline-flex items-center gap-2 bg-rose-600 active:bg-rose-700 text-white font-semibold px-3.5 py-2.5 rounded-2xl shadow-lg shadow-rose-950/30 transition text-xs sm:text-sm">
  <i data-lucide="file-text" class="w-4 h-4"></i>
  <span class="hidden sm:inline">Exporter</span> PDF Fiche
  </button>
- <button onclick="confirmDeleteStudent()" class="inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-semibold px-3.5 py-2 rounded-xl transition text-xs sm:text-sm">
+ <button onclick="confirmDeleteStudent()" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-rose-950/40 text-rose-400 border border-slate-800 font-semibold px-3.5 py-2.5 rounded-2xl transition text-xs sm:text-sm">
  <i data-lucide="trash-2" class="w-4 h-4"></i>
  <span class="hidden sm:inline">Supprimer</span>
  </button>
  </div>
  </div>
 
- <div id="studentDetailCard" class="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
- <div class="bg-slate-900 text-white p-5 sm:p-7 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
- <div class="flex items-center space-x-4">
- <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-indigo-500/20 border-2 border-indigo-400/40 flex items-center justify-center text-indigo-300 font-extrabold text-xl sm:text-2xl shrink-0 shadow-inner">
+ <div id="studentDetailCard" class="bg-slate-900/90 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden">
+ <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-800">
+ <div class="flex items-center space-x-5">
+ <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-extrabold text-2xl sm:text-3xl shrink-0 shadow-inner">
  <span id="detailInitials">--</span>
  </div>
  <div>
  <div class="flex items-center gap-2 flex-wrap">
- <h2 class="text-xl sm:text-2xl font-bold tracking-tight" id="detailName">Nom Prénom</h2>
- <div id="detailCanteenIndicator" class="hidden items-center gap-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 px-2.5 py-1 rounded-full text-xs font-semibold">
+ <h2 class="text-xl sm:text-3xl font-extrabold tracking-tight text-white" id="detailName">Nom Prénom</h2>
+ <div id="detailCanteenIndicator" class="hidden items-center gap-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-semibold">
  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
  <span>CANTINE</span>
  </div>
- <div id="detailCpeBadge" class="hidden items-center gap-1.5 bg-rose-500/30 text-rose-300 border border-rose-400/50 px-2.5 py-1 rounded-full text-xs font-bold animate-pulse">
+ <div id="detailCpeBadge" class="hidden items-center gap-1.5 bg-rose-500/20 text-rose-300 border border-rose-500/40 px-3 py-1 rounded-full text-xs font-bold animate-pulse">
  <i data-lucide="siren" class="w-3.5 h-3.5"></i>
  <span>ALERTE CPE</span>
  </div>
- <div id="detailDocBadge" class="hidden items-center gap-1.5 bg-amber-500/30 text-amber-300 border border-amber-400/50 px-2.5 py-1 rounded-full text-xs font-semibold">
+ <div id="detailDocBadge" class="hidden items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-full text-xs font-semibold">
  <i data-lucide="file-warning" class="w-3.5 h-3.5"></i>
  <span>DOC NON RENDU</span>
  </div>
  </div>
- <div id="detailThresholdBox" class="hidden items-start gap-1.5 bg-rose-500/20 text-rose-200 border border-rose-400/40 px-3 py-1.5 rounded-xl text-xs font-semibold mt-2">
- <i data-lucide="info" class="w-4 h-4 text-rose-300 shrink-0 mt-0.5"></i>
+ <div id="detailThresholdBox" class="hidden items-start gap-2 bg-rose-950/40 text-rose-200 border border-rose-800/50 px-3.5 py-2 rounded-2xl text-xs font-semibold mt-2.5">
+ <i data-lucide="info" class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"></i>
  <div>
- <span class="font-bold text-rose-300 block text-[10px] uppercase tracking-wide">Raison / Seuils Dépassés :</span>
- <span id="detailThresholdText" class="text-xs text-rose-100 font-medium">--</span>
+ <span class="font-bold text-rose-400 block text-[10px] uppercase tracking-wide">Raison / Seuils Dépassés :</span>
+ <span id="detailThresholdText" class="text-xs text-rose-200 font-medium">--</span>
  </div>
  </div>
- <div class="flex flex-wrap items-center gap-2 mt-2">
- <span class="bg-indigo-500/30 text-indigo-200 text-xs px-2.5 py-0.5 rounded-full border border-indigo-400/30 font-medium" id="detailClass">Classe</span>
- <span class="bg-slate-800 text-slate-300 text-xs px-2.5 py-0.5 rounded-full border border-slate-700" id="detailRegime">Régime</span>
- <span class="text-xs px-2.5 py-0.5 rounded-full border" id="detailExitBadge">Autorisation sortie: --</span>
+ <div class="flex flex-wrap items-center gap-2 mt-3">
+ <span class="bg-indigo-500/10 text-indigo-300 text-xs px-3 py-1 rounded-full border border-indigo-500/20 font-semibold" id="detailClass">Classe</span>
+ <span class="bg-slate-800 text-slate-300 text-xs px-3 py-1 rounded-full border border-slate-700 font-medium" id="detailRegime">Régime</span>
+ <span class="text-xs px-3 py-1 rounded-full border font-semibold" id="detailExitBadge">Autorisation sortie: --</span>
  </div>
  </div>
  </div>
 
- <div id="detailCanteenQRBox" class="hidden bg-slate-800/90 border border-slate-700 p-3.5 rounded-2xl items-center gap-4 w-full md:w-auto">
- <div id="qrcodeCanvas" class="bg-white p-2 rounded-xl shadow-md border border-slate-300 shrink-0"></div>
- <div class="flex flex-col gap-1.5 flex-1">
- <span class="text-xs text-amber-400 font-bold flex items-center gap-1">
- <i data-lucide="qr-code" class="w-3.5 h-3.5"></i> QR Code Cantine
+ <div id="detailCanteenQRBox" class="hidden bg-slate-950/80 border border-slate-800 p-4 rounded-3xl items-center gap-4 w-full md:w-auto">
+ <div id="qrcodeCanvas" class="bg-white p-2 rounded-2xl shadow-xl shrink-0"></div>
+ <div class="flex flex-col gap-2 flex-1">
+ <span class="text-xs text-amber-400 font-bold flex items-center gap-1.5">
+ <i data-lucide="qr-code" class="w-4 h-4"></i> QR Code Cantine
  </span>
  <span class="text-[10px] text-slate-400 leading-tight">Généré pour secours en cas de carte perdue</span>
  <div class="mt-1 flex flex-col gap-2">
- <input type="text" id="canteenBadgeInput" oninput="updateCanteenBadgeNumber(this.value)" placeholder="N° badge cantine..." class="bg-slate-900 border border-slate-600 text-white text-xs px-2.5 py-1 rounded-lg outline-none focus:border-amber-400 w-full sm:w-36 font-mono">
- <button type="button" onclick="startBadgeScanner()" class="inline-flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-semibold px-2.5 py-1 rounded-lg text-xs transition shadow-2xs">
+ <input type="text" id="canteenBadgeInput" oninput="updateCanteenBadgeNumber(this.value)" placeholder="N° badge cantine..." class="bg-slate-900 border border-slate-700 text-white text-xs px-3 py-1.5 rounded-xl outline-none focus:border-amber-400 w-full sm:w-40 font-mono">
+ <button type="button" onclick="startBadgeScanner()" class="inline-flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition">
  <i data-lucide="camera" class="w-3.5 h-3.5"></i>
  <span>Scanner un badge</span>
  </button>
  </div>
- <div id="scannerReaderContainer" class="hidden mt-2 border border-slate-700 rounded-xl overflow-hidden bg-slate-950 p-2">
- <div id="badgeQrReader" class="w-full max-w-[220px] mx-auto rounded-lg overflow-hidden"></div>
- <button type="button" onclick="stopBadgeScanner()" class="mt-2 w-full text-center text-[11px] text-rose-400 hover:text-rose-300 font-semibold py-1 bg-rose-950/40 rounded-lg border border-rose-800/50">
+ <div id="scannerReaderContainer" class="hidden mt-2 border border-slate-800 rounded-2xl overflow-hidden bg-slate-950 p-2">
+ <div id="badgeQrReader" class="w-full max-w-[220px] mx-auto rounded-xl overflow-hidden"></div>
+ <button type="button" onclick="stopBadgeScanner()" class="mt-2 w-full text-center text-[11px] text-rose-400 hover:text-rose-300 font-semibold py-1 bg-rose-950/40 rounded-xl border border-rose-800/50">
  Annuler le scan
  </button>
  </div>
  </div>
  </div>
  
-<div class="text-left md:text-right text-xs sm:text-sm text-slate-300 border-t md:border-t-0 pt-3 md:pt-0 border-slate-800 w-full md:w-auto">
- <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Professeur Principal</p>
- <p class="font-semibold text-slate-200 text-sm sm:text-base mt-0.5" id="detailProf">Non renseigné</p>
+ <div class="text-left md:text-right text-xs text-slate-400 border-t md:border-t-0 pt-4 md:pt-0 border-slate-800 w-full md:w-auto">
+ <p class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Professeur Principal</p>
+ <p class="font-bold text-slate-200 text-sm sm:text-base mt-0.5" id="detailProf">Non renseigné</p>
  </div>
  </div>
 
  <!-- BARRE INTERRUPTEURS ALERTES FICHE ÉLÈVE -->
- <div class="bg-slate-100 border-b border-slate-200 px-4 sm:px-6 py-3 flex flex-wrap items-center gap-4 sm:gap-8 no-print">
- <div class="flex items-center gap-2.5">
- <i data-lucide="siren" class="w-4 h-4 text-rose-600"></i>
- <span class="text-xs font-bold text-slate-700">Alerter CPE :</span>
- <button id="detailToggleCpeBtn" onclick="toggleDetailAlerteCPE()" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-300" title="Basculer alerte CPE">
- <span id="detailToggleCpeDot" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+ <div class="bg-slate-950/60 border-b border-slate-800/80 px-6 py-4 flex flex-wrap items-center gap-6 sm:gap-10 no-print">
+ <div class="flex items-center gap-3">
+ <i data-lucide="siren" class="w-4 h-4 text-rose-400"></i>
+ <span class="text-xs font-bold text-slate-300">Alerter CPE :</span>
+ <button id="detailToggleCpeBtn" onclick="toggleDetailAlerteCPE()" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-800" title="Basculer alerte CPE">
+ <span id="detailToggleCpeDot" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ease-in-out translate-x-0"></span>
  </button>
- <span id="detailCpeStatusLabel" class="text-xs font-semibold text-slate-500">Désactivée</span>
+ <span id="detailCpeStatusLabel" class="text-xs font-semibold text-slate-400">Désactivée</span>
  </div>
 
- <div class="h-4 w-px bg-slate-300 hidden sm:block"></div>
+ <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
 
- <div class="flex items-center gap-2.5">
- <i data-lucide="file-warning" class="w-4 h-4 text-amber-600"></i>
- <span class="text-xs font-bold text-slate-700">Document non rendu :</span>
- <button id="detailToggleDocBtn" onclick="toggleDetailDocNonRendu()" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-300" title="Basculer document non rendu">
- <span id="detailToggleDocDot" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+ <div class="flex items-center gap-3">
+ <i data-lucide="file-warning" class="w-4 h-4 text-amber-400"></i>
+ <span class="text-xs font-bold text-slate-300">Document non rendu :</span>
+ <button id="detailToggleDocBtn" onclick="toggleDetailDocNonRendu()" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-800" title="Basculer document non rendu">
+ <span id="detailToggleDocDot" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ease-in-out translate-x-0"></span>
  </button>
- <span id="detailDocStatusLabel" class="text-xs font-semibold text-slate-500">Non</span>
+ <span id="detailDocStatusLabel" class="text-xs font-semibold text-slate-400">Non</span>
  </div>
  </div>
 
- <div class="p-4 sm:p-6 border-b border-slate-200 bg-slate-50/50">
- <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Compteurs & Synthèse</h3>
- <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
- <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-2xs">
- <div class="text-xs text-slate-500 font-semibold">Retards</div>
- <div class="text-xl sm:text-2xl font-extrabold text-amber-600 my-0.5" id="countRetards">0</div>
+ <div class="p-6 border-b border-slate-800 bg-slate-900/40">
+ <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-4">Compteurs & Synthèse</h3>
+ <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+ <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80 text-center">
+ <div class="text-xs text-slate-400 font-medium">Retards</div>
+ <div class="text-2xl font-extrabold text-amber-400 mt-1" id="countRetards">0</div>
  </div>
 
- <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-2xs">
- <div class="text-xs text-slate-500 font-semibold">Absences</div>
- <div class="text-xl sm:text-2xl font-extrabold text-rose-600 my-0.5" id="countAbsences">0</div>
+ <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80 text-center">
+ <div class="text-xs text-slate-400 font-medium">Absences</div>
+ <div class="text-2xl font-extrabold text-rose-400 mt-1" id="countAbsences">0</div>
  </div>
 
- <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-2xs">
- <div class="text-xs text-slate-500 font-semibold">Heures Retenue</div>
- <div class="text-xl sm:text-2xl font-extrabold text-purple-600 my-0.5" id="countRetenues">0 h</div>
+ <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80 text-center">
+ <div class="text-xs text-slate-400 font-medium">Heures Retenue</div>
+ <div class="text-2xl font-extrabold text-purple-400 mt-1" id="countRetenues">0 h</div>
  </div>
 
- <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-2xs">
- <div class="text-xs text-slate-500 font-semibold">Emploi du temps bloqué</div>
- <div class="text-xl sm:text-2xl font-extrabold text-amber-700 my-0.5" id="countEmploiBloque">0</div>
+ <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80 text-center">
+ <div class="text-xs text-slate-400 font-medium">Emploi bloqué</div>
+ <div class="text-2xl font-extrabold text-amber-500 mt-1" id="countEmploiBloque">0</div>
  </div>
 
- <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-2xs">
- <div class="text-xs text-slate-500 font-semibold">Exclusion de cours</div>
- <div class="text-xl sm:text-2xl font-extrabold text-rose-700 my-0.5" id="countExclusion">0</div>
+ <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80 text-center">
+ <div class="text-xs text-slate-400 font-medium">Exclusion cours</div>
+ <div class="text-2xl font-extrabold text-rose-500 mt-1" id="countExclusion">0</div>
  </div>
 
- <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-center shadow-2xs">
- <div class="text-xs text-slate-500 font-semibold">Absences injustifiées</div>
- <div class="text-xl sm:text-2xl font-extrabold text-red-700 my-0.5" id="countAbsInjustifiees">0</div>
+ <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80 text-center">
+ <div class="text-xs text-slate-400 font-medium">Abs. injustifiées</div>
+ <div class="text-2xl font-extrabold text-red-500 mt-1" id="countAbsInjustifiees">0</div>
  </div>
  </div>
  </div>
 
- <div class="p-4 sm:p-6">
+ <div class="p-6">
  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
- <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
- <i data-lucide="history" class="w-4 h-4 text-indigo-600"></i>
+ <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+ <i data-lucide="history" class="w-4 h-4 text-indigo-400"></i>
  <span>Historique Vie Scolaire & PRONOTE</span>
  </h3>
- <button id="btnFilterUnjustified" onclick="toggleUnjustifiedFilter()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-rose-50 hover:text-rose-700 border border-slate-200 transition no-print shrink-0">
+ <button id="btnFilterUnjustified" onclick="toggleUnjustifiedFilter()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-rose-950/40 hover:text-rose-300 border border-slate-700 transition no-print shrink-0">
  <i data-lucide="filter" class="w-3.5 h-3.5"></i>
  <span>Absences injustifiées seulement</span>
  </button>
  </div>
 
  <!-- ONGLETS DE FILTRAGE HISTORIQUE -->
- <div class="mb-4 bg-slate-100/80 p-1.5 rounded-2xl flex items-center gap-1 overflow-x-auto no-scrollbar border border-slate-200/60 no-print">
- <button onclick="setHistoryTab('all')" id="hist-tab-all" class="hist-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition bg-indigo-600 text-white shadow-2xs">
+ <div class="mb-4 bg-slate-950/60 p-1.5 rounded-2xl flex items-center gap-1.5 overflow-x-auto no-scrollbar border border-slate-800/80 no-print">
+ <button onclick="setHistoryTab('all')" id="hist-tab-all" class="hist-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-indigo-600 text-white shadow-md">
  Tous
  </button>
- <button onclick="setHistoryTab('retard')" id="hist-tab-retard" class="hist-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-200/70">
+ <button onclick="setHistoryTab('retard')" id="hist-tab-retard" class="hist-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
  Retards
  </button>
- <button onclick="setHistoryTab('retenue')" id="hist-tab-retenue" class="hist-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-200/70">
+ <button onclick="setHistoryTab('retenue')" id="hist-tab-retenue" class="hist-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
  Heures de colle
  </button>
- <button onclick="setHistoryTab('emploi_bloque')" id="hist-tab-emploi_bloque" class="hist-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-200/70">
+ <button onclick="setHistoryTab('emploi_bloque')" id="hist-tab-emploi_bloque" class="hist-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
  Emploi du temps bloqué
  </button>
- <button onclick="setHistoryTab('exclusion')" id="hist-tab-exclusion" class="hist-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-200/70">
+ <button onclick="setHistoryTab('exclusion')" id="hist-tab-exclusion" class="hist-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
  Exclusions de cours
  </button>
- <button onclick="setHistoryTab('abs_injustifiee')" id="hist-tab-abs_injustifiee" class="hist-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-200/70">
+ <button onclick="setHistoryTab('abs_injustifiee')" id="hist-tab-abs_injustifiee" class="hist-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
  Absences injustifiées
  </button>
  </div>
 
- <div class="overflow-x-auto -mx-4 sm:mx-0">
+ <div class="overflow-x-auto -mx-6 sm:mx-0">
  <table class="w-full text-left text-xs sm:text-sm border-collapse min-w-[600px]">
  <thead>
- <tr class="border-b border-slate-200 text-[11px] font-bold uppercase text-slate-400 bg-slate-50/80">
- <th class="py-2.5 px-4">Date & Heure</th>
- <th class="py-2.5 px-4">Événement / Punition</th>
- <th class="py-2.5 px-4">Statut / Détail</th>
- <th class="py-2.5 px-4">Motif / Commentaire</th>
- <th class="py-2.5 px-4 text-right no-print">Action</th>
+ <tr class="border-b border-slate-800 text-[11px] font-bold uppercase text-slate-500 bg-slate-950/40">
+ <th class="py-3 px-4">Date & Heure</th>
+ <th class="py-3 px-4">Événement / Punition</th>
+ <th class="py-3 px-4">Statut / Détail</th>
+ <th class="py-3 px-4">Motif / Commentaire</th>
+ <th class="py-3 px-4 text-right no-print">Action</th>
  </tr>
  </thead>
- <tbody id="historyTableBody" class="divide-y divide-slate-100"></tbody>
+ <tbody id="historyTableBody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
  </table>
  </div>
 
- <div id="emptyHistory" class="text-center py-8 text-slate-400 text-xs sm:text-sm hidden">
+ <div id="emptyHistory" class="text-center py-10 text-slate-500 text-xs sm:text-sm hidden">
  Aucun événement ou punition enregistré pour le moment.
  </div>
  </div>
@@ -504,41 +504,41 @@
 
  <!-- PAGE 3 : RÉCAPITULATIF DES ÉVÉNEMENTS -->
  <section id="pageRecap" class="hidden page-fade space-y-4 sm:space-y-6">
- <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+ <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
  <div>
- <h2 class="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
- <i data-lucide="clipboard-list" class="w-5 h-5 text-indigo-600"></i>
+ <h2 class="text-lg sm:text-2xl font-extrabold text-white flex items-center gap-2">
+ <i data-lucide="clipboard-list" class="w-6 h-6 text-indigo-400"></i>
  <span>Récapitulatif Global des Événements</span>
  </h2>
- <p class="text-xs text-slate-500 mt-0.5">Liste consolidée des élèves ayant enregistré des événements Vie Scolaire / PRONOTE.</p>
+ <p class="text-xs text-slate-400 mt-1">Liste consolidée des élèves ayant enregistré des événements Vie Scolaire / PRONOTE.</p>
  </div>
  
-<div class="flex items-center gap-2 w-full sm:w-auto">
- <div class="bg-slate-200 p-1 rounded-xl flex items-center gap-1 text-xs font-semibold">
- <button id="btnRecapViewCategory" onclick="setRecapViewMode('category')" class="px-3 py-1.5 rounded-lg bg-white text-indigo-900 shadow-2xs transition">
+ <div class="flex items-center gap-2 w-full sm:w-auto">
+ <div class="bg-slate-900 p-1 rounded-2xl flex items-center gap-1 text-xs font-semibold border border-slate-800">
+ <button id="btnRecapViewCategory" onclick="setRecapViewMode('category')" class="px-3.5 py-2 rounded-xl bg-indigo-600 text-white shadow-md transition">
  Par catégorie
  </button>
- <button id="btnRecapViewClass" onclick="setRecapViewMode('class')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">
+ <button id="btnRecapViewClass" onclick="setRecapViewMode('class')" class="px-3.5 py-2 rounded-xl text-slate-400 hover:text-white transition">
  Fiches par classe
  </button>
  </div>
 
- <button onclick="exportUnjustifiedAbsencesPDF()" class="inline-flex items-center justify-center gap-1.5 bg-red-700 hover:bg-red-800 text-white font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition text-xs sm:text-sm">
- <i data-lucide="user-x" class="w-4 h-4"></i>
- <span>PDF Abs. Injust.</span>
+ <button onclick="exportUnjustifiedAbsencesPDF()" class="inline-flex items-center justify-center gap-2 bg-red-950/60 hover:bg-red-900/80 text-red-300 font-semibold px-3.5 py-2.5 rounded-2xl border border-red-800/50 transition text-xs sm:text-sm">
+ <i data-lucide="user-x" class="w-4 h-4 text-red-400"></i>
+ <span>PDF Abs. Inj.</span>
  </button>
 
- <button onclick="exportCpeAlertPDF()" class="inline-flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition text-xs sm:text-sm">
+ <button onclick="exportCpeAlertPDF()" class="inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold px-3.5 py-2.5 rounded-2xl transition text-xs sm:text-sm shadow-lg shadow-rose-950/30">
  <i data-lucide="siren" class="w-4 h-4"></i>
  <span>Export CPE</span>
  </button>
 
- <button onclick="openExportClassModal()" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition text-xs sm:text-sm">
+ <button onclick="openExportClassModal()" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-3.5 py-2.5 rounded-2xl transition text-xs sm:text-sm shadow-lg shadow-indigo-950/30">
  <i data-lucide="file-text" class="w-4 h-4"></i>
  <span>Export PDF Classe</span>
  </button>
 
- <button onclick="showListPage()" class="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-100 text-slate-700 font-medium px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs transition text-xs sm:text-sm">
+ <button onclick="showListPage()" class="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-slate-200 font-medium px-3.5 py-2.5 rounded-2xl border border-slate-800 transition text-xs sm:text-sm">
  <i data-lucide="arrow-left" class="w-4 h-4"></i>
  <span>Retour</span>
  </button>
@@ -546,70 +546,70 @@
  </div>
 
  <!-- ONGLETS RÉCAPITULATIF PAR CATÉGORIE -->
- <div id="recapCategoryTabs" class="border-b border-slate-200 bg-white rounded-2xl shadow-2xs p-1.5 flex items-center gap-1 overflow-x-auto no-scrollbar">
- <button onclick="switchRecapTab('retard')" id="tab-retard" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow-2xs">
+ <div id="recapCategoryTabs" class="bg-slate-900/90 rounded-2xl border border-slate-800 p-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+ <button onclick="switchRecapTab('retard')" id="tab-retard" class="recap-tab shrink-0 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition bg-indigo-600 text-white shadow-md">
  <i data-lucide="clock" class="w-4 h-4"></i>
  <span>Retards</span>
- <span id="badge-retard" class="bg-indigo-700 text-white text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+ <span id="badge-retard" class="bg-indigo-950 text-indigo-200 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
  </button>
- <button onclick="switchRecapTab('absence')" id="tab-absence" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100">
+ <button onclick="switchRecapTab('absence')" id="tab-absence" class="recap-tab shrink-0 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200">
  <i data-lucide="user-x" class="w-4 h-4"></i>
  <span>Absences</span>
- <span id="badge-absence" class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+ <span id="badge-absence" class="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
  </button>
- <button onclick="switchRecapTab('retenue')" id="tab-retenue" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100">
+ <button onclick="switchRecapTab('retenue')" id="tab-retenue" class="recap-tab shrink-0 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200">
  <i data-lucide="alert-circle" class="w-4 h-4"></i>
  <span>Retenues</span>
- <span id="badge-retenue" class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+ <span id="badge-retenue" class="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
  </button>
- <button onclick="switchRecapTab('emploi_bloque')" id="tab-emploi_bloque" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100">
+ <button onclick="switchRecapTab('emploi_bloque')" id="tab-emploi_bloque" class="recap-tab shrink-0 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200">
  <i data-lucide="calendar-x" class="w-4 h-4"></i>
  <span>Emploi du temps bloqué</span>
- <span id="badge-emploi_bloque" class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+ <span id="badge-emploi_bloque" class="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
  </button>
- <button onclick="switchRecapTab('exclusion')" id="tab-exclusion" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100">
+ <button onclick="switchRecapTab('exclusion')" id="tab-exclusion" class="recap-tab shrink-0 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200">
  <i data-lucide="log-out" class="w-4 h-4"></i>
  <span>Exclusion de cours</span>
- <span id="badge-exclusion" class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+ <span id="badge-exclusion" class="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
  </button>
- <button onclick="switchRecapTab('abs_injustifiee')" id="tab-abs_injustifiee" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100">
+ <button onclick="switchRecapTab('abs_injustifiee')" id="tab-abs_injustifiee" class="recap-tab shrink-0 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200">
  <i data-lucide="shield-alert" class="w-4 h-4"></i>
  <span>Absences injustifiées</span>
- <span id="badge-abs_injustifiee" class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+ <span id="badge-abs_injustifiee" class="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
  </button>
- <button onclick="switchRecapTab('carnet')" id="tab-carnet" class="recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100">
+ <button onclick="switchRecapTab('carnet')" id="tab-carnet" class="recap-tab shrink-0 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200">
  <i data-lucide="book-open" class="w-4 h-4"></i>
  <span>Carnet</span>
- <span id="badge-carnet" class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+ <span id="badge-carnet" class="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
  </button>
  </div>
 
  <!-- FILTRE ET BOUTONS DE TRI GLOBAL -->
- <div id="recapClassFilterContainer" class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
- <div class="flex items-center gap-2">
- <i data-lucide="filter" class="w-4 h-4 text-indigo-600"></i>
- <span class="text-xs font-semibold text-slate-700">Sélectionner la classe :</span>
- <select id="recapClassSelect" onchange="renderCurrentRecapView()" class="bg-slate-50 border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+ <div id="recapClassFilterContainer" class="bg-slate-900/90 p-4 rounded-3xl border border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+ <div class="flex items-center gap-2.5">
+ <i data-lucide="filter" class="w-4 h-4 text-indigo-400"></i>
+ <span class="text-xs font-semibold text-slate-300">Sélectionner la classe :</span>
+ <select id="recapClassSelect" onchange="renderCurrentRecapView()" class="bg-slate-950 border border-slate-800 text-slate-200 text-xs sm:text-sm rounded-2xl px-3.5 py-2 outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
  <option value="ALL">Toutes les classes</option>
  </select>
  </div>
 
- <button id="btnRecapSort" onclick="toggleRecapClassSort()" class="inline-flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 text-indigo-900 border border-indigo-200/80 px-3 py-1.5 rounded-xl text-xs font-semibold transition shadow-2xs">
- <i data-lucide="arrow-down-narrow-wide" class="w-4 h-4 text-indigo-600"></i>
+ <button id="btnRecapSort" onclick="toggleRecapClassSort()" class="inline-flex items-center justify-center gap-2 bg-indigo-950/50 hover:bg-indigo-900/70 text-indigo-300 border border-indigo-800/40 px-4 py-2 rounded-2xl text-xs font-semibold transition">
+ <i data-lucide="arrow-down-narrow-wide" class="w-4 h-4 text-indigo-400"></i>
  <span id="recapSortLabel">Trier : Du + grand au + petit</span>
  </button>
  </div>
 
- <div id="recapCategoryList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4"></div>
+ <div id="recapCategoryList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
 
- <div id="recapEmptyMessage" class="hidden text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-6">
+ <div id="recapEmptyMessage" class="hidden text-center py-12 bg-slate-900/60 rounded-3xl border border-dashed border-slate-800 p-6">
  <i data-lucide="check-circle-2" class="w-12 h-12 text-emerald-400 mx-auto mb-3"></i>
- <h3 class="text-base font-semibold text-slate-700">Aucun élève concerné</h3>
+ <h3 class="text-base font-semibold text-slate-300">Aucun élève concerné</h3>
  <p class="text-xs text-slate-500 mt-1">Aucun élève n'a enregistré d'événement dans cette sélection.</p>
  </div>
  </section>
 
- <footer class="mt-8 text-center text-[11px] text-slate-400 no-print pb-4">
+ <footer class="mt-12 text-center text-[11px] text-slate-600 no-print pb-6">
  VieScolaire Pro &bull; Version <span class="font-mono font-semibold">6.9 Mobile Pro</span> &bull; Seuils Avancés & Infobulle Alerte CPE
  </footer>
 
@@ -621,103 +621,103 @@
  </div>
 
  <!-- MODALE : RÉGLAGES ALERTE CPE AUTOMATIQUE -->
- <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
- <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-5 sm:p-6 space-y-4 border border-slate-100 max-h-[90vh] overflow-y-auto">
- <div class="flex justify-between items-center border-b pb-3 border-slate-100 sticky top-0 bg-white z-10">
- <div class="flex items-center gap-2">
- <i data-lucide="settings" class="w-5 h-5 text-indigo-600"></i>
- <h3 class="font-bold text-base text-slate-800">Réglages Seuils Alerte CPE</h3>
+ <div id="settingsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+ <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full p-6 space-y-5 border border-slate-800 max-h-[90vh] overflow-y-auto">
+ <div class="flex justify-between items-center border-b pb-4 border-slate-800 sticky top-0 bg-slate-900 z-10">
+ <div class="flex items-center gap-2.5">
+ <i data-lucide="settings" class="w-5 h-5 text-indigo-400"></i>
+ <h3 class="font-bold text-base text-white">Réglages Seuils Alerte CPE</h3>
  </div>
- <button onclick="closeModal('settingsModal')" class="text-slate-400 hover:text-slate-600 p-1">
- <i data-lucide="x" class="w-5 h-5"></i>
+ <button onclick="closeModal('settingsModal')" class="text-slate-400 hover:text-white p-1 rounded-xl bg-slate-800">
+ <i data-lucide="x" class="w-4 h-4"></i>
  </button>
  </div>
  
  <form id="settingsForm" onsubmit="handleSaveSettings(event)" class="space-y-4">
- <p class="text-xs text-slate-600 font-medium leading-relaxed">
+ <p class="text-xs text-slate-400 font-medium leading-relaxed">
  Configurez le nombre seuil pour chaque élément de la <b>Synthèse & Compteurs</b> pouvant activer automatiquement le bouton <b>Alerte CPE</b>.
  L'alerte se déclenchera si au moins un des seuils configurés est atteint ou dépassé (mettez 0 pour désactiver un seuil).
  </p>
 
- <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+ <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
  <div>
-   <label class="block text-[11px] font-bold text-slate-700 mb-1">
+   <label class="block text-[11px] font-bold text-slate-300 mb-1">
      Absences injustifiées
    </label>
    <div class="relative">
-     <input type="number" id="settingCpeThresholdAbsInjustifiees" min="0" max="100" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500">
-     <span class="absolute right-2.5 top-2 text-[10px] text-slate-400">abs. inj.</span>
+     <input type="number" id="settingCpeThresholdAbsInjustifiees" min="0" max="100" class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white outline-none focus:border-indigo-500">
+     <span class="absolute right-2.5 top-2.5 text-[10px] text-slate-500">abs. inj.</span>
    </div>
  </div>
 
  <div>
-   <label class="block text-[11px] font-bold text-slate-700 mb-1">
+   <label class="block text-[11px] font-bold text-slate-300 mb-1">
      Retards
    </label>
    <div class="relative">
-     <input type="number" id="settingCpeThresholdRetards" min="0" max="100" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500">
-     <span class="absolute right-2.5 top-2 text-[10px] text-slate-400">retard(s)</span>
+     <input type="number" id="settingCpeThresholdRetards" min="0" max="100" class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white outline-none focus:border-indigo-500">
+     <span class="absolute right-2.5 top-2.5 text-[10px] text-slate-500">retard(s)</span>
    </div>
  </div>
 
  <div>
-   <label class="block text-[11px] font-bold text-slate-700 mb-1">
+   <label class="block text-[11px] font-bold text-slate-300 mb-1">
      Absences totales
    </label>
    <div class="relative">
-     <input type="number" id="settingCpeThresholdAbsences" min="0" max="100" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500">
-     <span class="absolute right-2.5 top-2 text-[10px] text-slate-400">absence(s)</span>
+     <input type="number" id="settingCpeThresholdAbsences" min="0" max="100" class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white outline-none focus:border-indigo-500">
+     <span class="absolute right-2.5 top-2.5 text-[10px] text-slate-500">absence(s)</span>
    </div>
  </div>
 
  <div>
-   <label class="block text-[11px] font-bold text-slate-700 mb-1">
+   <label class="block text-[11px] font-bold text-slate-300 mb-1">
      Heures de retenue / colles
    </label>
    <div class="relative">
-     <input type="number" id="settingCpeThresholdRetenues" step="0.5" min="0" max="100" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500">
-     <span class="absolute right-2.5 top-2 text-[10px] text-slate-400">heure(s)</span>
+     <input type="number" id="settingCpeThresholdRetenues" step="0.5" min="0" max="100" class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white outline-none focus:border-indigo-500">
+     <span class="absolute right-2.5 top-2.5 text-[10px] text-slate-500">heure(s)</span>
    </div>
  </div>
 
  <div>
-   <label class="block text-[11px] font-bold text-slate-700 mb-1">
+   <label class="block text-[11px] font-bold text-slate-300 mb-1">
      Emploi du temps bloqué
    </label>
    <div class="relative">
-     <input type="number" id="settingCpeThresholdEmploiBloque" min="0" max="100" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500">
-     <span class="absolute right-2.5 top-2 text-[10px] text-slate-400">fois</span>
+     <input type="number" id="settingCpeThresholdEmploiBloque" min="0" max="100" class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white outline-none focus:border-indigo-500">
+     <span class="absolute right-2.5 top-2.5 text-[10px] text-slate-500">fois</span>
    </div>
  </div>
 
  <div>
-   <label class="block text-[11px] font-bold text-slate-700 mb-1">
+   <label class="block text-[11px] font-bold text-slate-300 mb-1">
      Exclusions de cours
    </label>
    <div class="relative">
-     <input type="number" id="settingCpeThresholdExclusion" min="0" max="100" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500">
-     <span class="absolute right-2.5 top-2 text-[10px] text-slate-400">exclusion(s)</span>
+     <input type="number" id="settingCpeThresholdExclusion" min="0" max="100" class="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white outline-none focus:border-indigo-500">
+     <span class="absolute right-2.5 top-2.5 text-[10px] text-slate-500">exclusion(s)</span>
    </div>
  </div>
  </div>
 
- <div class="border-t border-slate-100 pt-3">
- <label class="block text-xs font-semibold text-slate-700 mb-2">
+ <div class="border-t border-slate-800 pt-3">
+ <label class="block text-xs font-semibold text-slate-300 mb-2">
  Niveaux de classe concernés par l'alerte automatique
  </label>
- <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200" id="settingLevelsContainer">
+ <div class="grid grid-cols-2 gap-2.5 bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800" id="settingLevelsContainer">
  </div>
- <p class="text-[11px] text-slate-500 mt-1">Cochez les niveaux de classe pour lesquels l'alerte CPE automatique doit s'activer.</p>
+ <p class="text-[11px] text-slate-500 mt-1.5">Cochez les niveaux de classe pour lesquels l'alerte CPE automatique doit s'activer.</p>
  </div>
 
- <div class="bg-indigo-50/80 border border-indigo-200 rounded-xl p-3 text-xs text-indigo-800 flex items-start gap-2">
- <i data-lucide="info" class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5"></i>
+ <div class="bg-indigo-950/40 border border-indigo-800/50 rounded-2xl p-3.5 text-xs text-indigo-300 flex items-start gap-2.5">
+ <i data-lucide="info" class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"></i>
  <p>Les modifications de seuil et de niveaux seront appliquées immédiatement à l'ensemble de la base de données élèves.</p>
  </div>
 
  <div class="flex justify-end gap-2 pt-2">
- <button type="button" onclick="closeModal('settingsModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl">Annuler</button>
- <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs flex items-center gap-1.5">
+ <button type="button" onclick="closeModal('settingsModal')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Annuler</button>
+ <button type="submit" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg transition flex items-center gap-2">
  <i data-lucide="save" class="w-4 h-4"></i>
  <span>Enregistrer les réglages</span>
  </button>
@@ -727,99 +727,99 @@
  </div>
 
  <!-- MODALE : AVERTISSEMENT CONFIRMATION IMPORT PRONOTE -->
- <div id="confirmImportPronoteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
- <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 space-y-4 border border-slate-100 text-center">
- <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+ <div id="confirmImportPronoteModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+ <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-800 text-center">
+ <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-2xl border border-amber-500/20 flex items-center justify-center mx-auto">
  <i data-lucide="alert-triangle" class="w-6 h-6"></i>
  </div>
  <div>
- <h3 class="font-bold text-base text-slate-800">Attention : Importation PRONOTE</h3>
- <p class="text-xs text-slate-600 mt-1.5">L'importation de nouvelles données <b>effacera toutes les anciennes données Vie Scolaire</b> existantes.</p>
- <p class="text-xs font-semibold text-amber-700 mt-2">Souhaitez-vous continuer ?</p>
+ <h3 class="font-bold text-base text-white">Attention : Importation PRONOTE</h3>
+ <p class="text-xs text-slate-400 mt-2">L'importation de nouvelles données <b>effacera toutes les anciennes données Vie Scolaire</b> existantes.</p>
+ <p class="text-xs font-semibold text-amber-400 mt-2">Souhaitez-vous continuer ?</p>
  </div>
- <div class="flex justify-center gap-2 pt-1">
- <button onclick="closeModal('confirmImportPronoteModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">Annuler</button>
- <button onclick="confirmAndTriggerAbsenceImport()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl shadow-xs transition">Continuer</button>
+ <div class="flex justify-center gap-2 pt-2">
+ <button onclick="closeModal('confirmImportPronoteModal')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Annuler</button>
+ <button onclick="confirmAndTriggerAbsenceImport()" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition shadow-lg">Continuer</button>
  </div>
  </div>
  </div>
 
  <!-- MODALE : Confirmation Toggle Cantine / Sortie -->
- <div id="confirmToggleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
- <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 space-y-4 border border-slate-100 text-center">
- <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto" id="toggleModalIcon">
+ <div id="confirmToggleModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+ <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-800 text-center">
+ <div class="w-12 h-12 bg-indigo-500/10 text-indigo-400 rounded-2xl border border-indigo-500/20 flex items-center justify-center mx-auto" id="toggleModalIcon">
  <i data-lucide="help-circle" class="w-6 h-6"></i>
  </div>
  <div>
- <h3 class="font-bold text-base text-slate-800" id="toggleModalTitle">Confirmation requise</h3>
- <p class="text-xs text-slate-600 mt-1.5" id="toggleModalMessage">Êtes-vous sûr de vouloir effectuer cette modification ?</p>
+ <h3 class="font-bold text-base text-white" id="toggleModalTitle">Confirmation requise</h3>
+ <p class="text-xs text-slate-400 mt-2" id="toggleModalMessage">Êtes-vous sûr de vouloir effectuer cette modification ?</p>
  </div>
- <div class="flex justify-center gap-2 pt-1">
- <button onclick="closeModal('confirmToggleModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">Annuler</button>
- <button id="btnExecuteToggle" onclick="executePendingToggle()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition">Confirmer</button>
+ <div class="flex justify-center gap-2 pt-2">
+ <button onclick="closeModal('confirmToggleModal')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Annuler</button>
+ <button id="btnExecuteToggle" onclick="executePendingToggle()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition shadow-lg">Confirmer</button>
  </div>
  </div>
  </div>
 
  <!-- MODALE : Confirmation Effacement Import Vie Scolaire -->
- <div id="clearVieScolaireModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
- <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 space-y-4 border border-slate-100 text-center">
- <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+ <div id="clearVieScolaireModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+ <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-800 text-center">
+ <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-2xl border border-rose-500/20 flex items-center justify-center mx-auto">
  <i data-lucide="trash-2" class="w-6 h-6"></i>
  </div>
  <div>
- <h3 class="font-bold text-base text-slate-800">Effacer l'importation Vie Scolaire</h3>
- <p class="text-xs text-slate-600 mt-1.5">Êtes-vous sûr de vouloir supprimer tous les événements enregistrés chez tous les élèves ?</p>
- <p class="text-xs font-semibold text-rose-600 mt-1">Les fiches d'élèves seront conservées.</p>
+ <h3 class="font-bold text-base text-white">Effacer l'importation Vie Scolaire</h3>
+ <p class="text-xs text-slate-400 mt-2">Êtes-vous sûr de vouloir supprimer tous les événements enregistrés chez tous les élèves ?</p>
+ <p class="text-xs font-semibold text-rose-400 mt-1.5">Les fiches d'élèves seront conservées.</p>
  </div>
- <div class="flex justify-center gap-2 pt-1">
- <button onclick="closeModal('clearVieScolaireModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">Annuler</button>
- <button onclick="executeClearVieScolaireData()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl shadow-xs transition">Effacer</button>
+ <div class="flex justify-center gap-2 pt-2">
+ <button onclick="closeModal('clearVieScolaireModal')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Annuler</button>
+ <button onclick="executeClearVieScolaireData()" class="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl transition shadow-lg">Effacer</button>
  </div>
  </div>
  </div>
 
  <!-- MODALE : Effacer la base de données (RAZ Année) -->
- <div id="resetDbModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
- <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 space-y-4 border border-slate-100 text-center">
- <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+ <div id="resetDbModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+ <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-800 text-center">
+ <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-2xl border border-rose-500/20 flex items-center justify-center mx-auto">
  <i data-lucide="alert-octagon" class="w-6 h-6"></i>
  </div>
  <div>
- <h3 class="font-bold text-base text-slate-800">Effacer la Base de Données</h3>
- <p class="text-xs text-slate-500 mt-1.5">Attention ! Cette action supprimera définitivement <b>TOUS LES ÉLÈVES</b> et leurs historiques pour débuter une nouvelle année.</p>
+ <h3 class="font-bold text-base text-white">Effacer la Base de Données</h3>
+ <p class="text-xs text-slate-400 mt-2">Attention ! Cette action supprimera définitivement <b>TOUS LES ÉLÈVES</b> et leurs historiques pour débuter une nouvelle année.</p>
  </div>
- <div class="flex justify-center gap-2 pt-1">
- <button onclick="closeModal('resetDbModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">Annuler</button>
- <button onclick="executeResetDb()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl shadow-xs transition">OUI, Effacer tout</button>
+ <div class="flex justify-center gap-2 pt-2">
+ <button onclick="closeModal('resetDbModal')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Annuler</button>
+ <button onclick="executeResetDb()" class="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl transition shadow-lg">OUI, Effacer tout</button>
  </div>
  </div>
  </div>
 
  <!-- MODALE : Export PDF par Classe -->
- <div id="exportClassModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
- <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4 border border-slate-100">
- <div class="flex justify-between items-center border-b pb-3 border-slate-100">
- <div class="flex items-center gap-2">
- <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i>
- <h3 class="font-bold text-base text-slate-800">Exportation PDF par Classe</h3>
+ <div id="exportClassModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+ <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-5 border border-slate-800">
+ <div class="flex justify-between items-center border-b pb-4 border-slate-800">
+ <div class="flex items-center gap-2.5">
+ <i data-lucide="file-text" class="w-5 h-5 text-indigo-400"></i>
+ <h3 class="font-bold text-base text-white">Exportation PDF par Classe</h3>
  </div>
- <button onclick="closeModal('exportClassModal')" class="text-slate-400 hover:text-slate-600 p-1">
- <i data-lucide="x" class="w-5 h-5"></i>
+ <button onclick="closeModal('exportClassModal')" class="text-slate-400 hover:text-white p-1 rounded-xl bg-slate-800">
+ <i data-lucide="x" class="w-4 h-4"></i>
  </button>
  </div>
  
-<form id="exportClassForm" onsubmit="handleExportClassPDF(event)" class="space-y-4">
+ <form id="exportClassForm" onsubmit="handleExportClassPDF(event)" class="space-y-4">
  <div>
- <label class="block text-xs font-semibold text-slate-600 mb-1">Sélectionner la classe</label>
- <select id="exportClassSelect" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Sélectionner la classe</label>
+ <select id="exportClassSelect" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500">
  <option value="ALL">Toutes les classes</option>
  </select>
  </div>
 
  <div>
- <label class="block text-xs font-semibold text-slate-600 mb-1">Contenu du document PDF</label>
- <select id="exportTypeSelect" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Contenu du document PDF</label>
+ <select id="exportTypeSelect" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500">
  <option value="summary">Synthèse globale par élève (Compteurs & Badges)</option>
  <option value="details">Historique détaillé des événements</option>
  <option value="both">Les deux (Synthèse + Historique)</option>
@@ -827,14 +827,14 @@
  </select>
  </div>
 
- <div class="bg-indigo-50/80 border border-indigo-200 rounded-xl p-3 text-xs text-indigo-800 flex items-start gap-2">
- <i data-lucide="info" class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5"></i>
+ <div class="bg-indigo-950/40 border border-indigo-800/50 rounded-2xl p-3.5 text-xs text-indigo-300 flex items-start gap-2.5">
+ <i data-lucide="info" class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"></i>
  <p>Génère un document PDF mis en page prêt pour l'impression ou l'archivage administratif.</p>
  </div>
 
  <div class="flex justify-end gap-2 pt-2">
- <button type="button" onclick="closeModal('exportClassModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl">Annuler</button>
- <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs flex items-center gap-1.5">
+ <button type="button" onclick="closeModal('exportClassModal')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Annuler</button>
+ <button type="submit" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition shadow-lg flex items-center gap-2">
  <i data-lucide="download" class="w-4 h-4"></i>
  <span>Télécharger PDF</span>
  </button>
@@ -844,39 +844,39 @@
  </div>
 
  <!-- MODALE : Ajout d'Événement / Punition -->
- <div id="eventModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
- <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4 border border-slate-100">
- <div class="flex justify-between items-center border-b pb-3 border-slate-100">
- <h3 class="font-bold text-base text-slate-800" id="eventModalTitle">Ajouter un événement</h3>
- <button onclick="closeModal('eventModal')" class="text-slate-400 hover:text-slate-600 p-1">
- <i data-lucide="x" class="w-5 h-5"></i>
+ <div id="eventModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+ <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-5 border border-slate-800">
+ <div class="flex justify-between items-center border-b pb-4 border-slate-800">
+ <h3 class="font-bold text-base text-white" id="eventModalTitle">Ajouter un événement</h3>
+ <button onclick="closeModal('eventModal')" class="text-slate-400 hover:text-white p-1 rounded-xl bg-slate-800">
+ <i data-lucide="x" class="w-4 h-4"></i>
  </button>
  </div>
  
-<form id="eventForm" onsubmit="handleSaveEvent(event)" class="space-y-4">
+ <form id="eventForm" onsubmit="handleSaveEvent(event)" class="space-y-4">
  <input type="hidden" id="eventTypeInput">
 
  <div>
- <label class="block text-xs font-semibold text-slate-600 mb-1">Date & Heure</label>
- <input type="datetime-local" id="eventDateInput" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Date & Heure</label>
+ <input type="datetime-local" id="eventDateInput" required class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500">
  </div>
 
  <div id="justifiedField" class="hidden">
- <label class="block text-xs font-semibold text-slate-600 mb-1">Motif Justifié ?</label>
- <select id="eventJustifiedInput" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Motif Justifié ?</label>
+ <select id="eventJustifiedInput" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500">
  <option value="Non">Non (Non justifié)</option>
  <option value="Oui">Oui (Justifié)</option>
  </select>
  </div>
 
  <div id="durationField" class="hidden">
- <label class="block text-xs font-semibold text-slate-600 mb-1">Durée (Heures)</label>
- <input type="number" id="eventDurationInput" min="1" max="8" value="1" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Durée (Heures)</label>
+ <input type="number" id="eventDurationInput" min="1" max="8" value="1" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500">
  </div>
 
  <div id="pronotePunitionTypeField" class="hidden">
- <label class="block text-xs font-semibold text-slate-600 mb-1">Type d'absence injustifiée / Punition</label>
- <select id="eventPronoteTypeInput" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Type d'absence injustifiée / Punition</label>
+ <select id="eventPronoteTypeInput" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500">
  <option value="Absence injustifiée">Absence injustifiée</option>
  <option value="Retenue">Retenue / Colle</option>
  <option value="Exclusion de cours">Exclusion de cours</option>
@@ -893,48 +893,48 @@
  </div>
 
  <div>
- <label class="block text-xs font-semibold text-slate-600 mb-1">Motif / Commentaire</label>
- <textarea id="eventMotifInput" rows="3" placeholder="Renseignez le motif..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Motif / Commentaire</label>
+ <textarea id="eventMotifInput" rows="3" placeholder="Renseignez le motif..." class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500"></textarea>
  </div>
 
  <div class="flex justify-end gap-2 pt-2">
- <button type="button" onclick="closeModal('eventModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl">Annuler</button>
- <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs">Enregistrer</button>
+ <button type="button" onclick="closeModal('eventModal')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Annuler</button>
+ <button type="submit" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition shadow-lg">Enregistrer</button>
  </div>
  </form>
  </div>
  </div>
 
  <!-- MODALE : Nouvel Élève -->
- <div id="addStudentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
- <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4 border border-slate-100">
- <div class="flex justify-between items-center border-b pb-3 border-slate-100">
- <h3 class="font-bold text-base text-slate-800">Ajouter un Élève</h3>
- <button onclick="closeModal('addStudentModal')" class="text-slate-400 hover:text-slate-600 p-1">
- <i data-lucide="x" class="w-5 h-5"></i>
+ <div id="addStudentModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+ <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-5 border border-slate-800">
+ <div class="flex justify-between items-center border-b pb-4 border-slate-800">
+ <h3 class="font-bold text-base text-white">Ajouter un Élève</h3>
+ <button onclick="closeModal('addStudentModal')" class="text-slate-400 hover:text-white p-1 rounded-xl bg-slate-800">
+ <i data-lucide="x" class="w-4 h-4"></i>
  </button>
  </div>
  
-<form id="addStudentForm" onsubmit="handleAddStudent(event)" class="space-y-3.5">
+ <form id="addStudentForm" onsubmit="handleAddStudent(event)" class="space-y-4">
  <div class="grid grid-cols-2 gap-3">
  <div>
- <label class="block text-xs font-semibold text-slate-600 mb-1">Nom *</label>
- <input type="text" id="newNom" required placeholder="DUPONT" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Nom *</label>
+ <input type="text" id="newNom" required placeholder="DUPONT" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500">
  </div>
  <div>
- <label class="block text-xs font-semibold text-slate-600 mb-1">Prénom *</label>
- <input type="text" id="newPrenom" required placeholder="Jean" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Prénom *</label>
+ <input type="text" id="newPrenom" required placeholder="Jean" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500">
  </div>
  </div>
 
  <div class="grid grid-cols-2 gap-3">
  <div>
- <label class="block text-xs font-semibold text-slate-600 mb-1">Classe *</label>
- <input type="text" id="newClasse" required placeholder="3ème A" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Classe *</label>
+ <input type="text" id="newClasse" required placeholder="3ème A" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500">
  </div>
  <div>
- <label class="block text-xs font-semibold text-slate-600 mb-1">Régime</label>
- <select id="newRegime" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Régime</label>
+ <select id="newRegime" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500">
  <option value="Demi-pensionnaire">Demi-pensionnaire</option>
  <option value="Externe">Externe</option>
  <option value="Interne">Interne</option>
@@ -944,29 +944,29 @@
 
  <div class="grid grid-cols-2 gap-3">
  <div>
- <label class="block text-xs font-semibold text-slate-600 mb-1">Autorisation Sortie</label>
- <select id="newAutorisation" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Autorisation Sortie</label>
+ <select id="newAutorisation" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500">
  <option value="Oui">Oui</option>
  <option value="Non">Non</option>
  </select>
  </div>
  <div>
- <label class="block text-xs font-semibold text-slate-600 mb-1">Prof. Principal</label>
- <input type="text" id="newProf" placeholder="Mme Martin" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+ <label class="block text-xs font-semibold text-slate-300 mb-1.5">Prof. Principal</label>
+ <input type="text" id="newProf" placeholder="Mme Martin" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-indigo-500">
  </div>
  </div>
 
- <div class="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
+ <div class="grid grid-cols-2 gap-3 border-t border-slate-800 pt-4">
  <div>
- <label class="block text-xs font-semibold text-rose-700 mb-1">Alerter CPE</label>
- <select id="newAlerteCpe" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-rose-500 font-semibold">
+ <label class="block text-xs font-semibold text-rose-400 mb-1.5">Alerter CPE</label>
+ <select id="newAlerteCpe" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-rose-500 font-semibold">
  <option value="Non">Non</option>
  <option value="Oui">Oui (Alerte Rouge)</option>
  </select>
  </div>
  <div>
- <label class="block text-xs font-semibold text-amber-700 mb-1">Document non rendu</label>
- <select id="newDocNonRendu" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-amber-500 font-semibold">
+ <label class="block text-xs font-semibold text-amber-400 mb-1.5">Document non rendu</label>
+ <select id="newDocNonRendu" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs sm:text-sm text-white outline-none focus:border-amber-500 font-semibold">
  <option value="Non">Non</option>
  <option value="Oui">Oui (Orange)</option>
  </select>
@@ -974,26 +974,26 @@
  </div>
 
  <div class="flex justify-end gap-2 pt-2">
- <button type="button" onclick="closeModal('addStudentModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl">Annuler</button>
- <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-xs">Créer l'Élève</button>
+ <button type="button" onclick="closeModal('addStudentModal')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Annuler</button>
+ <button type="submit" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition shadow-lg shadow-emerald-950/30">Créer l'Élève</button>
  </div>
  </form>
  </div>
  </div>
 
  <!-- MODALE : Confirmation de Suppression Élève -->
- <div id="deleteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
- <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 space-y-4 border border-slate-100 text-center">
- <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+ <div id="deleteModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+ <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-800 text-center">
+ <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-2xl border border-rose-500/20 flex items-center justify-center mx-auto">
  <i data-lucide="alert-triangle" class="w-6 h-6"></i>
  </div>
  <div>
- <h3 class="font-bold text-base text-slate-800">Confirmer la suppression</h3>
- <p class="text-xs text-slate-500 mt-1">Êtes-vous sûr de vouloir supprimer cet élève ? Action irréversible.</p>
+ <h3 class="font-bold text-base text-white">Confirmer la suppression</h3>
+ <p class="text-xs text-slate-400 mt-2">Êtes-vous sûr de vouloir supprimer cet élève ? Action irréversible.</p>
  </div>
- <div class="flex justify-center gap-2 pt-1">
- <button onclick="closeModal('deleteModal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl">Annuler</button>
- <button onclick="executeDeleteStudent()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl shadow-xs">Supprimer</button>
+ <div class="flex justify-center gap-2 pt-2">
+ <button onclick="closeModal('deleteModal')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition">Annuler</button>
+ <button onclick="executeDeleteStudent()" class="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl transition shadow-lg">Supprimer</button>
  </div>
  </div>
  </div>
@@ -1338,13 +1338,12 @@
  populateStudentSuggestions();
  renderStudentsGrid();
  
- // Lancement de la recherche et fermeture du clavier virtuel sur appui de la touche Entrée
+ // Fermeture du clavier virtuel sur appui de la touche Entrée dans la barre de recherche
  const searchInputEl = document.getElementById('searchInput');
  if (searchInputEl) {
  searchInputEl.addEventListener('keydown', function(event) {
  if (event.key === 'Enter') {
  event.preventDefault();
- filterStudents();
  searchInputEl.blur();
  }
  });
@@ -1441,9 +1440,9 @@
  allLevels.forEach(lvl => {
  const isChecked = (appSettings.cpeLevels || []).includes(lvl.code);
  const label = document.createElement('label');
- label.className = "flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer select-none hover:text-indigo-600";
+ label.className = "flex items-center gap-2 text-xs font-semibold text-slate-300 cursor-pointer select-none hover:text-indigo-400";
  label.innerHTML = `
- <input type="checkbox" name="cpeLevelCheckbox" value="${sanitize(lvl.code)}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+ <input type="checkbox" name="cpeLevelCheckbox" value="${sanitize(lvl.code)}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-indigo-500 rounded border-slate-700 bg-slate-900 focus:ring-indigo-500">
  <span>${sanitize(lvl.label)}</span>
  `;
  container.appendChild(label);
@@ -1549,7 +1548,7 @@
  const safeId = sanitize(student.id);
 
  const card = document.createElement('div');
- card.className = `rounded-2xl p-4 sm:p-5 border shadow-2xs hover:shadow-md transition relative flex flex-col justify-between group min-h-[230px] ${isNoExit ? 'card-no-exit' : 'bg-white border-slate-200/90'}`;
+ card.className = `rounded-3xl p-5 border shadow-xl transition-all duration-200 relative flex flex-col justify-between group min-h-[230px] ${isNoExit ? 'card-no-exit' : 'bg-slate-900/90 border-slate-800/90 hover:border-slate-700'}`;
 
  const formattedRetenues = Number.isInteger(retenues) ? retenues : retenues.toFixed(1);
 
@@ -1558,125 +1557,125 @@
  <div class="flex justify-between items-start gap-2">
  <div class="cursor-pointer flex-1" onclick="openStudentDetail('${safeId}')">
  <div class="flex items-center gap-1.5 flex-wrap">
- <h3 class="font-bold text-slate-800 text-sm sm:text-base group-hover:text-indigo-600 transition">
+ <h3 class="font-bold text-white text-base group-hover:text-indigo-400 transition">
  ${safeNom} ${safePrenom}
  </h3>
  ${isAlerteCpe ? `
- <span class="inline-flex items-center gap-1 bg-rose-600 text-white px-2 py-0.5 rounded-full text-[10px] font-extrabold shadow-2xs animate-pulse" title="Alerte CPE activée">
+ <span class="inline-flex items-center gap-1 bg-rose-600 text-white px-2 py-0.5 rounded-full text-[10px] font-extrabold shadow-lg shadow-rose-900/40 animate-pulse" title="Alerte CPE activée">
  <i data-lucide="siren" class="w-3 h-3"></i> CPE
  </span>
  ` : ''}
  ${isDocNonRendu ? `
- <span class="inline-flex items-center gap-1 bg-amber-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-2xs" title="Document non rendu">
+ <span class="inline-flex items-center gap-1 bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-md" title="Document non rendu">
  <i data-lucide="file-warning" class="w-3 h-3"></i> DOC
  </span>
  ` : ''}
  ${thresholdInfo.hasExceeded ? `
  <div class="relative group/tooltip inline-block">
- <span class="inline-flex items-center gap-1 bg-rose-100 text-rose-800 border border-rose-300 px-2 py-0.5 rounded-full text-[10px] font-bold cursor-help shadow-2xs">
- <i data-lucide="info" class="w-3 h-3 text-rose-600"></i>
+ <span class="inline-flex items-center gap-1 bg-rose-950/60 text-rose-300 border border-rose-800/50 px-2 py-0.5 rounded-full text-[10px] font-bold cursor-help">
+ <i data-lucide="info" class="w-3 h-3 text-rose-400"></i>
  <span>Détails seuil</span>
  </span>
- <div class="absolute left-0 sm:right-0 sm:left-auto mt-1 z-30 hidden group-hover/tooltip:block w-64 p-2.5 bg-slate-900 text-white text-[11px] rounded-xl shadow-xl border border-slate-700 leading-tight">
- <p class="font-bold text-amber-300 mb-1 flex items-center gap-1">
+ <div class="absolute left-0 sm:right-0 sm:left-auto mt-1 z-30 hidden group-hover/tooltip:block w-64 p-3 bg-slate-950 text-white text-[11px] rounded-2xl shadow-2xl border border-slate-800 leading-tight">
+ <p class="font-bold text-amber-400 mb-1 flex items-center gap-1">
  <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-amber-400"></i> Raison / Seuils dépassés :
  </p>
- <ul class="list-disc list-inside space-y-1 text-slate-200">
+ <ul class="list-disc list-inside space-y-1 text-slate-300">
  ${thresholdInfo.reasons.map(r => `<li>${sanitize(r)}</li>`).join('')}
  </ul>
  </div>
  </div>
  ` : ''}
  </div>
- <div class="flex items-center gap-1.5 mt-1">
- <span class="inline-block bg-slate-100 text-slate-700 font-semibold text-[11px] px-2 py-0.5 rounded-md border border-slate-200">${safeClasse}</span>
- <span class="text-[11px] px-2 py-0.5 rounded-md font-medium ${isCanteen ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-blue-50 text-blue-700 border border-blue-200'}">
+ <div class="flex items-center gap-1.5 mt-1.5">
+ <span class="inline-block bg-slate-800/80 text-slate-300 font-semibold text-[11px] px-2.5 py-0.5 rounded-lg border border-slate-700/60">${safeClasse}</span>
+ <span class="text-[11px] px-2.5 py-0.5 rounded-lg font-medium ${isCanteen ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20'}">
  ${safeRegime}
  </span>
  </div>
  </div>
 
  ${isCanteen ? `
- <div class="flex items-center gap-1 bg-emerald-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-2xs shrink-0" title="Élève demi-pensionnaire">
- <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+ <div class="flex items-center gap-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0" title="Élève demi-pensionnaire">
+ <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
  <span>CANTINE</span>
  </div>
  ` : ''}
  </div>
 
  ${thresholdInfo.hasExceeded ? `
- <div class="mt-2.5 p-2 bg-rose-50/90 border border-rose-200/90 rounded-xl text-[11px] text-rose-900 flex items-start gap-1.5">
- <i data-lucide="info" class="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5"></i>
+ <div class="mt-3 p-2.5 bg-rose-950/40 border border-rose-800/50 rounded-2xl text-[11px] text-rose-200 flex items-start gap-2">
+ <i data-lucide="info" class="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5"></i>
  <div class="flex-1 leading-snug">
- <span class="font-bold text-rose-800 block text-[10px] uppercase tracking-wide">Seuil(s) atteint(s) :</span>
- <span class="text-xs font-semibold text-rose-950">${sanitize(thresholdInfo.summaryText)}</span>
+ <span class="font-bold text-rose-400 block text-[10px] uppercase tracking-wide">Seuil(s) atteint(s) :</span>
+ <span class="text-xs font-semibold text-rose-100">${sanitize(thresholdInfo.summaryText)}</span>
  </div>
  </div>
  ` : ''}
 
- <div class="mt-3.5 pt-2.5 border-t ${isNoExit ? 'border-red-200/60' : 'border-slate-100'} flex flex-col gap-2 text-xs">
+ <div class="mt-4 pt-3 border-t ${isNoExit ? 'border-rose-900/40' : 'border-slate-800/80'} flex flex-col gap-2.5 text-xs">
  
-<!-- BOUTONS INTERRUPTEURS RAPIDES EN CARTE -->
- <div class="grid grid-cols-2 gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-200/70">
+ <!-- BOUTONS INTERRUPTEURS RAPIDES EN CARTE -->
+ <div class="grid grid-cols-2 gap-2 bg-slate-950/60 p-2 rounded-2xl border border-slate-800/60">
  <div class="flex items-center justify-between gap-1 px-1">
- <span class="text-[10px] font-semibold text-rose-800 flex items-center gap-1"><i data-lucide="siren" class="w-3 h-3 text-rose-600"></i> CPE</span>
- <button onclick="quickToggleCpe('${safeId}', event)" class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isAlerteCpe ? 'bg-rose-600' : 'bg-slate-300'}" title="Alerter CPE">
- <span class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isAlerteCpe ? 'translate-x-3' : 'translate-x-0'}"></span>
+ <span class="text-[10px] font-semibold text-rose-400 flex items-center gap-1"><i data-lucide="siren" class="w-3 h-3"></i> CPE</span>
+ <button onclick="quickToggleCpe('${safeId}', event)" class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isAlerteCpe ? 'bg-rose-600' : 'bg-slate-700'}" title="Alerter CPE">
+ <span class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${isAlerteCpe ? 'translate-x-3' : 'translate-x-0'}"></span>
  </button>
  </div>
 
- <div class="flex items-center justify-between gap-1 px-1 border-l border-slate-200">
- <span class="text-[10px] font-semibold text-amber-800 flex items-center gap-1"><i data-lucide="file-warning" class="w-3 h-3 text-amber-600"></i> Doc</span>
- <button onclick="quickToggleDoc('${safeId}', event)" class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isDocNonRendu ? 'bg-amber-500' : 'bg-slate-300'}" title="Document non rendu">
- <span class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isDocNonRendu ? 'translate-x-3' : 'translate-x-0'}"></span>
+ <div class="flex items-center justify-between gap-1 px-1 border-l border-slate-800/80">
+ <span class="text-[10px] font-semibold text-amber-400 flex items-center gap-1"><i data-lucide="file-warning" class="w-3 h-3"></i> Doc</span>
+ <button onclick="quickToggleDoc('${safeId}', event)" class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isDocNonRendu ? 'bg-amber-500' : 'bg-slate-700'}" title="Document non rendu">
+ <span class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${isDocNonRendu ? 'translate-x-3' : 'translate-x-0'}"></span>
  </button>
  </div>
  </div>
 
  <div class="flex items-center justify-between gap-2">
- <div class="flex items-center gap-1.5 bg-white/90 backdrop-blur-xs px-2 py-1 rounded-xl border border-slate-200">
- <span class="text-[11px] font-medium text-slate-600">Cantine:</span>
- <button onclick="requestToggleCanteen('${safeId}', event)" class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isCanteen ? 'bg-emerald-500' : 'bg-slate-300'}" title="Basculer statut cantine">
- <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isCanteen ? 'translate-x-4' : 'translate-x-0'}"></span>
+ <div class="flex items-center gap-2 bg-slate-950/60 px-2.5 py-1.5 rounded-xl border border-slate-800/60">
+ <span class="text-[11px] font-medium text-slate-400">Cantine:</span>
+ <button onclick="requestToggleCanteen('${safeId}', event)" class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isCanteen ? 'bg-emerald-500' : 'bg-slate-700'}" title="Basculer statut cantine">
+ <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${isCanteen ? 'translate-x-4' : 'translate-x-0'}"></span>
  </button>
  </div>
 
- <div class="flex items-center gap-1.5 bg-white/90 backdrop-blur-xs px-2 py-1 rounded-xl border border-slate-200">
- <span class="text-[11px] font-medium text-slate-600">Sortie:</span>
- <button onclick="requestToggleExit('${safeId}', event)" class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${!isNoExit ? 'bg-emerald-500' : 'bg-rose-500'}" title="Autoriser / Interdire la sortie">
- <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${!isNoExit ? 'translate-x-4' : 'translate-x-0'}"></span>
+ <div class="flex items-center gap-2 bg-slate-950/60 px-2.5 py-1.5 rounded-xl border border-slate-800/60">
+ <span class="text-[11px] font-medium text-slate-400">Sortie:</span>
+ <button onclick="requestToggleExit('${safeId}', event)" class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${!isNoExit ? 'bg-emerald-500' : 'bg-rose-600'}" title="Autoriser / Interdire la sortie">
+ <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${!isNoExit ? 'translate-x-4' : 'translate-x-0'}"></span>
  </button>
- <span class="text-[10px] font-bold ${!isNoExit ? 'text-emerald-700' : 'text-rose-700'}">${!isNoExit ? 'OUI' : 'NON'}</span>
+ <span class="text-[10px] font-bold ${!isNoExit ? 'text-emerald-400' : 'text-rose-400'}">${!isNoExit ? 'OUI' : 'NON'}</span>
  </div>
  </div>
 
  ${isCanteen ? `
- <div class="flex items-center gap-1.5 bg-emerald-50/80 px-2 py-1 rounded-xl border border-emerald-200/80 text-emerald-900">
- <i data-lucide="credit-card" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
- <span class="text-[10px] font-semibold">Carte Repère:</span>
- <input type="text" value="${safeBadgeRepere}" onchange="updateStudentRepereFromGrid('${safeId}', this.value)" placeholder="N° repère..." class="bg-white border border-emerald-300 rounded-md px-1.5 py-0.5 text-xs font-mono text-emerald-800 w-full outline-none focus:ring-1 focus:ring-emerald-500">
+ <div class="flex items-center gap-2 bg-emerald-950/40 px-2.5 py-1.5 rounded-xl border border-emerald-800/40 text-emerald-300">
+ <i data-lucide="credit-card" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+ <span class="text-[10px] font-semibold">Badge Repère:</span>
+ <input type="text" value="${safeBadgeRepere}" onchange="updateStudentRepereFromGrid('${safeId}', this.value)" placeholder="N° repère..." class="bg-slate-900 border border-emerald-700/50 rounded-lg px-2 py-0.5 text-xs font-mono text-emerald-200 w-full outline-none focus:ring-1 focus:ring-emerald-500">
  </div>
  ` : ''}
 
  </div>
  </div>
 
- <div class="grid grid-cols-4 gap-1.5 mt-3 pt-2.5 border-t ${isNoExit ? 'border-red-200/60' : 'border-slate-100'} text-center cursor-pointer" onclick="openStudentDetail('${safeId}')">
- <div class="bg-white/90 py-1 rounded-lg border border-slate-200/60">
- <span class="block text-[9px] text-slate-400 font-bold uppercase">Retards</span>
- <span class="font-extrabold text-xs sm:text-sm ${retards > 0 ? 'text-amber-600' : 'text-slate-600'}">${retards}</span>
+ <div class="grid grid-cols-4 gap-2 mt-4 pt-3 border-t ${isNoExit ? 'border-rose-900/40' : 'border-slate-800/80'} text-center cursor-pointer" onclick="openStudentDetail('${safeId}')">
+ <div class="bg-slate-950/60 py-1.5 rounded-xl border border-slate-800/60">
+ <span class="block text-[9px] text-slate-500 font-bold uppercase">Retards</span>
+ <span class="font-extrabold text-xs sm:text-sm ${retards > 0 ? 'text-amber-400' : 'text-slate-400'}">${retards}</span>
  </div>
- <div class="bg-white/90 py-1 rounded-lg border border-slate-200/60">
- <span class="block text-[9px] text-slate-400 font-bold uppercase">Absences</span>
- <span class="font-extrabold text-xs sm:text-sm ${absences > 0 ? 'text-rose-600' : 'text-slate-600'}">${absences}</span>
+ <div class="bg-slate-950/60 py-1.5 rounded-xl border border-slate-800/60">
+ <span class="block text-[9px] text-slate-500 font-bold uppercase">Absences</span>
+ <span class="font-extrabold text-xs sm:text-sm ${absences > 0 ? 'text-rose-400' : 'text-slate-400'}">${absences}</span>
  </div>
- <div class="bg-white/90 py-1 rounded-lg border border-slate-200/60">
- <span class="block text-[9px] text-slate-400 font-bold uppercase">Colles</span>
- <span class="font-extrabold text-xs sm:text-sm ${retenues > 0 ? 'text-purple-600' : 'text-slate-600'}">${formattedRetenues}h</span>
+ <div class="bg-slate-950/60 py-1.5 rounded-xl border border-slate-800/60">
+ <span class="block text-[9px] text-slate-500 font-bold uppercase">Colles</span>
+ <span class="font-extrabold text-xs sm:text-sm ${retenues > 0 ? 'text-purple-400' : 'text-slate-400'}">${formattedRetenues}h</span>
  </div>
- <div class="bg-white/90 py-1 rounded-lg border border-slate-200/60">
- <span class="block text-[9px] text-slate-400 font-bold uppercase">EDT Bloqué</span>
- <span class="font-extrabold text-xs sm:text-sm ${emploiBloque > 0 ? 'text-amber-800' : 'text-slate-600'}">${emploiBloque}</span>
+ <div class="bg-slate-950/60 py-1.5 rounded-xl border border-slate-800/60">
+ <span class="block text-[9px] text-slate-500 font-bold uppercase">EDT Bloqué</span>
+ <span class="font-extrabold text-xs sm:text-sm ${emploiBloque > 0 ? 'text-amber-500' : 'text-slate-400'}">${emploiBloque}</span>
  </div>
  </div>
  `;
@@ -1741,9 +1740,9 @@
  const btn = document.getElementById('btnFilterUnjustified');
  if (!btn) return;
  if (showOnlyUnjustifiedAbsences) {
- btn.className = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 text-white border border-rose-600 shadow-2xs transition no-print shrink-0";
+ btn.className = "inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold bg-rose-600 text-white border border-rose-600 shadow-md transition no-print shrink-0";
  } else {
- btn.className = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-rose-50 hover:text-rose-700 border border-slate-200 transition no-print shrink-0";
+ btn.className = "inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-rose-950/40 hover:text-rose-300 border border-slate-700 transition no-print shrink-0";
  }
  }
 
@@ -1752,12 +1751,12 @@
  
  const tabs = document.querySelectorAll('.hist-tab');
  tabs.forEach(t => {
- t.className = "hist-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-200/70";
+ t.className = "hist-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50";
  });
 
  const activeTab = document.getElementById(`hist-tab-${cat}`);
  if (activeTab) {
- activeTab.className = "hist-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition bg-indigo-600 text-white shadow-2xs";
+ activeTab.className = "hist-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-indigo-600 text-white shadow-md";
  }
 
  if (selectedStudentId) {
@@ -1815,18 +1814,19 @@
 
  events.forEach(ev => {
  const tr = document.createElement('tr');
+ tr.className = "hover:bg-slate-800/40 transition";
  
- let badgeClass = "bg-slate-100 text-slate-700";
+ let badgeClass = "bg-slate-800 text-slate-300 border border-slate-700";
  let typeLabel = ev.type;
  
- if (ev.type === 'retard') { badgeClass = "bg-amber-100 text-amber-800"; typeLabel = "RETARD"; }
- else if (ev.type === 'absence') { badgeClass = "bg-rose-100 text-rose-800"; typeLabel = "ABSENCE"; }
- else if (ev.type === 'retenue') { badgeClass = "bg-purple-100 text-purple-800"; typeLabel = ev.pronoteType ? `RETENUE (${ev.pronoteType.toUpperCase()})` : "RETENUE"; }
- else if (ev.type === 'emploi_bloque') { badgeClass = "bg-amber-100 text-amber-900"; typeLabel = "EMPLOI DU TEMPS BLOQUÉ"; }
- else if (ev.type === 'exclusion') { badgeClass = "bg-rose-100 text-rose-900"; typeLabel = "EXCLUSION DE COURS"; }
- else if (ev.type === 'observation') { badgeClass = "bg-blue-100 text-blue-800"; typeLabel = "OBSERVATION"; }
- else if (ev.type === 'abs_injustifiee' || (ev.pronoteType && ev.pronoteType.toLowerCase().includes('absence injustifiée'))) { badgeClass = "bg-red-100 text-red-800 font-bold"; typeLabel = "ABSENCE INJUSTIFIÉE"; }
- else if (ev.type === 'carnet') { badgeClass = "bg-slate-200 text-slate-800"; typeLabel = "OUBLI CARNET"; }
+ if (ev.type === 'retard') { badgeClass = "bg-amber-500/10 text-amber-300 border border-amber-500/20"; typeLabel = "RETARD"; }
+ else if (ev.type === 'absence') { badgeClass = "bg-rose-500/10 text-rose-300 border border-rose-500/20"; typeLabel = "ABSENCE"; }
+ else if (ev.type === 'retenue') { badgeClass = "bg-purple-500/10 text-purple-300 border border-purple-500/20"; typeLabel = ev.pronoteType ? `RETENUE (${ev.pronoteType.toUpperCase()})` : "RETENUE"; }
+ else if (ev.type === 'emploi_bloque') { badgeClass = "bg-amber-500/20 text-amber-400 border border-amber-500/30"; typeLabel = "EMPLOI DU TEMPS BLOQUÉ"; }
+ else if (ev.type === 'exclusion') { badgeClass = "bg-rose-500/20 text-rose-400 border border-rose-500/30"; typeLabel = "EXCLUSION DE COURS"; }
+ else if (ev.type === 'observation') { badgeClass = "bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"; typeLabel = "OBSERVATION"; }
+ else if (ev.type === 'abs_injustifiee' || (ev.pronoteType && ev.pronoteType.toLowerCase().includes('absence injustifiée'))) { badgeClass = "bg-red-500/20 text-red-300 border border-red-500/30 font-bold"; typeLabel = "ABSENCE INJUSTIFIÉE"; }
+ else if (ev.type === 'carnet') { badgeClass = "bg-slate-800 text-slate-300 border border-slate-700"; typeLabel = "OUBLI CARNET"; }
 
  const safeEvId = sanitize(ev.id);
  const motifStatut = getStatutDetailFromMotif(ev.motif);
@@ -1838,28 +1838,28 @@
  if (ev.type === 'retenue' || motifStatut === 'Retenue') {
  const hours = getRetenueHours(ev);
  const formattedHours = Number.isInteger(hours) ? hours : hours.toFixed(1);
- detailText = `<span class="font-semibold text-xs text-purple-800">Durée: ${formattedHours}h</span>`;
+ detailText = `<span class="font-semibold text-xs text-purple-300">Durée: ${formattedHours}h</span>`;
  } else if (motifStatut) {
- let badgeColor = "bg-slate-100 text-slate-800 border-slate-300";
- if (motifStatut === 'Exclusion de cours') badgeColor = "bg-rose-100 text-rose-800 border-rose-300 font-semibold";
- else if (motifStatut === 'emploi du temps bloqué') badgeColor = "bg-amber-100 text-amber-800 border-amber-300 font-semibold";
- else if (motifStatut === 'Observations') badgeColor = "bg-blue-100 text-blue-800 border-blue-300 font-semibold";
+ let badgeColor = "bg-slate-800 text-slate-300 border-slate-700";
+ if (motifStatut === 'Exclusion de cours') badgeColor = "bg-rose-950/60 text-rose-300 border-rose-800/50 font-semibold";
+ else if (motifStatut === 'emploi du temps bloqué') badgeColor = "bg-amber-950/60 text-amber-300 border-amber-800/50 font-semibold";
+ else if (motifStatut === 'Observations') badgeColor = "bg-indigo-950/60 text-indigo-300 border-indigo-800/50 font-semibold";
 
  detailText = `<span class="inline-block text-xs px-2.5 py-0.5 rounded-full border ${badgeColor}">${sanitize(motifStatut)}</span>`;
  } else if (ev.type === 'absence' || ev.type === 'retard') {
  detailText = `
- <button onclick="toggleAbsenceJustified('${safeEvId}')" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border transition ${isJustifiedEvent ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-rose-50 text-rose-700 border-rose-300'}">
- <span class="w-1.5 h-1.5 rounded-full ${isJustifiedEvent ? 'bg-emerald-500' : 'bg-rose-500'}"></span>
+ <button onclick="toggleAbsenceJustified('${safeEvId}')" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition ${isJustifiedEvent ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-rose-500/10 text-rose-300 border-rose-500/20'}">
+ <span class="w-1.5 h-1.5 rounded-full ${isJustifiedEvent ? 'bg-emerald-400' : 'bg-rose-400'}"></span>
  <span>${isJustifiedEvent ? 'Justifié' : 'Non Justifié'}</span>
  <i data-lucide="refresh-cw" class="w-3 h-3 ml-0.5 opacity-60"></i>
  </button>
  `;
  } else if (ev.type === 'abs_injustifiee' && ev.pronoteType) {
- detailText = `<span class="font-semibold text-xs text-red-700">${sanitize(ev.pronoteType)}</span>`;
+ detailText = `<span class="font-semibold text-xs text-red-400">${sanitize(ev.pronoteType)}</span>`;
  } else if (ev.type === 'emploi_bloque') {
- detailText = `<span class="font-semibold text-xs text-amber-800">emploi du temps bloqué</span>`;
+ detailText = `<span class="font-semibold text-xs text-amber-400">emploi du temps bloqué</span>`;
  } else if (ev.type === 'exclusion') {
- detailText = `<span class="font-semibold text-xs text-rose-800">Exclusion de cours</span>`;
+ detailText = `<span class="font-semibold text-xs text-rose-400">Exclusion de cours</span>`;
  }
 
  const eventDateStr = extractDateFromText(ev.motif) || ev.date;
@@ -1873,12 +1873,12 @@
  const safeMotif = sanitize(ev.motif || '-');
 
  tr.innerHTML = `
- <td class="py-2.5 px-4 font-mono text-[11px] text-slate-600">${sanitize(formattedDate)}</td>
- <td class="py-2.5 px-4"><span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${badgeClass}">${sanitize(typeLabel)}</span></td>
- <td class="py-2.5 px-4 text-xs">${detailText}</td>
- <td class="py-2.5 px-4 text-xs text-slate-600">${safeMotif}</td>
- <td class="py-2.5 px-4 text-right no-print">
- <button onclick="deleteEvent('${safeEvId}')" class="text-rose-600 hover:text-rose-800 p-1.5 rounded-lg hover:bg-rose-50 transition">
+ <td class="py-3 px-4 font-mono text-[11px] text-slate-400">${sanitize(formattedDate)}</td>
+ <td class="py-3 px-4"><span class="text-[10px] font-bold px-2.5 py-1 rounded-lg ${badgeClass}">${sanitize(typeLabel)}</span></td>
+ <td class="py-3 px-4 text-xs">${detailText}</td>
+ <td class="py-3 px-4 text-xs text-slate-300">${safeMotif}</td>
+ <td class="py-3 px-4 text-right no-print">
+ <button onclick="deleteEvent('${safeEvId}')" class="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-950/40 transition">
  <i data-lucide="trash-2" class="w-4 h-4"></i>
  </button>
  </td>
@@ -1905,13 +1905,13 @@
  const catTabs = document.getElementById('recapCategoryTabs');
 
  if (mode === 'category') {
- btnCat.className = "px-3 py-1.5 rounded-lg bg-white text-indigo-900 shadow-2xs transition";
- btnClass.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition";
+ btnCat.className = "px-3.5 py-2 rounded-xl bg-indigo-600 text-white shadow-md transition";
+ btnClass.className = "px-3.5 py-2 rounded-xl text-slate-400 hover:text-white transition";
  catTabs.classList.remove('hidden');
  renderRecapCategoryCards(currentRecapCategory);
  } else {
- btnClass.className = "px-3 py-1.5 rounded-lg bg-white text-indigo-900 shadow-2xs transition";
- btnCat.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition";
+ btnClass.className = "px-3.5 py-2 rounded-xl bg-indigo-600 text-white shadow-md transition";
+ btnCat.className = "px-3.5 py-2 rounded-xl text-slate-400 hover:text-white transition";
  catTabs.classList.add('hidden');
  renderRecapClassCards();
  }
@@ -1975,7 +1975,7 @@
  const safeId = sanitize(student.id);
 
  const card = document.createElement('div');
- card.className = "bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs hover:shadow-md transition flex flex-col justify-between";
+ card.className = "bg-slate-900/90 rounded-3xl p-5 border border-slate-800/90 shadow-xl flex flex-col justify-between";
 
  let listHtml = catEvents.map(e => {
  const dateStr = extractDateFromText(e.motif) || e.date;
@@ -1994,7 +1994,7 @@
  detail += ` (${formattedHours}h)`;
  }
 
- return `<li class="text-xs text-slate-600"><span class="font-semibold text-slate-800">${sanitize(formattedDate)}:</span> ${detail}</li>`;
+ return `<li class="text-xs text-slate-300"><span class="font-semibold text-slate-100">${sanitize(formattedDate)}:</span> ${detail}</li>`;
  }).join('');
 
  const safeNom = sanitize(student.nom ? student.nom.toUpperCase() : '');
@@ -2003,56 +2003,56 @@
 
  card.innerHTML = `
  <div>
- <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2 cursor-pointer" onclick="openStudentDetail('${safeId}')">
+ <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3 cursor-pointer" onclick="openStudentDetail('${safeId}')">
  <div>
  <div class="flex items-center gap-1.5 flex-wrap">
- <h4 class="font-bold text-slate-800 text-sm hover:text-indigo-600 transition">${safeNom} ${safePrenom}</h4>
+ <h4 class="font-bold text-white text-base hover:text-indigo-400 transition">${safeNom} ${safePrenom}</h4>
  ${isAlerteCpe ? `
- <span class="inline-flex items-center gap-1 bg-rose-600 text-white px-1.5 py-0.5 rounded-full text-[9px] font-extrabold shadow-2xs animate-pulse">
+ <span class="inline-flex items-center gap-1 bg-rose-600 text-white px-2 py-0.5 rounded-full text-[9px] font-extrabold shadow-md animate-pulse">
  <i data-lucide="siren" class="w-2.5 h-2.5"></i> CPE
  </span>
  ` : ''}
  ${isDocNonRendu ? `
- <span class="inline-flex items-center gap-1 bg-amber-500 text-white px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-2xs">
+ <span class="inline-flex items-center gap-1 bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full text-[9px] font-bold shadow-md">
  <i data-lucide="file-warning" class="w-2.5 h-2.5"></i> DOC
  </span>
  ` : ''}
  </div>
- <span class="text-xs text-slate-500 font-medium">${safeClasse}</span>
+ <span class="text-xs text-slate-400 font-medium">${safeClasse}</span>
  </div>
- <span class="bg-indigo-50 text-indigo-700 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-indigo-200">
+ <span class="bg-indigo-500/10 text-indigo-300 text-xs font-extrabold px-3 py-1 rounded-full border border-indigo-500/20">
  ${catEvents.length}
  </span>
  </div>
 
  ${thresholdInfo.hasExceeded ? `
- <div class="mt-2 p-2 bg-rose-50/90 border border-rose-200/90 rounded-xl text-[11px] text-rose-900 flex items-start gap-1.5">
- <i data-lucide="info" class="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5"></i>
+ <div class="mt-3 p-2.5 bg-rose-950/40 border border-rose-800/50 rounded-2xl text-[11px] text-rose-200 flex items-start gap-2">
+ <i data-lucide="info" class="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5"></i>
  <div class="flex-1 leading-snug">
- <span class="font-bold text-rose-800 block text-[10px] uppercase tracking-wide">Seuil(s) atteint(s) :</span>
- <span class="text-[11px] font-semibold text-rose-950">${sanitize(thresholdInfo.summaryText)}</span>
+ <span class="font-bold text-rose-400 block text-[10px] uppercase tracking-wide">Seuil(s) atteint(s) :</span>
+ <span class="text-[11px] font-semibold text-rose-100">${sanitize(thresholdInfo.summaryText)}</span>
  </div>
  </div>
  ` : ''}
 
  <!-- BOUTONS INTERRUPTEURS CPE & DOC SUR CARTE RÉCAP -->
- <div class="grid grid-cols-2 gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-200/70 my-2">
+ <div class="grid grid-cols-2 gap-2 bg-slate-950/60 p-2 rounded-2xl border border-slate-800/60 my-3">
  <div class="flex items-center justify-between gap-1 px-1">
- <span class="text-[10px] font-semibold text-rose-800 flex items-center gap-1"><i data-lucide="siren" class="w-3 h-3 text-rose-600"></i> CPE</span>
- <button onclick="quickToggleCpe('${safeId}', event)" class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isAlerteCpe ? 'bg-rose-600' : 'bg-slate-300'}" title="Alerter CPE">
- <span class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isAlerteCpe ? 'translate-x-3' : 'translate-x-0'}"></span>
+ <span class="text-[10px] font-semibold text-rose-400 flex items-center gap-1"><i data-lucide="siren" class="w-3 h-3"></i> CPE</span>
+ <button onclick="quickToggleCpe('${safeId}', event)" class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isAlerteCpe ? 'bg-rose-600' : 'bg-slate-700'}" title="Alerter CPE">
+ <span class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${isAlerteCpe ? 'translate-x-3' : 'translate-x-0'}"></span>
  </button>
  </div>
 
- <div class="flex items-center justify-between gap-1 px-1 border-l border-slate-200">
- <span class="text-[10px] font-semibold text-amber-800 flex items-center gap-1"><i data-lucide="file-warning" class="w-3 h-3 text-amber-600"></i> Doc</span>
- <button onclick="quickToggleDoc('${safeId}', event)" class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isDocNonRendu ? 'bg-amber-500' : 'bg-slate-300'}" title="Document non rendu">
- <span class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isDocNonRendu ? 'translate-x-3' : 'translate-x-0'}"></span>
+ <div class="flex items-center justify-between gap-1 px-1 border-l border-slate-800/80">
+ <span class="text-[10px] font-semibold text-amber-400 flex items-center gap-1"><i data-lucide="file-warning" class="w-3 h-3"></i> Doc</span>
+ <button onclick="quickToggleDoc('${safeId}', event)" class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isDocNonRendu ? 'bg-amber-500' : 'bg-slate-700'}" title="Document non rendu">
+ <span class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${isDocNonRendu ? 'translate-x-3' : 'translate-x-0'}"></span>
  </button>
  </div>
  </div>
 
- <ul class="mt-2 space-y-1 max-h-32 overflow-y-auto pr-1 cursor-pointer" onclick="openStudentDetail('${safeId}')">
+ <ul class="mt-2 space-y-1.5 max-h-36 overflow-y-auto pr-1 cursor-pointer" onclick="openStudentDetail('${safeId}')">
  ${listHtml}
  </ul>
  </div>
@@ -2107,85 +2107,85 @@
  const formattedRetenues = Number.isInteger(retenues) ? retenues : retenues.toFixed(1);
 
  const card = document.createElement('div');
- card.className = "bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs hover:shadow-md transition flex flex-col justify-between";
+ card.className = "bg-slate-900/90 rounded-3xl p-5 border border-slate-800/90 shadow-xl flex flex-col justify-between";
 
  card.innerHTML = `
  <div>
- <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2 cursor-pointer" onclick="openStudentDetail('${safeId}')">
+ <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3 cursor-pointer" onclick="openStudentDetail('${safeId}')">
  <div>
  <div class="flex items-center gap-1.5 flex-wrap">
- <h4 class="font-bold text-slate-800 text-sm hover:text-indigo-600 transition">${safeNom} ${safePrenom}</h4>
+ <h4 class="font-bold text-white text-base hover:text-indigo-400 transition">${safeNom} ${safePrenom}</h4>
  ${isAlerteCpe ? `
- <span class="inline-flex items-center gap-1 bg-rose-600 text-white px-1.5 py-0.5 rounded-full text-[9px] font-extrabold shadow-2xs animate-pulse">
+ <span class="inline-flex items-center gap-1 bg-rose-600 text-white px-2 py-0.5 rounded-full text-[9px] font-extrabold shadow-md animate-pulse">
  <i data-lucide="siren" class="w-2.5 h-2.5"></i> CPE
  </span>
  ` : ''}
  ${isDocNonRendu ? `
- <span class="inline-flex items-center gap-1 bg-amber-500 text-white px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-2xs">
+ <span class="inline-flex items-center gap-1 bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full text-[9px] font-bold shadow-md">
  <i data-lucide="file-warning" class="w-2.5 h-2.5"></i> DOC
  </span>
  ` : ''}
  </div>
- <span class="text-xs text-slate-500 font-medium">${safeClasse}</span>
+ <span class="text-xs text-slate-400 font-medium">${safeClasse}</span>
  </div>
- <span class="bg-indigo-50 text-indigo-700 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-indigo-200" title="Total d'événements">
+ <span class="bg-indigo-500/10 text-indigo-300 text-xs font-extrabold px-3 py-1 rounded-full border border-indigo-500/20" title="Total d'événements">
  ${events.length} evt(s)
  </span>
  </div>
 
  ${thresholdInfo.hasExceeded ? `
- <div class="mt-2 p-2 bg-rose-50/90 border border-rose-200/90 rounded-xl text-[11px] text-rose-900 flex items-start gap-1.5">
- <i data-lucide="info" class="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5"></i>
+ <div class="mt-3 p-2.5 bg-rose-950/40 border border-rose-800/50 rounded-2xl text-[11px] text-rose-200 flex items-start gap-2">
+ <i data-lucide="info" class="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5"></i>
  <div class="flex-1 leading-snug">
- <span class="font-bold text-rose-800 block text-[10px] uppercase tracking-wide">Seuil(s) atteint(s) :</span>
- <span class="text-[11px] font-semibold text-rose-950">${sanitize(thresholdInfo.summaryText)}</span>
+ <span class="font-bold text-rose-400 block text-[10px] uppercase tracking-wide">Seuil(s) atteint(s) :</span>
+ <span class="text-[11px] font-semibold text-rose-100">${sanitize(thresholdInfo.summaryText)}</span>
  </div>
  </div>
  ` : ''}
 
  <!-- BOUTONS INTERRUPTEURS CPE & DOC SUR CARTE RÉCAP PAR CLASSE -->
- <div class="grid grid-cols-2 gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-200/70 my-2">
+ <div class="grid grid-cols-2 gap-2 bg-slate-950/60 p-2 rounded-2xl border border-slate-800/60 my-3">
  <div class="flex items-center justify-between gap-1 px-1">
- <span class="text-[10px] font-semibold text-rose-800 flex items-center gap-1"><i data-lucide="siren" class="w-3 h-3 text-rose-600"></i> CPE</span>
- <button onclick="quickToggleCpe('${safeId}', event)" class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isAlerteCpe ? 'bg-rose-600' : 'bg-slate-300'}" title="Alerter CPE">
- <span class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isAlerteCpe ? 'translate-x-3' : 'translate-x-0'}"></span>
+ <span class="text-[10px] font-semibold text-rose-400 flex items-center gap-1"><i data-lucide="siren" class="w-3 h-3"></i> CPE</span>
+ <button onclick="quickToggleCpe('${safeId}', event)" class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isAlerteCpe ? 'bg-rose-600' : 'bg-slate-700'}" title="Alerter CPE">
+ <span class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${isAlerteCpe ? 'translate-x-3' : 'translate-x-0'}"></span>
  </button>
  </div>
 
- <div class="flex items-center justify-between gap-1 px-1 border-l border-slate-200">
- <span class="text-[10px] font-semibold text-amber-800 flex items-center gap-1"><i data-lucide="file-warning" class="w-3 h-3 text-amber-600"></i> Doc</span>
- <button onclick="quickToggleDoc('${safeId}', event)" class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isDocNonRendu ? 'bg-amber-500' : 'bg-slate-300'}" title="Document non rendu">
- <span class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isDocNonRendu ? 'translate-x-3' : 'translate-x-0'}"></span>
+ <div class="flex items-center justify-between gap-1 px-1 border-l border-slate-800/80">
+ <span class="text-[10px] font-semibold text-amber-400 flex items-center gap-1"><i data-lucide="file-warning" class="w-3 h-3"></i> Doc</span>
+ <button onclick="quickToggleDoc('${safeId}', event)" class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isDocNonRendu ? 'bg-amber-500' : 'bg-slate-700'}" title="Document non rendu">
+ <span class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${isDocNonRendu ? 'translate-x-3' : 'translate-x-0'}"></span>
  </button>
  </div>
  </div>
 
  <div class="mt-2 cursor-pointer" onclick="openStudentDetail('${safeId}')">
- <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Synthèse des Compteurs</p>
+ <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Synthèse des Compteurs</p>
  <div class="grid grid-cols-3 gap-2 text-center text-xs">
- <div class="bg-amber-50 p-2 rounded-xl border border-amber-200/80">
- <span class="block text-[10px] text-amber-800 font-semibold">Retards</span>
- <span class="font-extrabold text-amber-700 text-sm">${retards}</span>
+ <div class="bg-amber-950/30 p-2 rounded-2xl border border-amber-800/30">
+ <span class="block text-[10px] text-amber-400 font-semibold">Retards</span>
+ <span class="font-extrabold text-amber-300 text-sm">${retards}</span>
  </div>
- <div class="bg-rose-50 p-2 rounded-xl border border-rose-200/80">
- <span class="block text-[10px] text-rose-800 font-semibold">Absences</span>
- <span class="font-extrabold text-rose-700 text-sm">${absences}</span>
+ <div class="bg-rose-950/30 p-2 rounded-2xl border border-rose-800/30">
+ <span class="block text-[10px] text-rose-400 font-semibold">Absences</span>
+ <span class="font-extrabold text-rose-300 text-sm">${absences}</span>
  </div>
- <div class="bg-purple-50 p-2 rounded-xl border border-purple-200/80">
- <span class="block text-[10px] text-purple-800 font-semibold">Retenues</span>
- <span class="font-extrabold text-purple-700 text-sm">${formattedRetenues}h</span>
+ <div class="bg-purple-950/30 p-2 rounded-2xl border border-purple-800/30">
+ <span class="block text-[10px] text-purple-400 font-semibold">Retenues</span>
+ <span class="font-extrabold text-purple-300 text-sm">${formattedRetenues}h</span>
  </div>
- <div class="bg-amber-50/70 p-2 rounded-xl border border-amber-200/60">
- <span class="block text-[10px] text-amber-900 font-semibold">EDT Bloqué</span>
- <span class="font-extrabold text-amber-800 text-sm">${emploiBloque}</span>
+ <div class="bg-amber-950/20 p-2 rounded-2xl border border-amber-800/20">
+ <span class="block text-[10px] text-amber-500 font-semibold">EDT Bloqué</span>
+ <span class="font-extrabold text-amber-400 text-sm">${emploiBloque}</span>
  </div>
- <div class="bg-rose-50/70 p-2 rounded-xl border border-rose-200/60">
- <span class="block text-[10px] text-rose-900 font-semibold">Exclusions</span>
- <span class="font-extrabold text-rose-700 text-sm">${exclusions}</span>
+ <div class="bg-rose-950/20 p-2 rounded-2xl border border-rose-800/20">
+ <span class="block text-[10px] text-rose-500 font-semibold">Exclusions</span>
+ <span class="font-extrabold text-rose-400 text-sm">${exclusions}</span>
  </div>
- <div class="bg-red-50 p-2 rounded-xl border border-red-200/80">
- <span class="block text-[10px] text-red-800 font-semibold">Abs. Injustifiées</span>
- <span class="font-extrabold text-red-700 text-sm">${absInjustifiees}</span>
+ <div class="bg-red-950/40 p-2 rounded-2xl border border-red-800/40">
+ <span class="block text-[10px] text-red-400 font-semibold">Abs. Injust.</span>
+ <span class="font-extrabold text-red-300 text-sm">${absInjustifiees}</span>
  </div>
  </div>
  </div>
@@ -2204,24 +2204,24 @@
  currentQuickFilter = type;
  
  document.getElementById('btnFilterAll').className = type === 'all' 
- ? "px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-2xs flex items-center gap-1.5 transition" 
- : "px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 flex items-center gap-1.5 transition";
+ ? "px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition" 
+ : "px-3 py-2 rounded-xl text-xs font-medium bg-slate-800/80 text-slate-400 border border-slate-700/60 hover:bg-slate-700 flex items-center gap-1.5 transition";
 
  document.getElementById('btnFilterCPE').className = type === 'cpe' 
- ? "px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 text-white shadow-2xs flex items-center gap-1.5 transition" 
- : "px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 hover:bg-rose-50 hover:text-rose-700 flex items-center gap-1.5 transition";
+ ? "px-3 py-2 rounded-xl text-xs font-semibold bg-rose-600 text-white shadow-lg shadow-rose-600/30 flex items-center gap-1.5 transition" 
+ : "px-3 py-2 rounded-xl text-xs font-medium bg-slate-800/80 text-slate-400 border border-slate-700/60 hover:bg-rose-950/40 hover:text-rose-300 flex items-center gap-1.5 transition";
 
  document.getElementById('btnFilterDoc').className = type === 'doc' 
- ? "px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500 text-white shadow-2xs flex items-center gap-1.5 transition" 
- : "px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-1.5 transition";
+ ? "px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30 flex items-center gap-1.5 transition" 
+ : "px-3 py-2 rounded-xl text-xs font-medium bg-slate-800/80 text-slate-400 border border-slate-700/60 hover:bg-amber-950/40 hover:text-amber-300 flex items-center gap-1.5 transition";
 
  document.getElementById('btnFilterCanteen').className = type === 'canteen' 
- ? "px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white shadow-2xs flex items-center gap-1.5 transition" 
- : "px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-1.5 transition";
+ ? "px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 flex items-center gap-1.5 transition" 
+ : "px-3 py-2 rounded-xl text-xs font-medium bg-slate-800/80 text-slate-400 border border-slate-700/60 hover:bg-emerald-950/40 hover:text-emerald-300 flex items-center gap-1.5 transition";
 
  document.getElementById('btnFilterNoExit').className = type === 'no-exit' 
- ? "px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 text-white shadow-2xs flex items-center gap-1.5 transition" 
- : "px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 hover:bg-rose-50 hover:text-rose-700 flex items-center gap-1.5 transition";
+ ? "px-3 py-2 rounded-xl text-xs font-semibold bg-rose-600 text-white shadow-lg shadow-rose-600/30 flex items-center gap-1.5 transition" 
+ : "px-3 py-2 rounded-xl text-xs font-medium bg-slate-800/80 text-slate-400 border border-slate-700/60 hover:bg-rose-950/40 hover:text-rose-300 flex items-center gap-1.5 transition";
 
  filterStudents();
  }
@@ -2368,10 +2368,10 @@
  const exitBadge = document.getElementById('detailExitBadge');
  if (student.autorisationSortie === 'Oui') {
  exitBadge.textContent = "Autorisation de sortie: OUI";
- exitBadge.className = "text-xs px-2.5 py-0.5 rounded-full border bg-emerald-500/20 text-emerald-200 border-emerald-400/30 font-medium";
+ exitBadge.className = "text-xs px-3 py-1 rounded-full border bg-emerald-500/10 text-emerald-300 border-emerald-500/30 font-semibold";
  } else {
  exitBadge.textContent = "INTERDIT DE SORTIE";
- exitBadge.className = "text-xs px-2.5 py-0.5 rounded-full border bg-rose-500/30 text-rose-200 border-rose-400/40 font-bold animate-pulse";
+ exitBadge.className = "text-xs px-3 py-1 rounded-full border bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold animate-pulse";
  }
 
  updateCounters(student);
@@ -2427,12 +2427,12 @@
  btnCpe.className = "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-rose-600";
  dotCpe.className = "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5";
  labelCpe.textContent = "ACTIVÉE (ROUGE)";
- labelCpe.className = "text-xs font-bold text-rose-600";
+ labelCpe.className = "text-xs font-bold text-rose-400";
  } else {
- btnCpe.className = "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-300";
+ btnCpe.className = "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-800";
  dotCpe.className = "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0";
  labelCpe.textContent = "Désactivée";
- labelCpe.className = "text-xs font-semibold text-slate-500";
+ labelCpe.className = "text-xs font-semibold text-slate-400";
  }
 
  const btnDoc = document.getElementById('detailToggleDocBtn');
@@ -2443,12 +2443,12 @@
  btnDoc.className = "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-amber-500";
  dotDoc.className = "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5";
  labelDoc.textContent = "OUI (ORANGE)";
- labelDoc.className = "text-xs font-bold text-amber-600";
+ labelDoc.className = "text-xs font-bold text-amber-400";
  } else {
- btnDoc.className = "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-300";
+ btnDoc.className = "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-800";
  dotDoc.className = "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0";
  labelDoc.textContent = "Non";
- labelDoc.className = "text-xs font-semibold text-slate-500";
+ labelDoc.className = "text-xs font-semibold text-slate-400";
  }
  }
 
@@ -2677,12 +2677,12 @@
  
  const tabs = document.querySelectorAll('.recap-tab');
  tabs.forEach(t => {
- t.className = "recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100";
+ t.className = "recap-tab shrink-0 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200";
  });
 
  const activeTab = document.getElementById(`tab-${cat}`);
  if (activeTab) {
- activeTab.className = "recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow-2xs";
+ activeTab.className = "recap-tab shrink-0 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition bg-indigo-600 text-white shadow-md";
  }
 
  renderRecapCategoryCards(cat);
