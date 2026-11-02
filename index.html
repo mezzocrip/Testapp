@@ -59,7 +59,7 @@
                 <!-- Grille d'affichage dynamique -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
-                    <!-- Classes impactées par les absences (Sorties imminentes / Fin de créneau demi-journée) -->
+                    <!-- Classes impactées par les absences -->
                     <section class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                             <h2 class="text-base font-bold text-amber-400 flex items-center gap-2">
@@ -72,7 +72,7 @@
                         </div>
                     </section>
 
-                    <!-- Toutes les autres classes (Planning normal du jour) -->
+                    <!-- Vue globale du jour -->
                     <section class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                             <h2 class="text-base font-bold text-sky-400 flex items-center gap-2">
@@ -92,17 +92,17 @@
     </div>
 
     <script>
-        // Base de données complète des emplois du temps avec les professeurs associés (extraite des sources PRONOTE)[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span)[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span)[span_6](start_span)[span_6](end_span)[span_7](start_span)[span_7](end_span)[span_8](start_span)[span_8](end_span)[span_9](start_span)[span_9](end_span)
+        // Base de données mise à jour à partir du nouveau PDF officiel PRONOTE[span_12](start_span)[span_12](end_span)[span_13](start_span)[span_13](end_span)[span_14](start_span)[span_14](end_span)[span_15](start_span)[span_15](end_span)[span_16](start_span)[span_16](end_span)[span_17](start_span)[span_17](end_span)[span_18](start_span)[span_18](end_span)[span_19](start_span)[span_19](end_span)[span_20](start_span)[span_20](end_span)[span_21](start_span)[span_21](end_span)[span_22](start_span)[span_22](end_span)
         const planningEDT = [
-            // --- 3EME ---
+            // --- 3EME ---[span_23](start_span)[span_23](end_span)[span_24](start_span)[span_24](end_span)[span_25](start_span)[span_25](end_span)
             { classe: "3A", jour: "lundi", finCours: "12:05", matiere: "Français", prof: "D'ANTONI S.", salle: "A05" },
             { classe: "3A", jour: "lundi", finCours: "17:30", matiere: "Mathématiques", prof: "TOULEMONDE J.", salle: "P1" },
             { classe: "3A", jour: "mardi", finCours: "12:05", matiere: "Histoire-Géo", prof: "VIGNERON M.", salle: "A18" },
             { classe: "3A", jour: "mardi", finCours: "17:30", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B11" },
             { classe: "3A", jour: "mercredi", finCours: "12:05", matiere: "SVT", prof: "MEJEAN M.", salle: "B13" },
-            { classe: "3A", jour: "jeudi", finCours: "12:05", matiere: "Technologie", prof: "BENZAIM O.", salle: "B03" },
+            { classe: "3A", jour: "jeudi", finCours: "12:05", matiere: "Technologie", prof: "BENZAIM O.", salle: "B01" },
             { classe: "3A", jour: "jeudi", finCours: "17:30", matiere: "Espagnol", prof: "MOTHES J.", salle: "A19" },
-            { classe: "3A", jour: "vendredi", finCours: "12:05", matiere: "Maths / Français", prof: "TOULEMONDE J.", salle: "A05" },
+            { classe: "3A", jour: "vendredi", finCours: "12:05", matiere: "Maths / Français", prof: "HABIBES M.", salle: "B01" },
             { classe: "3A", jour: "vendredi", finCours: "17:30", matiere: "Anglais", prof: "SAADA D.", salle: "A13" },
 
             { classe: "3B", jour: "lundi", finCours: "12:05", matiere: "Histoire-Géo", prof: "VIGNERON M.", salle: "A18" },
@@ -120,10 +120,10 @@
             { classe: "3C", jour: "mardi", finCours: "12:05", matiere: "Histoire-Géo", prof: "GIFFARD L.", salle: "A17" },
             { classe: "3C", jour: "mardi", finCours: "17:30", matiere: "Français", prof: "GIRAUD M.", salle: "A04" },
             { classe: "3C", jour: "mercredi", finCours: "12:05", matiere: "Français", prof: "GIRAUD M.", salle: "B01" },
-            { classe: "3C", jour: "jeudi", finCours: "12:05", matiere: "Physique-Chimie", prof: "JULLIOT R.", salle: "B12" },
-            { classe: "3C", jour: "jeudi", finCours: "17:30", matiere: "Mathématiques", prof: "DJAOU R.", salle: "B22" },
-            { classe: "3C", jour: "vendredi", finCours: "12:05", matiere: "Histoire-Géo", prof: "GIFFARD L.", salle: "A18" },
-            { classe: "3C", jour: "vendredi", finCours: "17:30", matiere: "Anglais", prof: "MORETTO S.", salle: "A13" },
+            { classe: "3C", jour: "jeudi", finCours: "12:05", matiere: "Physique-Chimie", prof: "MORETTON N.", salle: "B11" },
+            { classe: "3C", jour: "jeudi", finCours: "17:30", matiere: "Mathématiques", prof: "FABRE C.", salle: "B24" },
+            { classe: "3C", jour: "vendredi", finCours: "12:05", matiere: "Histoire-Géo", prof: "GIFFARD L.", salle: "A17" },
+            { classe: "3C", jour: "vendredi", finCours: "17:30", matiere: "Anglais", prof: "MORETTO S.", salle: "A12" },
 
             { classe: "3D", jour: "lundi", finCours: "12:05", matiere: "Mathématiques", prof: "FABRE C.", salle: "B24" },
             { classe: "3D", jour: "lundi", finCours: "17:30", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B11" },
@@ -133,19 +133,19 @@
             { classe: "3D", jour: "jeudi", finCours: "12:05", matiere: "Technologie", prof: "HADDAD A.", salle: "B03" },
             { classe: "3D", jour: "jeudi", finCours: "17:30", matiere: "Espagnol", prof: "MOTHES J.", salle: "A19" },
             { classe: "3D", jour: "vendredi", finCours: "12:05", matiere: "Anglais", prof: "SAADA D.", salle: "A13" },
-            { classe: "3D", jour: "vendredi", finCours: "17:30", matiere: "Mathématiques", prof: "PETIT M.", salle: "B24" },
+            { classe: "3D", jour: "vendredi", finCours: "17:30", matiere: "Mathématiques", prof: "FABRE C.", salle: "B24" },
 
             { classe: "3E", jour: "lundi", finCours: "12:05", matiere: "Physique-Chimie", prof: "MORETTON N.", salle: "B11" },
             { classe: "3E", jour: "lundi", finCours: "17:30", matiere: "Français", prof: "GILLY J.", salle: "A16" },
-            { classe: "3E", jour: "mardi", finCours: "12:05", matiere: "Mathématiques", prof: "HERRY M.", salle: "B25" },
+            { classe: "3E", jour: "mardi", finCours: "12:05", matiere: "Mathématiques", prof: "HABIBES M.", salle: "B25" },
             { classe: "3E", jour: "mardi", finCours: "17:30", matiere: "Histoire-Géo", prof: "MAILLARD F.", salle: "A16" },
             { classe: "3E", jour: "mercredi", finCours: "12:05", matiere: "SVT", prof: "MEJEAN M.", salle: "B13" },
-            { classe: "3E", jour: "jeudi", finCours: "12:05", matiere: "Mathématiques", prof: "HERRY M.", salle: "B25" },
-            { classe: "3E", jour: "jeudi", finCours: "17:30", matiere: "Anglais", prof: "SAADA D.", salle: "A14" },
+            { classe: "3E", jour: "jeudi", finCours: "12:05", matiere: "Mathématiques", prof: "HABIBES M.", salle: "B25" },
+            { classe: "3E", jour: "jeudi", finCours: "17:30", matiere: "Anglais", prof: "SAADA D.", salle: "A13" },
             { classe: "3E", jour: "vendredi", finCours: "12:05", matiere: "Histoire-Géo", prof: "MAILLARD F.", salle: "A16" },
             { classe: "3E", jour: "vendredi", finCours: "17:30", matiere: "Français", prof: "GILLY J.", salle: "A16" },
 
-            // --- 4EME ---
+            // --- 4EME ---[span_26](start_span)[span_26](end_span)[span_27](start_span)[span_27](end_span)[span_28](start_span)[span_28](end_span)
             { classe: "4A", jour: "lundi", finCours: "12:05", matiere: "Mathématiques", prof: "DJAOU R.", salle: "B22" },
             { classe: "4A", jour: "lundi", finCours: "17:30", matiere: "Français", prof: "LUPI C.", salle: "A06" },
             { classe: "4A", jour: "mardi", finCours: "12:05", matiere: "SVT / Techno", prof: "MEJEAN M.", salle: "B12" },
@@ -156,7 +156,7 @@
             { classe: "4A", jour: "vendredi", finCours: "12:05", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A17" },
             { classe: "4A", jour: "vendredi", finCours: "17:30", matiere: "Vie de classe", prof: "DJAOU R.", salle: "B01" },
 
-            { classe: "4B", jour: "lundi", finCours: "12:05", matiere: "Physique-Chimie", prof: "ALLIOT R.", salle: "B11" },
+            { classe: "4B", jour: "lundi", finCours: "12:05", matiere: "Physique-Chimie", prof: "JULLIOT R.", salle: "B12" },
             { classe: "4B", jour: "lundi", finCours: "17:30", matiere: "Français", prof: "GILLY J.", salle: "A07" },
             { classe: "4B", jour: "mardi", finCours: "12:05", matiere: "Mathématiques", prof: "DJAOU R.", salle: "B22" },
             { classe: "4B", jour: "mardi", finCours: "17:30", matiere: "SVT", prof: "MEJEAN M.", salle: "B13" },
@@ -164,7 +164,7 @@
             { classe: "4B", jour: "jeudi", finCours: "12:05", matiere: "SVT", prof: "MEJEAN M.", salle: "B13" },
             { classe: "4B", jour: "jeudi", finCours: "17:30", matiere: "Mathématiques", prof: "DJAOU R.", salle: "B22" },
             { classe: "4B", jour: "vendredi", finCours: "12:05", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A16" },
-            { classe: "4B", jour: "vendredi", finCours: "17:30", matiere: "Technologie", prof: "BENZAIM O.", salle: "B03" },
+            { classe: "4B", jour: "vendredi", finCours: "17:30", matiere: "Technologie", prof: "BENZAIM O.", salle: "B01" },
 
             { classe: "4C", jour: "lundi", finCours: "12:05", matiere: "SVT", prof: "MEJEAN M.", salle: "B13" },
             { classe: "4C", jour: "lundi", finCours: "17:30", matiere: "Français", prof: "D'ANTONI S.", salle: "A05" },
@@ -172,14 +172,14 @@
             { classe: "4C", jour: "mardi", finCours: "17:30", matiere: "Anglais", prof: "JOUAN F.", salle: "A13" },
             { classe: "4C", jour: "mercredi", finCours: "12:05", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A18" },
             { classe: "4C", jour: "jeudi", finCours: "12:05", matiere: "Mathématiques", prof: "DJAOU R.", salle: "B22" },
-            { classe: "4C", jour: "jeudi", finCours: "17:30", matiere: "Français", prof: "FALL B.", salle: "A05" },
+            { classe: "4C", jour: "jeudi", finCours: "17:30", matiere: "Français", prof: "FALL B.", salle: "A07" },
             { classe: "4C", jour: "vendredi", finCours: "12:05", matiere: "SVT", prof: "MEJEAN M.", salle: "B13" },
-            { classe: "4C", jour: "vendredi", finCours: "17:30", matiere: "Technologie", prof: "BENZAIM O.", salle: "B03" },
+            { classe: "4C", jour: "vendredi", finCours: "17:30", matiere: "Technologie", prof: "BENZAIM O.", salle: "B01" },
 
-            { classe: "4D", jour: "lundi", finCours: "12:05", matiere: "Mathématiques", prof: "PETIT M.", salle: "B24" },
+            { classe: "4D", jour: "lundi", finCours: "12:05", matiere: "Mathématiques", prof: "PETIT M.", salle: "B25" },
             { classe: "4D", jour: "lundi", finCours: "17:30", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B11" },
             { classe: "4D", jour: "mardi", finCours: "12:05", matiere: "Français", prof: "KAROUTCHI S.", salle: "A07" },
-            { classe: "4D", jour: "mardi", finCours: "17:30", matiere: "Mathématiques", prof: "PETIT M.", salle: "B22" },
+            { classe: "4D", jour: "mardi", finCours: "17:30", matiere: "Mathématiques", prof: "PETIT M.", salle: "B25" },
             { classe: "4D", jour: "mercredi", finCours: "12:05", matiere: "SVT", prof: "BUTRUILLE C.", salle: "B12" },
             { classe: "4D", jour: "jeudi", finCours: "12:05", matiere: "Histoire-Géo", prof: "GIFFARD L.", salle: "A17" },
             { classe: "4D", jour: "jeudi", finCours: "17:30", matiere: "Français", prof: "KAROUTCHI S.", salle: "A07" },
@@ -187,8 +187,8 @@
             { classe: "4D", jour: "vendredi", finCours: "17:30", matiere: "Vie de classe", prof: "GIFFARD L.", salle: "A17" },
 
             { classe: "4E", jour: "lundi", finCours: "12:05", matiere: "Mathématiques", prof: "BERNARD C.", salle: "A14" },
-            { classe: "4E", jour: "lundi", finCours: "17:30", matiere: "Mathématiques", prof: "BERNARD C.", salle: "A04" },
-            { classe: "4E", jour: "mardi", finCours: "12:05", matiere: "Français", prof: "FALL B.", salle: "A11" },
+            { classe: "4E", jour: "lundi", finCours: "17:30", matiere: "Mathématiques", prof: "BERNARD C.", salle: "B24" },
+            { classe: "4E", jour: "mardi", finCours: "12:05", matiere: "Français", prof: "FALL B.", salle: "A15" },
             { classe: "4E", jour: "mardi", finCours: "17:30", matiere: "Anglais", prof: "JOUAN F.", salle: "A14" },
             { classe: "4E", jour: "mercredi", finCours: "12:05", matiere: "Histoire-Géo", prof: "GIFFARD L.", salle: "A17" },
             { classe: "4E", jour: "jeudi", finCours: "12:05", matiere: "Histoire-Géo", prof: "GIFFARD L.", salle: "A17" },
@@ -196,11 +196,11 @@
             { classe: "4E", jour: "vendredi", finCours: "12:05", matiere: "SVT", prof: "BUTRUILLE C.", salle: "B12" },
             { classe: "4E", jour: "vendredi", finCours: "17:30", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B11" },
 
-            // --- 5EME ---
+            // --- 5EME ---[span_29](start_span)[span_29](end_span)[span_30](start_span)[span_30](end_span)[span_31](start_span)[span_31](end_span)
             { classe: "5A", jour: "lundi", finCours: "12:05", matiere: "SVT / Physique", prof: "BUTRUILLE C.", salle: "B12" },
             { classe: "5A", jour: "lundi", finCours: "17:30", matiere: "Français", prof: "GIRAUD M.", salle: "A04" },
             { classe: "5A", jour: "mardi", finCours: "12:05", matiere: "Histoire-Géo", prof: "VIGNERON M.", salle: "A18" },
-            { classe: "5A", jour: "mardi", finCours: "17:30", matiere: "Anglais", prof: "JOUAN F.", salle: "A15" },
+            { classe: "5A", jour: "mardi", finCours: "17:30", matiere: "Anglais", prof: "JOUAN F.", salle: "A16" },
             { classe: "5A", jour: "mercredi", finCours: "12:05", matiere: "Français", prof: "GIRAUD M.", salle: "A16" },
             { classe: "5A", jour: "jeudi", finCours: "12:05", matiere: "Physique / SVT", prof: "MORETTO N.", salle: "B11" },
             { classe: "5A", jour: "jeudi", finCours: "17:30", matiere: "Anglais", prof: "JOUAN F.", salle: "A15" },
@@ -212,14 +212,14 @@
             { classe: "5B", jour: "mardi", finCours: "12:05", matiere: "Français", prof: "KAROUTCHI S.", salle: "A07" },
             { classe: "5B", jour: "mardi", finCours: "17:30", matiere: "SVT", prof: "BUTRUILLE C.", salle: "B12" },
             { classe: "5B", jour: "mercredi", finCours: "12:05", matiere: "Histoire-Géo", prof: "GIFFARD L.", salle: "A17" },
-            { classe: "5B", jour: "jeudi", finCours: "12:05", matiere: "Mathématiques", prof: "BERNARD C.", salle: "A14" },
+            { classe: "5B", jour: "jeudi", finCours: "12:05", matiere: "Mathématiques", prof: "BERNARD C.", salle: "B25" },
             { classe: "5B", jour: "jeudi", finCours: "17:30", matiere: "ED.Physique", prof: "TELAA N.", salle: "Gym" },
-            { classe: "5B", jour: "vendredi", finCours: "12:05", matiere: "Mathématiques", prof: "BERNARD C.", salle: "A14" },
+            { classe: "5B", jour: "vendredi", finCours: "12:05", matiere: "Mathématiques", prof: "BERNARD C.", salle: "B25" },
             { classe: "5B", jour: "vendredi", finCours: "17:30", matiere: "Technologie", prof: "HADDAD A.", salle: "B03" },
 
             { classe: "5C", jour: "lundi", finCours: "12:05", matiere: "Histoire-Géo", prof: "VIGNERON M.", salle: "A18" },
             { classe: "5C", jour: "lundi", finCours: "17:30", matiere: "Technologie", prof: "HADDAD A.", salle: "B03" },
-            { classe: "5C", jour: "mardi", finCours: "12:05", matiere: "Mathématiques", prof: "TOULEMONDE J.", salle: "B23" },
+            { classe: "5C", jour: "mardi", finCours: "12:05", matiere: "Maths / Techno", prof: "TOULEMONDE J.", salle: "B23" },
             { classe: "5C", jour: "mardi", finCours: "17:30", matiere: "ED.Physique", prof: "KLEIN A.", salle: "Gym" },
             { classe: "5C", jour: "mercredi", finCours: "12:05", matiere: "SVT", prof: "BUTRUILLE C.", salle: "B12" },
             { classe: "5C", jour: "jeudi", finCours: "12:05", matiere: "Histoire-Géo", prof: "VIGNERON M.", salle: "A18" },
@@ -232,9 +232,9 @@
             { classe: "5D", jour: "mardi", finCours: "12:05", matiere: "Mathématiques", prof: "HABIBES M.", salle: "B22" },
             { classe: "5D", jour: "mardi", finCours: "17:30", matiere: "ED.Physique", prof: "KLEIN A.", salle: "Gym" },
             { classe: "5D", jour: "mercredi", finCours: "12:05", matiere: "Français", prof: "GIRAUD M.", salle: "A05" },
-            { classe: "5D", jour: "jeudi", finCours: "12:05", matiere: "Mathématiques", prof: "HABIBES M.", salle: "B22" },
+            { classe: "5D", jour: "jeudi", finCours: "12:05", matiere: "Mathématiques", prof: "HABIBES M.", salle: "B23" },
             { classe: "5D", jour: "jeudi", finCours: "17:30", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A18" },
-            { classe: "5D", jour: "vendredi", finCours: "12:05", matiere: "Français", prof: "GIRAUD M.", salle: "A16" },
+            { classe: "5D", jour: "vendredi", finCours: "12:05", matiere: "Français", prof: "GIRAUD M.", salle: "A04" },
             { classe: "5D", jour: "vendredi", finCours: "17:30", matiere: "SVT / Physique", prof: "BUTRUILLE C.", salle: "B12" },
 
             { classe: "5E", jour: "lundi", finCours: "12:05", matiere: "Histoire-Géo", prof: "VIGNERON M.", salle: "A18" },
@@ -249,15 +249,15 @@
 
             { classe: "5F", jour: "lundi", finCours: "12:05", matiere: "ED.Physique", prof: "GRONDIN P.", salle: "Gym" },
             { classe: "5F", jour: "lundi", finCours: "17:30", matiere: "Français", prof: "LUPI C.", salle: "A06" },
-            { classe: "5F", jour: "mardi", finCours: "12:05", matiere: "Mathématiques", prof: "BERNARD C.", salle: "B22" },
+            { classe: "5F", jour: "mardi", finCours: "12:05", matiere: "Mathématiques", prof: "BERNARD C.", salle: "B23" },
             { classe: "5F", jour: "mardi", finCours: "17:30", matiere: "SVT", prof: "BUTRUILLE C.", salle: "B12" },
             { classe: "5F", jour: "mercredi", finCours: "12:05", matiere: "Français", prof: "LUPI C.", salle: "A06" },
             { classe: "5F", jour: "jeudi", finCours: "12:05", matiere: "Physique-Chimie", prof: "MORETTON N.", salle: "B11" },
-            { classe: "5F", jour: "jeudi", finCours: "17:30", matiere: "Mathématiques", prof: "BERNARD C.", salle: "B22" },
+            { classe: "5F", jour: "jeudi", finCours: "17:30", matiere: "Mathématiques", prof: "BERNARD C.", salle: "B24" },
             { classe: "5F", jour: "vendredi", finCours: "12:05", matiere: "Histoire-Géo", prof: "VIGNERON M.", salle: "A18" },
-            { classe: "5F", jour: "vendredi", finCours: "17:30", matiere: "Anglais", prof: "MAKRELOUFI L.", salle: "A12" },
+            { classe: "5F", jour: "vendredi", finCours: "17:30", matiere: "Anglais", prof: "MAKRELOUFI L.", salle: "A13" },
 
-            // --- 6EME ---
+            // --- 6EME ---[span_32](start_span)[span_32](end_span)[span_33](start_span)[span_33](end_span)
             { classe: "6A", jour: "lundi", finCours: "12:05", matiere: "ED.Physique", prof: "GRONDIN P.", salle: "Gym" },
             { classe: "6A", jour: "lundi", finCours: "17:30", matiere: "SVT", prof: "GASPERINI S.", salle: "B12" },
             { classe: "6A", jour: "mardi", finCours: "12:05", matiere: "Mathématiques", prof: "FABRE C.", salle: "B24" },
@@ -269,7 +269,7 @@
             { classe: "6A", jour: "vendredi", finCours: "17:30", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A17" },
 
             { classe: "6B", jour: "lundi", finCours: "12:05", matiere: "Histoire-Géo", prof: "MAILLARD F.", salle: "A16" },
-            { classe: "6B", jour: "lundi", finCours: "17:30", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B11" },
+            { classe: "6B", jour: "lundi", finCours: "17:30", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B13" },
             { classe: "6B", jour: "mardi", finCours: "12:05", matiere: "ED.Physique", prof: "BARISONE G.", salle: "Gym" },
             { classe: "6B", jour: "mardi", finCours: "17:30", matiere: "SVT", prof: "GASPERINI S.", salle: "B12" },
             { classe: "6B", jour: "mercredi", finCours: "12:05", matiere: "Mathématiques", prof: "DJAOU R.", salle: "B22" },
@@ -280,19 +280,19 @@
 
             { classe: "6C", jour: "lundi", finCours: "12:05", matiere: "Mathématiques", prof: "PETIT M.", salle: "B25" },
             { classe: "6C", jour: "lundi", finCours: "17:30", matiere: "SVT", prof: "GASPERINI S.", salle: "B12" },
-            { classe: "6C", jour: "mardi", finCours: "12:05", matiere: "Histoire-Géo", prof: "MAILLARD F.", salle: "A17" },
+            { classe: "6C", jour: "mardi", finCours: "12:05", matiere: "Histoire-Géo", prof: "MAILLARD F.", salle: "A16" },
             { classe: "6C", jour: "mardi", finCours: "17:30", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B11" },
             { classe: "6C", jour: "mercredi", finCours: "12:05", matiere: "Français", prof: "FALL B.", salle: "A04" },
             { classe: "6C", jour: "jeudi", finCours: "12:05", matiere: "SVT", prof: "GASPERINI S.", salle: "B12" },
-            { classe: "6C", jour: "jeudi", finCours: "17:30", matiere: "Français", prof: "FALL B.", salle: "A06" },
+            { classe: "6C", jour: "jeudi", finCours: "17:30", matiere: "Français", prof: "FALL B.", salle: "A04" },
             { classe: "6C", jour: "vendredi", finCours: "12:05", matiere: "ED.Physique", prof: "KLEIN A.", salle: "Gym" },
-            { classe: "6C", jour: "vendredi", finCours: "17:30", matiere: "Histoire-Géo", prof: "MAILLARD F.", salle: "A18" },
+            { classe: "6C", jour: "vendredi", finCours: "17:30", matiere: "Histoire-Géo", prof: "MAILLARD F.", salle: "A16" },
 
             { classe: "6D", jour: "lundi", finCours: "12:05", matiere: "SVT", prof: "GASPERINI S.", salle: "B12" },
             { classe: "6D", jour: "lundi", finCours: "17:30", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B11" },
             { classe: "6D", jour: "mardi", finCours: "12:05", matiere: "ED.Physique", prof: "KLEIN A.", salle: "Gym" },
             { classe: "6D", jour: "mardi", finCours: "17:30", matiere: "Musicale", prof: "VELAY P.", salle: "B21" },
-            { classe: "6D", jour: "mercredi", finCours: "12:05", matiere: "Mathématiques", prof: "DJAOU R.", salle: "B22" },
+            { classe: "6D", jour: "mercredi", finCours: "12:05", matiere: "Mathématiques", prof: "HABIBES M.", salle: "B22" },
             { classe: "6D", jour: "jeudi", finCours: "12:05", matiere: "Français", prof: "D'ANTONI S.", salle: "A05" },
             { classe: "6D", jour: "jeudi", finCours: "17:30", matiere: "ED.Physique", prof: "GRONDIN P.", salle: "Gym" },
             { classe: "6D", jour: "vendredi", finCours: "12:05", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A18" },
@@ -311,7 +311,7 @@
             { classe: "6F", jour: "lundi", finCours: "12:05", matiere: "ED.Physique", prof: "GRONDIN P.", salle: "Gym" },
             { classe: "6F", jour: "lundi", finCours: "17:30", matiere: "Français", prof: "PELTIER N.", salle: "A04" },
             { classe: "6F", jour: "mardi", finCours: "12:05", matiere: "SVT", prof: "MEJEAN M.", salle: "B13" },
-            { classe: "6F", jour: "mardi", finCours: "17:30", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A17" },
+            { classe: "6F", jour: "mardi", finCours: "17:30", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A18" },
             { classe: "6F", jour: "mercredi", finCours: "12:05", matiere: "Mathématiques", prof: "PETIT M.", salle: "B25" },
             { classe: "6F", jour: "jeudi", finCours: "12:05", matiere: "Français", prof: "PELTIER N.", salle: "A04" },
             { classe: "6F", jour: "jeudi", finCours: "17:30", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A17" },
@@ -395,19 +395,16 @@
                 const isProfAbsent = absentProfs.includes(item.prof);
                 
                 // Application de la règle des limites de demi-journée : 
-                // Matin limite 12:05[span_10](start_span)[span_10](end_span) | Après-midi limite 17:30[span_11](start_span)[span_11](end_span)
+                // Matin limite 12:05 | Après-midi limite 17:30[span_34](start_span)[span_34](end_span)
                 const finMin = parseTime(item.finCours);
                 const isMorningSession = finMin <= 725; // 12h05 = 725 min
                 
-                // Déterminer si le cours correspond à la période actuelle de la journée
                 const currentIsMorning = currentTotalMinutes <= 725;
                 if (isMorningSession !== currentIsMorning) {
                     return; // On ne traite que la demi-journée active actuelle
                 }
 
-                const diff = finMin - currentTotalMinutes;
-
-                // Si le prof est absent, la classe est libérée / sortie imminente
+                // Si le prof est absent, la classe est libérée
                 if (isProfAbsent) {
                     countImminent++;
                     const card = document.createElement('div');
