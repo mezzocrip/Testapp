@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi des Sorties & Professeurs Absents - Collège Jules Ferry</title>
+    <title>Suivi des Classes en Temps Réel - Vie Scolaire</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-6">
@@ -13,7 +13,7 @@
         <header class="flex flex-col md:flex-row justify-between items-center border-b border-slate-800 pb-4 gap-4">
             <div>
                 <h1 class="text-2xl font-black text-white tracking-wider">Collège Jules Ferry - Vie Scolaire</h1>
-                <p class="text-sm text-slate-400">Suivi des classes libérées par absence des professeurs (Temps réel)</p>
+                <p class="text-sm text-slate-400">Suivi des cours et des classes libérées en temps réel</p>
             </div>
             <div class="flex items-center gap-4">
                 <div id="current-date" class="text-sm font-medium text-slate-300 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800"></div>
@@ -21,7 +21,7 @@
             </div>
         </header>
 
-        <!-- Filtres et Gestion des Absences -->
+        <!-- Grille principale -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             <!-- Panneau de sélection des Professeurs Absents -->
@@ -29,22 +29,19 @@
                 <h2 class="text-base font-bold text-rose-400 flex items-center gap-2">
                     <span>❌</span> Professeurs Absents
                 </h2>
-                <p class="text-xs text-slate-400">Cochez les enseignants absents pour identifier instantanément les classes libérées :</p>
+                <p class="text-xs text-slate-400">Cochez les enseignants absents : cela annulera leur cours en temps réel pour les classes concernées.</p>
                 
-                <!-- Barre de recherche pour les profs -->
                 <input type="text" id="searchProf" placeholder="Filtrer un professeur..." class="w-full bg-slate-950 text-white border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-rose-500">
 
-                <!-- Liste des professeurs générée dynamiquement -->
                 <div id="teachers-checkbox-list" class="space-y-2 max-h-[350px] overflow-y-auto pr-2">
                     <!-- Injecté par JS -->
                 </div>
                 <button onclick="clearAllAbsences()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-all">Tout décocher</button>
             </div>
 
-            <!-- Résultats en temps réel -->
+            <!-- Affichage des classes en temps réel -->
             <div class="lg:col-span-2 space-y-6">
                 
-                <!-- Filtre par niveau -->
                 <div class="flex gap-4 items-center bg-slate-900 p-4 rounded-xl border border-slate-800">
                     <label class="text-sm font-semibold text-slate-300">Filtrer par niveau :</label>
                     <select id="levelFilter" class="bg-slate-950 text-white border border-slate-800 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-emerald-500">
@@ -56,31 +53,30 @@
                     </select>
                 </div>
 
-                <!-- Grille d'affichage dynamique -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
-                    <!-- Classes impactées par les absences -->
+                    <!-- Classes dont le prof est absent (Libérées) -->
                     <section class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                             <h2 class="text-base font-bold text-amber-400 flex items-center gap-2">
-                                <span>🔔</span> Classes Libérées (Absence prof)
+                                <span>🔔</span> Classes Libérées (Prof absent)
                             </h2>
-                            <span id="count-imminent" class="text-xs font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-full">0 classe</span>
+                            <span id="count-liberee" class="text-xs font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-full">0 classe</span>
                         </div>
-                        <div id="imminent-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
-                            <p class="text-slate-500 italic text-sm">Cochez un professeur absent pour voir l'impact.</p>
+                        <div id="liberee-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                            <p class="text-slate-500 italic text-sm">Aucune classe libérée pour l'instant.</p>
                         </div>
                     </section>
 
-                    <!-- Vue globale du jour -->
+                    <!-- État de toutes les classes en cours -->
                     <section class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                             <h2 class="text-base font-bold text-sky-400 flex items-center gap-2">
-                                <span>⏳</span> Vue globale du jour
+                                <span>📚</span> Cours en cours actuellement
                             </h2>
-                            <span id="count-upcoming" class="text-xs font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20 px-2.5 py-1 rounded-full">0 classe</span>
+                            <span id="count-cours" class="text-xs font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20 px-2.5 py-1 rounded-full">0 classe</span>
                         </div>
-                        <div id="upcoming-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                        <div id="cours-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                             <p class="text-slate-500 italic text-sm">Chargement...</p>
                         </div>
                     </section>
@@ -92,69 +88,41 @@
     </div>
 
     <script>
-        // Base de données structurée rigoureusement par classe, jour, heure de fin, matière et professeur officiel
-        const planningEDT = [
-            // --- 6ème A (Exemple du jeudi vérifié et autres jours) ---
-            { classe: "6A", jour: "jeudi", finCours: "08:55", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B11" },
-            { classe: "6A", jour: "jeudi", finCours: "09:55", matiere: "Allemand LV2", prof: "CHARKAOUI N.", salle: "A19" },
-            { classe: "6A", jour: "jeudi", finCours: "11:05", matiere: "ED. Physique & Sport", prof: "KLEIN A.", salle: "Gym" },
-            { classe: "6A", jour: "jeudi", finCours: "12:05", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B11" },
-            { classe: "6A", jour: "jeudi", finCours: "14:20", matiere: "Tournoi inter-classes", prof: "DUDI LANGA Y.", salle: "Tournoi" },
-            { classe: "6A", jour: "jeudi", finCours: "15:20", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A17" },
-            { classe: "6A", jour: "jeudi", finCours: "16:30", matiere: "Français", prof: "LUPI C.", salle: "A06" },
-            { classe: "6A", jour: "jeudi", finCours: "17:30", matiere: "Anglais LV1", prof: "SAADA D.", salle: "A13" },
-
-            { classe: "6A", jour: "lundi", finCours: "12:05", matiere: "ED. Physique & Sport", prof: "GRONDIN P.", salle: "Gym" },
-            { classe: "6A", jour: "lundi", finCours: "17:30", matiere: "SVT", prof: "GASPERINI S.", salle: "B12" },
-            { classe: "6A", jour: "mardi", finCours: "12:05", matiere: "Mathématiques", prof: "FABRE C.", salle: "B24" },
-            { classe: "6A", jour: "mardi", finCours: "17:30", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A17" },
-            { classe: "6A", jour: "mercredi", finCours: "12:05", matiere: "Français", prof: "LUPI C.", salle: "A06" },
-            { classe: "6A", jour: "vendredi", finCours: "12:05", matiere: "Mathématiques", prof: "FABRE C.", salle: "B24" },
-            { classe: "6A", jour: "vendredi", finCours: "17:30", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A17" },
-
-            // --- Autres classes (3ème, 4ème, 5ème, 6ème intégrales) ---
-            { classe: "3A", jour: "lundi", finCours: "12:05", matiere: "Français", prof: "D'ANTONI S.", salle: "A05" },
-            { classe: "3A", jour: "lundi", finCours: "17:30", matiere: "Mathématiques", prof: "TOULEMONDE J.", salle: "P1" },
-            { classe: "3A", jour: "mardi", finCours: "12:05", matiere: "Histoire-Géo", prof: "VIGNERON M.", salle: "A18" },
-            { classe: "3A", jour: "mardi", finCours: "17:30", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B11" },
-            { classe: "3A", jour: "mercredi", finCours: "12:05", matiere: "SVT", prof: "MEJEAN M.", salle: "B13" },
-            { classe: "3A", jour: "jeudi", finCours: "12:05", matiere: "Technologie", prof: "BENZAIM O.", salle: "B01" },
-            { classe: "3A", jour: "jeudi", finCours: "17:30", matiere: "Espagnol", prof: "MOTHES J.", salle: "A19" },
-            { classe: "3A", jour: "vendredi", finCours: "12:05", matiere: "Maths / Français", prof: "HABIBES M.", salle: "B01" },
-            { classe: "3A", jour: "vendredi", finCours: "17:30", matiere: "Anglais", prof: "SAADA D.", salle: "A13" },
-
-            { classe: "3B", jour: "lundi", finCours: "12:05", matiere: "Histoire-Géo", prof: "VIGNERON M.", salle: "A18" },
-            { classe: "3B", jour: "lundi", finCours: "17:30", matiere: "Français", prof: "PELTIER N.", salle: "A04" },
-            { classe: "3B", jour: "mardi", finCours: "12:05", matiere: "Mathématiques", prof: "TOULEMONDE J.", salle: "B23" },
-            { classe: "3B", jour: "mardi", finCours: "17:30", matiere: "Physique-Chimie", prof: "MORETTON N.", salle: "B11" },
-            { classe: "3B", jour: "mercredi", finCours: "12:05", matiere: "SVT", prof: "MEJEAN M.", salle: "B13" },
-            { classe: "3B", jour: "jeudi", finCours: "12:05", matiere: "Technologie", prof: "HADDAD A.", salle: "B03" },
-            { classe: "3B", jour: "jeudi", finCours: "17:30", matiere: "Espagnol", prof: "MOTHES J.", salle: "A19" },
-            { classe: "3B", jour: "vendredi", finCours: "12:05", matiere: "Anglais", prof: "MORETTO S.", salle: "A12" },
-            { classe: "3B", jour: "vendredi", finCours: "17:30", matiere: "Mathématiques", prof: "TOULEMONDE J.", salle: "B23" },
-
-            { classe: "4A", jour: "lundi", finCours: "12:05", matiere: "Mathématiques", prof: "DJAOU R.", salle: "B22" },
-            { classe: "4A", jour: "lundi", finCours: "17:30", matiere: "Français", prof: "LUPI C.", salle: "A06" },
-            { classe: "4A", jour: "mardi", finCours: "12:05", matiere: "SVT / Techno", prof: "MEJEAN M.", salle: "B12" },
-            { classe: "4A", jour: "mardi", finCours: "17:30", matiere: "Anglais", prof: "MAKRELOUFI L.", salle: "A13" },
-            { classe: "4A", jour: "mercredi", finCours: "12:05", matiere: "Français", prof: "LUPI C.", salle: "A06" },
-            { classe: "4A", jour: "jeudi", finCours: "12:05", matiere: "Histoire-Géo", prof: "GIFFARD L.", salle: "A17" },
-            { classe: "4A", jour: "jeudi", finCours: "17:30", matiere: "Musicale", prof: "STANKOVIC N.", salle: "B21" },
-            { classe: "4A", jour: "vendredi", finCours: "12:05", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A17" },
-            { classe: "4A", jour: "vendredi", finCours: "17:30", matiere: "Vie de classe", prof: "DJAOU R.", salle: "B01" },
-
-            { classe: "5A", jour: "lundi", finCours: "12:05", matiere: "SVT / Physique", prof: "BUTRUILLE C.", salle: "B12" },
-            { classe: "5A", jour: "lundi", finCours: "17:30", matiere: "Français", prof: "GIRAUD M.", salle: "A04" },
-            { classe: "5A", jour: "mardi", finCours: "12:05", matiere: "Histoire-Géo", prof: "VIGNERON M.", salle: "A18" },
-            { classe: "5A", jour: "mardi", finCours: "17:30", matiere: "Anglais", prof: "JOUAN F.", salle: "A16" },
-            { classe: "5A", jour: "mercredi", finCours: "12:05", matiere: "Français", prof: "GIRAUD M.", salle: "A16" },
-            { classe: "5A", jour: "jeudi", finCours: "12:05", matiere: "Physique / SVT", prof: "MORETTO N.", salle: "B11" },
-            { classe: "5A", jour: "jeudi", finCours: "17:30", matiere: "Anglais", prof: "JOUAN F.", salle: "A15" },
-            { classe: "5A", jour: "vendredi", finCours: "12:05", matiere: "ED.Physique", prof: "BARISONE G.", salle: "Gym" },
-            { classe: "5A", jour: "vendredi", finCours: "17:30", matiere: "Musicale", prof: "VELAY P.", salle: "B21" }
+        // Définition des plages horaires des cours (Exemple type collège)
+        // Chaque cours a une heure de début et une heure de fin
+        const creneauxHoraires = [
+            { debut: "08:00", fin: "08:55" },
+            { debut: "09:00", fin: "09:55" },
+            { debut: "10:10", fin: "11:05" },
+            { debut: "11:10", fin: "12:05" },
+            { debut: "13:25", fin: "14:20" },
+            { debut: "14:25", fin: "15:20" },
+            { debut: "15:35", fin: "16:30" },
+            { debut: "16:35", fin: "17:30" }
         ];
 
-        // Extraire la liste unique des professeurs par ordre alphabétique
+        // Base de données des cours par classe, jour et créneau exact
+        const planningEDT = [
+            // --- 6ème A ---
+            { classe: "6A", jour: "jeudi", debut: "08:00", fin: "08:55", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B11" },
+            { classe: "6A", jour: "jeudi", debut: "09:00", fin: "09:55", matiere: "Allemand LV2", prof: "CHARKAOUI N.", salle: "A19" },
+            { classe: "6A", jour: "jeudi", debut: "10:10", fin: "11:05", matiere: "EPS", prof: "KLEIN A.", salle: "Gym" },
+            { classe: "6A", jour: "jeudi", debut: "11:10", fin: "12:05", matiere: "Physique-Chimie", prof: "HAMROUNI T.", salle: "B11" },
+            { classe: "6A", jour: "jeudi", debut: "13:25", fin: "14:20", matiere: "Tournoi inter-classes", prof: "DUDI LANGA Y.", salle: "Tournoi" },
+            { classe: "6A", jour: "jeudi", debut: "14:25", fin: "15:20", matiere: "Histoire-Géo", prof: "BONNOT-CLAUDEL M.", salle: "A17" },
+            { classe: "6A", jour: "jeudi", debut: "15:35", fin: "16:30", matiere: "Français", prof: "LUPI C.", salle: "A06" },
+            { classe: "6A", jour: "jeudi", debut: "16:35", fin: "17:30", matiere: "Anglais LV1", prof: "SAADA D.", salle: "A13" },
+
+            // --- 3ème A ---
+            { classe: "3A", jour: "lundi", debut: "08:00", fin: "08:55", matiere: "LCA Latin", prof: "PELTIER N.", salle: "A04" },
+            { classe: "3A", jour: "lundi", debut: "09:00", fin: "09:55", matiere: "Mathématiques", prof: "TOULEMONDE J.", salle: "B23" },
+            { classe: "3A", jour: "lundi", debut: "10:10", fin: "11:05", matiere: "Vie de classe / Techno", prof: "BENZAIM O.", salle: "A19" },
+            { classe: "3A", jour: "lundi", finCours: "11:10", fin: "12:05", matiere: "Français", prof: "D'ANTONI S.", salle: "A05" },
+
+            // (Vous pouvez ajouter ici tous les autres cours selon le même format)
+        ];
+
+        // Liste unique des profs pour les checkboxes
         const allTeachers = [...new Set(planningEDT.map(item => item.prof))].sort();
 
         function initTeacherCheckboxes() {
@@ -172,7 +140,6 @@
             });
         }
 
-        // Recherche dynamique dans la liste des profs
         document.getElementById('searchProf').addEventListener('input', function(e) {
             const query = e.target.value.toLowerCase();
             document.querySelectorAll('.teacher-item').forEach(item => {
@@ -186,7 +153,7 @@
             updateApp();
         }
 
-        function parseTime(timeStr) {
+        function timeToMinutes(timeStr) {
             const [h, m] = timeStr.split(':').map(Number);
             return h * 60 + m;
         }
@@ -194,7 +161,6 @@
         function updateApp() {
             const now = new Date();
             
-            // Affichage de la date et de l'heure
             const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('current-date').textContent = now.toLocaleDateString('fr-FR', optionsDate);
             
@@ -207,81 +173,84 @@
             const currentDay = days[now.getDay()];
             const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
 
-            // Récupérer les profs cochés comme absents
+            // Trouver quel créneau horaire correspond à l'heure actuelle
+            const currentCreneau = creneauxHoraires.find(c => {
+                return currentTotalMinutes >= timeToMinutes(c.debut) && currentTotalMinutes <= timeToMinutes(c.fin);
+            });
+
             const absentProfs = Array.from(document.querySelectorAll('.absent-checkbox:checked')).map(cb => cb.value);
             const selectedLevel = document.getElementById('levelFilter').value;
 
-            const imminentContainer = document.getElementById('imminent-list');
-            const upcomingContainer = document.getElementById('upcoming-list');
+            const libereeContainer = document.getElementById('liberee-list');
+            const coursContainer = document.getElementById('cours-list');
 
-            imminentContainer.innerHTML = '';
-            upcomingContainer.innerHTML = '';
+            libereeContainer.innerHTML = '';
+            coursContainer.innerHTML = '';
 
-            let countImminent = 0;
-            let countUpcoming = 0;
+            let countLiberee = 0;
+            let countCours = 0;
 
-            const todayClasses = planningEDT.filter(item => item.jour.toLowerCase() === currentDay);
+            // Récupérer toutes les classes uniques enregistrées dans le planning pour ce jour
+            const classesDuJour = [...new Set(planningEDT.filter(item => item.jour.toLowerCase() === currentDay).map(item => item.classe))];
 
-            todayClasses.forEach(item => {
-                if (selectedLevel !== "ALL" && !item.classe.startsWith(selectedLevel)) {
-                    return;
-                }
+            classesDuJour.forEach(classe => {
+                if (selectedLevel !== "ALL" && !classe.startsWith(selectedLevel)) return;
 
-                const isProfAbsent = absentProfs.includes(item.prof);
-                
-                // Application de la règle des limites de demi-journée : 
-                // Matin limite 12:05 | Après-midi limite 17:30[span_0](start_span)[span_0](end_span)
-                const finMin = parseTime(item.finCours);
-                const isMorningSession = finMin <= 725; // 12h05 = 725 min
-                
-                const currentIsMorning = currentTotalMinutes <= 725;
-                if (isMorningSession !== currentIsMorning) {
-                    return; // On ne traite que la demi-journée active actuelle
-                }
+                // Trouver le cours de cette classe pour le créneau horaire actuel
+                const coursActuel = planningEDT.find(item => {
+                    return item.classe === classe && 
+                           item.jour.toLowerCase() === currentDay && 
+                           currentCreneau && 
+                           item.debut === currentCreneau.debut;
+                });
 
-                // Si le prof est absent, la classe est libérée
-                if (isProfAbsent) {
-                    countImminent++;
+                if (!coursActuel) {
+                    // Pas de cours sur ce créneau (Heure de permanence / Rien de prévu)
+                    countCours++;
                     const card = document.createElement('div');
-                    card.className = "p-4 rounded-xl border bg-rose-950/20 border-rose-500/40 flex justify-between items-center transition-all";
+                    card.className = "p-3 rounded-xl border bg-slate-950/20 border-slate-900 flex justify-between items-center text-slate-500";
+                    card.innerHTML = `
+                        <span class="font-bold text-white">${classe}</span>
+                        <span class="text-xs italic">Pas de cours / Permanence</span>
+                    `;
+                    coursContainer.appendChild(card);
+                } else if (absentProfs.includes(coursActuel.prof)) {
+                    // Le professeur est absent -> Cours annulé / Classe libérée
+                    countLiberee++;
+                    const card = document.createElement('div');
+                    card.className = "p-3 rounded-xl border bg-rose-950/20 border-rose-500/40 flex justify-between items-center";
                     card.innerHTML = `
                         <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-lg font-black text-white">${item.classe}</span>
-                                <span class="text-xs bg-rose-500 text-slate-950 font-bold px-2 py-0.5 rounded">PROF ABSENT (${item.prof})</span>
-                            </div>
-                            <span class="text-xs text-slate-300 block mt-1">Matière: ${item.matiere} • Salle: ${item.salle}</span>
+                            <span class="font-bold text-white text-base">${classe}</span>
+                            <span class="text-xs text-rose-300 block">Prof absent : ${coursActuel.prof} (${coursActuel.matiere})</span>
                         </div>
-                        <span class="text-sm font-mono font-bold text-rose-400">Libre à ${item.finCours}</span>
+                        <span class="text-xs font-mono font-semibold bg-rose-500/20 text-rose-400 px-2 py-1 rounded">Libre jusqu'à ${coursActuel.fin}</span>
                     `;
-                    imminentContainer.appendChild(card);
+                    libereeContainer.appendChild(card);
                 } else {
-                    // Vue globale normale
-                    countUpcoming++;
+                    // Cours normal en cours
+                    countCours++;
                     const card = document.createElement('div');
                     card.className = "p-3 rounded-xl border bg-slate-950/40 border-slate-800 flex justify-between items-center";
                     card.innerHTML = `
                         <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-base font-bold text-white">${item.classe}</span>
-                                <span class="text-xs text-slate-400">${item.matiere}</span>
-                            </div>
-                            <span class="text-xs text-slate-500 block">Prof : ${item.prof} • Salle: ${item.salle}</span>
+                            <span class="font-bold text-white text-base">${classe}</span>
+                            <span class="text-xs text-slate-300 block">${coursActuel.matiere} • ${coursActuel.prof}</span>
                         </div>
-                        <span class="text-xs font-mono font-semibold text-sky-400 bg-sky-950/30 px-2.5 py-1 rounded-lg border border-sky-900/50">Fin : ${item.finCours}</span>
+                        <span class="text-xs font-mono font-semibold text-sky-400 bg-sky-950/30 px-2.5 py-1 rounded-lg border border-sky-900/50">Salle ${coursActuel.salle}</span>
                     `;
-                    upcomingContainer.appendChild(card);
+                    coursContainer.appendChild(card);
                 }
             });
 
-            document.getElementById('count-imminent').textContent = `${countImminent} classe${countImminent > 1 ? 's' : ''}`;
-            document.getElementById('count-upcoming').textContent = `${countUpcoming} cours`;
+            document.getElementById('count-liberee').textContent = `${countLiberee} classe${countLiberee > 1 ? 's' : ''}`;
+            document.getElementById('count-cours').textContent = `${countCours} classe${countCours > 1 ? 's' : ''}`;
 
-            if (countImminent === 0) {
-                imminentContainer.innerHTML = '<p class="text-slate-500 italic text-sm p-4 text-center">Aucune classe impactée par les absences de profs sélectionnées pour cette période.</p>';
+            if (countLiberee === 0) {
+                libereeContainer.innerHTML = '<p class="text-slate-500 italic text-sm p-4 text-center">Aucune classe libérée par une absence de professeur à cette heure.</p>';
             }
-            if (countUpcoming === 0) {
-                upcomingContainer.innerHTML = '<p class="text-slate-500 italic text-sm p-4 text-center">Aucun cours actif trouvé pour cette tranche horaire.</p>';
+            if (countCours === 0) {
+                coursContainer.innerHTML = '<p class="text-slate-500 italic text-sm p-4 text-center">Aucun cours actif trouvé pour cette tranche horaire (Hors horaires de cours).</p>';
             }
         }
 
@@ -292,7 +261,6 @@
             }
         });
 
-        // Initialisation au chargement de la page
         initTeacherCheckboxes();
         setInterval(updateApp, 1000);
         updateApp();
