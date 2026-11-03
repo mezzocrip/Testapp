@@ -94,8 +94,14 @@
 
         .quick-actions {
             display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 15px 20px 5px 20px;
+        }
+
+        .actions-row {
+            display: flex;
             gap: 10px;
-            padding: 15px 20px 10px 20px;
         }
 
         .action-btn {
@@ -116,13 +122,17 @@
             transition: all 0.2s;
         }
 
+        .action-btn.full-width {
+            flex-direction: row;
+            justify-content: center;
+            background: #eef2ff;
+            color: var(--primary);
+            border-color: #c7d2fe;
+        }
+
         .action-btn:active {
             transform: scale(0.97);
             background: #f9fafb;
-        }
-
-        .action-btn span {
-            font-size: 1.1rem;
         }
 
         input[type="file"] {
@@ -337,19 +347,26 @@
         <div class="live-date" id="date">Chargement...</div>
     </div>
 
+    <!-- Actions Rapides -->
     <div class="quick-actions">
-        <label for="excelFile" class="action-btn">
-            <span>📥</span> Importer Excel
-        </label>
-        <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
+        <div class="actions-row">
+            <label for="excelFile" class="action-btn">
+                <span>📥</span> Importer Excel
+            </label>
+            <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
 
-        <button class="action-btn" onclick="openManualModal()">
-            <span>✏️</span> Sélection Manuelle
+            <button class="action-btn" onclick="openManualModal()">
+                <span>✏️</span> Sélection Manuelle
+            </button>
+        </div>
+        <!-- Bouton pour basculer entre "Jour" et "Tous" -->
+        <button class="action-btn full-width" id="toggleViewBtn" onclick="toggleViewMode()">
+            <span>📅</span> <span id="toggleBtnText">Afficher tous les absents (Semaine)</span>
         </button>
     </div>
 
     <div class="app-body">
-        <div class="section-label">Absences du jour</div>
+        <div class="section-label" id="sectionTitle">Absences du jour</div>
         <div id="cardsContainer"></div>
     </div>
 </div>
@@ -378,27 +395,64 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Données initiales extraites directement de votre fichier
-    let absencesData = [
+    let allAbsencesData = [
         { prof: "BERNARD CLEMENT", matiere: "MATHEMATIQUES", classe: "5 A (KARA Baran)", debut: "10h10", duree: "1h00", date: "06/11/2026", remplacant: "" },
         { prof: "BERNARD CLEMENT", matiere: "MATHEMATIQUES", classe: "4 E P1", debut: "11h10", duree: "1h00", date: "03/11/2026", remplacant: "" },
-        { prof: "CAMARA DESCAMPS JACOB", matiere: "FRANC.LANGUE ETRANG.", classe: "4D / 5A / 5C / 5E (Groupes multiples)", debut: "14h25", duree: "1h00", date: "03/11/2026", remplacant: "" },
+        { prof: "CAMARA DESCAMPS JACOB", matiere: "FRANC.LANGUE ETRANG.", classe: "4D / 5A / 5C / 5E", debut: "14h25", duree: "1h00", date: "03/11/2026", remplacant: "" },
         { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5 A P1", debut: "08h00", duree: "1h00", date: "02/11/2026", remplacant: "" },
         { prof: "GIRAUD MARGOT", matiere: "FRANCAIS", classe: "3 C P1", debut: "08h00", duree: "1h00", date: "06/11/2026", remplacant: "CHIKHAOUI H." },
         { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "5 D", debut: "08h00", duree: "1h00", date: "05/11/2026", remplacant: "MOUMENI A." },
         { prof: "TELAA NOUARI", matiere: "ED.PHYSIQUE & SPORT.", classe: "4D", debut: "11h10", duree: "1h00", date: "02/11/2026", remplacant: "" }
     ];
 
+    let showOnlyToday = true; // État initial : filtre sur le jour
+
+    // Fonction pour obtenir la date du jour au format "JJ/MM/AAAA"
+    function getTodayFormatted() {
+        const now = new Date();
+        const d = String(now.getDate()).padStart(2, '0');
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const y = now.getFullYear();
+        return `${d}/${m}/${y}`;
+    }
+
+    function toggleViewMode() {
+        showOnlyToday = !showOnlyToday;
+        const btnText = document.getElementById('toggleBtnText');
+        const sectionTitle = document.getElementById('sectionTitle');
+
+        if (showOnlyToday) {
+            btnText.textContent = "Afficher tous les absents (Semaine)";
+            sectionTitle.textContent = "Absences du jour";
+        } else {
+            btnText.textContent = "Filtrer uniquement sur le jour";
+            sectionTitle.textContent = "Tous les absents (Historique complet)";
+        }
+        renderCards();
+    }
+
     function renderCards() {
         const container = document.getElementById('cardsContainer');
         container.innerHTML = '';
 
-        if (absencesData.length === 0) {
-            container.innerHTML = `<div class="empty-state">Aucune absence enregistrée.</div>`;
+        const todayStr = getTodayFormatted(); // ex: "03/11/2026"
+        
+        // Filtrage dynamique selon le mode choisi
+        let displayedData = allAbsencesData;
+        if (showOnlyToday) {
+            displayedData = allAbsencesData.filter(item => {
+                // Normalisation pour comparer proprement (enlève les espaces et gère les formats)
+                const itemDate = item.date ? item.date.trim() : "";
+                return itemDate === todayStr;
+            });
+        }
+
+        if (displayedData.length === 0) {
+            container.innerHTML = `<div class="empty-state">Aucune absence enregistrée ${showOnlyToday ? "pour aujourd'hui (" + todayStr + ")" : ""}.</div>`;
             return;
         }
 
-        absencesData.forEach(item => {
+        displayedData.forEach(item => {
             const hasRemplacant = item.remplacant && item.remplacant.trim() !== "";
             const card = document.createElement('div');
             card.className = `absence-card ${hasRemplacant ? 'replaced' : ''}`;
@@ -439,7 +493,7 @@
         });
     }
 
-    // Importation Excel ultra-précise basée sur vos colonnes exactes
+    // Importation Excel
     document.getElementById('excelFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -456,7 +510,6 @@
                 return;
             }
 
-            // Récupération des en-têtes de la ligne 0
             const headers = jsonData[0].map(h => h ? h.toString().trim().toLowerCase() : '');
             
             const idxProf = headers.findIndex(h => h.includes('professeur'));
@@ -469,7 +522,6 @@
 
             let newAbsences = [];
 
-            // Lecture à partir de la ligne 1 (en ignorant la ligne de Total à la fin)
             for (let i = 1; i < jsonData.length; i++) {
                 let row = jsonData[i];
                 if (!row || row.length === 0) continue;
@@ -484,9 +536,7 @@
                 let debut = idxDebut !== -1 ? row[idxDebut] : (row[5] || '');
                 let actionVal = idxAction !== -1 ? row[idxAction] : (row[6] || '');
 
-                // Formatage de la date Excel si c'est un numéro sérialisé ou une chaîne
                 if (typeof dateVal === 'number') {
-                    // Conversion de la date Excel en format lisible si nécessaire, ou utilisation de SheetJS
                     const d = XLSX.SSF.parse_date_code(dateVal);
                     if (d) {
                         dateVal = `${String(d.d).padStart(2, '0')}/${String(d.m).padStart(2, '0')}/${d.y}`;
@@ -505,11 +555,11 @@
             }
 
             if (newAbsences.length > 0) {
-                absencesData = newAbsences;
+                allAbsencesData = newAbsences;
                 renderCards();
-                alert(`Import réussi ! ${absencesData.length} lignes chargées avec succès.`);
+                alert(`Import réussi ! ${allAbsencesData.length} lignes chargées.`);
             } else {
-                alert("Aucune ligne valide trouvée dans le fichier.");
+                alert("Aucune ligne valide trouvée.");
             }
         };
         reader.readAsArrayBuffer(file);
@@ -520,7 +570,7 @@
         const listContainer = document.getElementById('teachersChecklist');
         listContainer.innerHTML = '';
 
-        const profs = [...new Set(absencesData.map(item => item.prof))];
+        const profs = [...new Set(allAbsencesData.map(item => item.prof))];
 
         profs.forEach((prof) => {
             const item = document.createElement('label');
@@ -545,7 +595,7 @@
             .filter(cb => cb.checked)
             .map(cb => cb.value);
 
-        absencesData = absencesData.filter(item => profsAbsents.includes(item.prof));
+        allAbsencesData = allAbsencesData.filter(item => profsAbsents.includes(item.prof));
         renderCards();
         closeManualModal();
     }
