@@ -148,11 +148,17 @@
             gap: 12px;
         }
 
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+        }
+
         .section-label {
             font-size: 0.85rem;
             font-weight: 700;
             color: var(--text-muted);
-            margin-top: 5px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -359,14 +365,17 @@
                 <span>✏️</span> Sélection Manuelle
             </button>
         </div>
-        <!-- Bouton pour basculer entre "Jour" et "Tous" -->
+        <!-- Bouton de bascule Vue Jour / Vue Totale -->
         <button class="action-btn full-width" id="toggleViewBtn" onclick="toggleViewMode()">
-            <span>📅</span> <span id="toggleBtnText">Afficher tous les absents (Semaine)</span>
+            <span>📅</span> <span id="toggleBtnText">Afficher TOUT l'historique (Semaine)</span>
         </button>
     </div>
 
     <div class="app-body">
-        <div class="section-label" id="sectionTitle">Absences du jour</div>
+        <div class="section-header">
+            <div class="section-label" id="sectionTitle">Absences du jour</div>
+            <span id="counterBadge" style="font-size: 0.75rem; background: #e5e7eb; padding: 2px 8px; border-radius: 10px; font-weight: bold;">0</span>
+        </div>
         <div id="cardsContainer"></div>
     </div>
 </div>
@@ -395,6 +404,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
+    // Données par défaut initiales issues de votre fichier
     let allAbsencesData = [
         { prof: "BERNARD CLEMENT", matiere: "MATHEMATIQUES", classe: "5 A (KARA Baran)", debut: "10h10", duree: "1h00", date: "06/11/2026", remplacant: "" },
         { prof: "BERNARD CLEMENT", matiere: "MATHEMATIQUES", classe: "4 E P1", debut: "11h10", duree: "1h00", date: "03/11/2026", remplacant: "" },
@@ -405,15 +415,14 @@
         { prof: "TELAA NOUARI", matiere: "ED.PHYSIQUE & SPORT.", classe: "4D", debut: "11h10", duree: "1h00", date: "02/11/2026", remplacant: "" }
     ];
 
-    let showOnlyToday = true; // État initial : filtre sur le jour
+    let showOnlyToday = true; // Par défaut, n'affiche que le jour courant
 
-    // Fonction pour obtenir la date du jour au format "JJ/MM/AAAA"
     function getTodayFormatted() {
         const now = new Date();
         const d = String(now.getDate()).padStart(2, '0');
         const m = String(now.getMonth() + 1).padStart(2, '0');
         const y = now.getFullYear();
-        return `${d}/${m}/${y}`;
+        return `${d}/${m}/${y}`; // ex: "03/11/2026"
     }
 
     function toggleViewMode() {
@@ -422,11 +431,11 @@
         const sectionTitle = document.getElementById('sectionTitle');
 
         if (showOnlyToday) {
-            btnText.textContent = "Afficher tous les absents (Semaine)";
+            btnText.textContent = "Afficher TOUT l'historique (Semaine)";
             sectionTitle.textContent = "Absences du jour";
         } else {
             btnText.textContent = "Filtrer uniquement sur le jour";
-            sectionTitle.textContent = "Tous les absents (Historique complet)";
+            sectionTitle.textContent = "Toutes les absences (Semaine)";
         }
         renderCards();
     }
@@ -435,20 +444,32 @@
         const container = document.getElementById('cardsContainer');
         container.innerHTML = '';
 
-        const todayStr = getTodayFormatted(); // ex: "03/11/2026"
+        const todayStr = getTodayFormatted();
         
-        // Filtrage dynamique selon le mode choisi
         let displayedData = allAbsencesData;
         if (showOnlyToday) {
             displayedData = allAbsencesData.filter(item => {
-                // Normalisation pour comparer proprement (enlève les espaces et gère les formats)
-                const itemDate = item.date ? item.date.trim() : "";
-                return itemDate === todayStr;
+                if (!item.date) return false;
+                // Nettoyage pour comparer "03/11/2026" ou "2026-11-03"
+                let cleanItemDate = item.date.trim();
+                if (cleanItemDate.includes('-')) {
+                    const parts = cleanItemDate.split(' ')[0].split('-'); // yyyy-mm-dd
+                    if (parts.length === 3) {
+                        cleanItemDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    }
+                }
+                return cleanItemDate === todayStr;
             });
         }
 
+        document.getElementById('counterBadge').textContent = displayedData.length;
+
         if (displayedData.length === 0) {
-            container.innerHTML = `<div class="empty-state">Aucune absence enregistrée ${showOnlyToday ? "pour aujourd'hui (" + todayStr + ")" : ""}.</div>`;
+            container.innerHTML = `
+                <div class="empty-state">
+                    Aucune absence enregistrée ${showOnlyToday ? "pour aujourd'hui (" + todayStr + ")" : ""}.<br><br>
+                    <small style="color:var(--primary); cursor:pointer; text-decoration:underline;" onclick="toggleViewMode()">Cliquez ici pour voir l'autre mode</small>
+                </div>`;
             return;
         }
 
@@ -493,7 +514,7 @@
         });
     }
 
-    // Importation Excel
+    // Import Excel complet
     document.getElementById('excelFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -536,10 +557,25 @@
                 let debut = idxDebut !== -1 ? row[idxDebut] : (row[5] || '');
                 let actionVal = idxAction !== -1 ? row[idxAction] : (row[6] || '');
 
+                // Conversion propre des dates Excel (numéro de série ou format standard)
                 if (typeof dateVal === 'number') {
                     const d = XLSX.SSF.parse_date_code(dateVal);
                     if (d) {
                         dateVal = `${String(d.d).padStart(2, '0')}/${String(d.m).padStart(2, '0')}/${d.y}`;
+                    }
+                } else if (dateVal instanceof Date) {
+                    const d = String(dateVal.getDate()).padStart(2, '0');
+                    const m = String(dateVal.getMonth() + 1).padStart(2, '0');
+                    const y = dateVal.getFullYear();
+                    dateVal = `${d}/${m}/${y}`;
+                } else if (dateVal) {
+                    // Si c'est une chaîne type "2026-11-03T00:00:00" ou "2026-11-03"
+                    let str = dateVal.toString().trim();
+                    if (str.includes('-')) {
+                        const parts = str.split('T')[0].split('-');
+                        if (parts.length === 3) {
+                            dateVal = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                        }
                     }
                 }
 
@@ -557,7 +593,7 @@
             if (newAbsences.length > 0) {
                 allAbsencesData = newAbsences;
                 renderCards();
-                alert(`Import réussi ! ${allAbsencesData.length} lignes chargées.`);
+                alert(`Import réussi ! ${allAbsencesData.length} lignes chargées depuis votre fichier.`);
             } else {
                 alert("Aucune ligne valide trouvée.");
             }
@@ -600,6 +636,7 @@
         closeManualModal();
     }
 
+    // Premier affichage au chargement
     renderCards();
 </script>
 
