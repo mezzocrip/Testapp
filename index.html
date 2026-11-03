@@ -828,7 +828,7 @@
             aeds: [],
             missions: [],
             aedBreaks: {},
-            absentProfs: [] // Structure: [ { prof: '', matiere: '', classe: '', duree: '', date: '', debut: '', dayName: '' } ]
+            absentProfs: [] // Structure: [ { prof: '', matiere: '', classe: '', duree: '', date: '', debut: '', dayName: '', estRemplace: false } ]
         };
 
         function toggleRowHighlight(rowId) {
@@ -1051,6 +1051,10 @@
                         const duree = row['Durée'] || row['DUREE'] || '';
                         const rawDate = row['Date'] || row['DATE'] || '';
                         const debut = row['Début'] || row['DEBUT'] || row['Heure'] || '';
+                        
+                        // Détection si l'absence/cours est remplacé
+                        const remplaceVal = row['Remplacé'] || row['REMPLACE'] || row['Remplaçant'] || row['REMPLACANT'] || row['Motif'] || row['MOTIF'] || row['Statut'] || row['STATUT'] || '';
+                        const estRemplace = String(remplaceVal).toLowerCase().includes('remplaç') || String(remplaceVal).toLowerCase().includes('remplac');
 
                         let dateFormatted = rawDate;
                         let dayName = '';
@@ -1072,7 +1076,7 @@
                         }
 
                         if (prof) {
-                            parsedAbsences.push({ prof, matiere, classe, duree, date: dateFormatted, debut, dayName });
+                            parsedAbsences.push({ prof, matiere, classe, duree, date: dateFormatted, debut, dayName, estRemplace });
                         }
                     });
 
@@ -1093,7 +1097,9 @@
         function updateAbsentProfsBadge() {
             const badge = document.getElementById('absent-count-badge');
             if (!badge) return;
-            const currentDayAbs = (appState.absentProfs || []).filter(item => !item.dayName || item.dayName === appState.currentDay);
+            const currentDayAbs = (appState.absentProfs || []).filter(item => 
+                !item.estRemplace && (!item.dayName || item.dayName === appState.currentDay)
+            );
             badge.textContent = currentDayAbs.length;
         }
 
@@ -1114,13 +1120,15 @@
             const totalCountEl = document.getElementById('absent-total-count');
             const filterDay = document.getElementById('absent-filter-day').value;
 
-            const allAbs = appState.absentProfs || [];
-            let filtered = allAbs;
+            // Ne conserver que les professeurs NON remplacés
+            const nonRemplacesAbs = (appState.absentProfs || []).filter(a => !a.estRemplace);
+
+            let filtered = nonRemplacesAbs;
             if (filterDay !== 'ALL') {
-                filtered = allAbs.filter(a => !a.dayName || a.dayName === filterDay);
+                filtered = nonRemplacesAbs.filter(a => !a.dayName || a.dayName === filterDay);
             }
 
-            if (totalCountEl) totalCountEl.textContent = `Total : ${allAbs.length} absences enregistrées (${filtered.length} affichées)`;
+            if (totalCountEl) totalCountEl.textContent = `Total : ${nonRemplacesAbs.length} absences enregistrées (${filtered.length} affichées)`;
 
             if (filtered.length === 0) {
                 container.innerHTML = `
