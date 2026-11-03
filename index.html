@@ -1,754 +1,2278 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Absences Profs - iPhone 16 Pro Max</title>
-    <!-- SheetJS pour la lecture des fichiers Excel -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    
-    <!-- Firebase SDK (version modulaires via CDN) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        // Importez ici d'autres services Firebase si nécessaire (ex: firestore, database, etc.)
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyDklb3V3oH7F-jAzgPD5fjmzSAbF4Inro",
-            authDomain: "absence-9785c.firebaseapp.com",
-            projectId: "absence-9785c",
-            storageBucket: "absence-9785c.appspot.com",
-            messagingSenderId: "778838051214",
-            appId: "1:778838051214:web:a4a50e0d1a227724447cdf"
-        };
+    <title>Emploi du Temps AED</title>
+    <link rel="apple-touch-icon" href="./Logo.PNG">
 
-        // Initialisation de Firebase
-        const app = initializeApp(firebaseConfig);
-        window.firebaseApp = app; // Rendre accessible globalement si besoin dans les scripts de l'application
-    </script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- SheetJS (xlsx) CDN pour parser les fichiers Excel de profs absents -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-dark: #4338ca;
-            --bg-app: #f3f4f6;
-            --card-bg: #ffffff;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --danger: #ef4444;
-            --danger-bg: #fee2e2;
-            --success: #10b981;
-            --success-bg: #d1fae5;
-        }
-
         * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
 
-        body {
-            background-color: #000000;
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-
-        .mobile-frame {
-            width: 100vw;
-            height: 100vh;
-            max-width: 430px;
-            max-height: 932px;
-            background-color: var(--bg-app);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        @media (min-width: 431px) {
-            .mobile-frame {
-                border-radius: 50px;
-                border: 12px solid #1a1a1a;
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-                height: 92vh;
-            }
-        }
-
-        .app-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 20px 20px 15px 20px;
-            border-bottom-left-radius: 24px;
-            border-bottom-right-radius: 24px;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .app-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .live-clock {
-            font-size: 0.9rem;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-
-        .live-date {
-            font-size: 0.8rem;
-            opacity: 0.85;
-            text-transform: capitalize;
-        }
-
-        .quick-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 15px 20px 5px 20px;
-        }
-
-        .actions-row {
-            display: flex;
-            gap: 8px;
-        }
-
-        .action-btn {
-            flex: 1;
-            background: white;
-            border: 1px solid #e5e7eb;
-            padding: 10px 6px;
-            border-radius: 12px;
-            font-size: 0.73rem;
-            font-weight: 600;
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            transition: all 0.2s;
-            text-align: center;
-        }
-
-        .action-btn.view-tab.active {
-            background: #eef2ff;
-            color: var(--primary);
-            border-color: var(--primary);
-            box-shadow: inset 0 0 0 1px var(--primary);
-        }
-
-        .action-btn.accent {
-            background: #eef2ff;
-            color: var(--primary);
-            border-color: #c7d2fe;
-        }
-
-        .action-btn:active {
-            transform: scale(0.97);
-            background: #f9fafb;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .app-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px 20px 20px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        html, body, #desktop-matrix-wrapper, .custom-scrollbar {
             -webkit-overflow-scrolling: touch;
         }
 
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 5px;
+        tr.highlighted-row {
+            background-color: #fef08a !important;
+            transition: background-color 0.2s ease;
+        }
+        tr.highlighted-row td {
+            background-color: #fef08a !important;
         }
 
-        .section-label {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
-        .absence-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            border-left: 5px solid var(--danger);
+        .slot-row {
+            height: 48px !important;
+        }
+        .slot-row td {
+            height: 48px !important;
         }
 
-        .absence-card.replaced {
-            border-left-color: var(--success);
+        .mission-block {
+            height: calc(100% - 2px) !important;
+            margin: 1px 0;
+            box-sizing: border-box;
         }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+        @media (max-width: 639px) {
+            .slot-row, .slot-row td {
+                height: 45px !important;
+            }
+            .mission-block {
+                padding: 2px 3px !important;
+                font-size: 10px !important;
+                line-height: 1.1 !important;
+            }
         }
 
-        .prof-name {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--text-main);
-        }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+        .pt-safe { padding-top: env(safe-area-inset-top, 0rem); }
 
-        .badge {
-            font-size: 0.7rem;
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-weight: 700;
-        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .badge.absent {
-            background-color: var(--danger-bg);
-            color: var(--danger);
+        .sticky-header-th {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background-color: #f1f5f9;
         }
-
-        .badge.replaced {
-            background-color: var(--success-bg);
-            color: var(--success);
-        }
-
-        .card-date-tag {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--primary);
-            background: #eef2ff;
-            padding: 2px 8px;
-            border-radius: 6px;
-            width: fit-content;
-        }
-
-        .card-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .detail-item strong {
-            color: var(--text-main);
-            display: block;
-        }
-
-        .replacement-info {
-            background: #f9fafb;
-            padding: 8px 10px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .modal {
-            display: none;
-            position: absolute;
+        .sticky-corner-th {
+            position: sticky;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 100;
-            justify-content: flex-end;
-            flex-direction: column;
+            z-index: 30;
+            background-color: #e2e8f0;
         }
 
-        .modal-content {
-            background: white;
-            width: 100%;
-            max-height: 75vh;
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            animation: slideUp 0.3s ease-out;
-            padding-bottom: calc(20px + env(safe-area-inset-bottom));
-        }
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 3mm;
+            }
+            html, body {
+                height: 100% !important;
+                min-height: 100% !important;
+                background: white !important;
+                color: black !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                overflow: visible !important;
+            }
+            .no-print { display: none !important; }
+            
+            #screen-schedule-container, .print-full-width {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                overflow: visible !important;
+            }
 
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
+            .overflow-x-auto, #desktop-matrix-wrapper {
+                overflow: visible !important;
+                max-height: none !important;
+            }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+            table {
+                width: 100% !important;
+                height: 92vh !important;
+                table-layout: fixed !important;
+                font-size: 11px !important;
+                border-collapse: collapse !important;
+            }
 
-        .modal-title {
-            font-weight: 700;
-            font-size: 1rem;
-        }
+            th, td {
+                padding: 2px 3px !important;
+                box-sizing: border-box !important;
+                word-wrap: break-word !important;
+                overflow: hidden !important;
+            }
 
-        .teachers-checklist {
-            overflow-y: auto;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 15px;
-            max-height: 40vh;
-        }
+            .slot-row, .slot-row td { height: auto !important; }
 
-        .check-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px;
-            background: #f9fafb;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
+            .mission-block {
+                font-size: 10px !important;
+                line-height: 1.15 !important;
+                padding: 3px 4px !important;
+                box-shadow: none !important;
+                border-width: 1px !important;
+                border-radius: 4px !important;
+                height: 98% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+            }
 
-        .check-item input {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary);
-        }
+            .print-page-break {
+                page-break-after: always !important;
+                break-after: page !important;
+            }
 
-        .modal-footer {
-            display: flex;
-            gap: 10px;
-        }
+            .print-single-page {
+                height: 98vh !important;
+                max-height: 98vh !important;
+                overflow: hidden !important;
+                box-sizing: border-box;
+                page-break-inside: avoid !important;
+            }
 
-        .btn-modal {
-            flex: 1;
-            padding: 12px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
+            th.min-w-\[120px\], td.min-w-\[120px\], th.sm\:min-w-\[180px\], td.sm\:min-w-\[180px\] {
+                min-width: 0 !important;
+            }
 
-        .btn-cancel {
-            background: #e5e7eb;
-            color: var(--text-main);
-        }
-
-        .btn-confirm {
-            background: var(--primary);
-            color: white;
+            th.w-28, td.w-28, th.sm\:w-44, td.sm\:w-44 {
+                width: 90px !important;
+                min-width: 90px !important;
+            }
         }
     </style>
 </head>
-<body>
+<body class="h-full text-slate-800 flex flex-col min-h-screen bg-slate-100/70 pb-6 sm:pb-0">
 
-<div class="mobile-frame">
-    <div class="app-header">
-        <div class="header-top">
-            <div class="app-title">🏫 Vie Scolaire</div>
-            <div class="live-clock" id="clock">00:00</div>
+    <!-- Top Header -->
+    <header class="bg-indigo-700 text-white shadow-lg no-print sticky top-0 z-40 pt-safe">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex flex-col gap-3 py-2 sm:py-3">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center space-x-2.5 sm:space-x-3">
+                    <div class="p-1.5 sm:p-2 bg-indigo-800/80 rounded-xl shadow-inner flex-shrink-0">
+                        <i class="fa-solid fa-users-gear text-lg sm:text-2xl text-indigo-200"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <h1 class="text-sm sm:text-xl font-extrabold tracking-tight">Vie Scolaire</h1>
+                            <span id="sync-status" class="text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 font-semibold flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Direct
+                            </span>
+                        </div>
+                        <p class="text-[10px] sm:text-xs text-indigo-200 font-medium">Planning AED & Postes</p>
+                    </div>
+                </div>
+
+                <!-- Actions Bar -->
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <button onclick="openSettingsModal()" class="bg-indigo-800/80 hover:bg-indigo-600 text-white p-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5" title="Réglages des Seuils CPE">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span class="hidden sm:inline">Réglages</span>
+                    </button>
+
+                    <button onclick="openAEDModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl font-bold shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-plus text-xs"></i>
+                        <span class="hidden sm:inline">+ Nouvel AED</span>
+                        <span class="sm:hidden">AED</span>
+                    </button>
+
+                    <!-- Dropdown Options -->
+                    <div class="relative group">
+                        <button class="bg-indigo-800/80 hover:bg-indigo-600 text-white p-1.5 sm:p-2 rounded-xl text-xs sm:text-sm transition" title="Options">
+                            <i class="fa-solid fa-ellipsis-vertical px-1"></i>
+                        </button>
+                        <div class="absolute right-0 mt-1 w-56 bg-white rounded-2xl shadow-2xl py-2 z-50 hidden group-hover:block border border-slate-100 text-slate-700 text-sm">
+                            <button onclick="switchMainTab('grid')" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 font-semibold text-indigo-600">
+                                <i class="fa-solid fa-table-cells"></i> Grille du Jour
+                            </button>
+                            <button onclick="switchMainTab('aed')" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 font-semibold text-indigo-600">
+                                <i class="fa-solid fa-address-card"></i> Gestion AED
+                            </button>
+                            <button onclick="switchMainTab('equity')" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 font-semibold text-indigo-600">
+                                <i class="fa-solid fa-scale-balanced"></i> Équilibre Postes
+                            </button>
+                            <hr class="my-1 border-slate-100">
+                            <button onclick="openSettingsModal()" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 font-semibold text-indigo-600">
+                                <i class="fa-solid fa-sliders"></i> Réglages Seuils CPE
+                            </button>
+                            <button onclick="openIcsExportModal()" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 font-semibold text-indigo-600">
+                                <i class="fa-solid fa-calendar-arrow-down"></i> Exporter Calendrier (.ics)
+                            </button>
+                            <hr class="my-1 border-slate-100">
+                            <button onclick="exportData()" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 font-medium">
+                                <i class="fa-solid fa-file-export text-indigo-600"></i> Exporter (JSON)
+                            </button>
+                            <label class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer font-medium">
+                                <i class="fa-solid fa-file-import text-indigo-600"></i> Importer (JSON)
+                                <input type="file" id="import-file" onchange="importData(event)" class="hidden" accept=".json">
+                            </label>
+                            <hr class="my-1 border-slate-100">
+                            <button onclick="triggerPrint('current')" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-medium">
+                                <i class="fa-solid fa-print text-indigo-600"></i> Imprimer Jour
+                            </button>
+                            <button onclick="triggerPrint('all')" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-medium">
+                                <i class="fa-solid fa-print text-emerald-600"></i> Imprimer Semaine
+                            </button>
+                            <hr class="my-1 border-slate-100">
+                            <button onclick="resetData()" class="w-full text-left px-4 py-2 hover:bg-red-50 flex items-center gap-2 text-red-600 font-medium">
+                                <i class="fa-solid fa-trash-can"></i> Réinitialiser
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="live-date" id="date">Chargement...</div>
-    </div>
+    </header>
 
-    <!-- Actions Rapides & Boutons de vues séparés -->
-    <div class="quick-actions">
-        <!-- Ligne 1 : Vues -->
-        <div class="actions-row">
-            <button class="action-btn view-tab active" id="btnRemaining" onclick="setViewMode('remaining')">
-                <span>⏳</span> Restants
-            </button>
-            <button class="action-btn view-tab" id="btnDay" onclick="setViewMode('day')">
-                <span>📅</span> Journée
-            </button>
-            <button class="action-btn view-tab" id="btnAll" onclick="setViewMode('all')">
-                <span>📂</span> Semaine
-            </button>
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-6 lg:p-8 flex flex-col gap-2 sm:gap-6">
+
+        <!-- Toast Notifications -->
+        <div id="toast" class="hidden fixed bottom-16 sm:bottom-6 right-3 sm:right-6 z-50 bg-slate-900/95 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur transition-all border border-slate-700/50">
+            <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+            <span id="toast-message" class="text-xs sm:text-sm font-semibold">Notification</span>
         </div>
-        <!-- Ligne 2 : Gestion Fichiers & Sélection -->
-        <div class="actions-row">
-            <label for="excelFile" class="action-btn accent">
-                <span>📥</span> Remplacer Fichier
-            </label>
-            <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
 
-            <label for="appendExcelFile" class="action-btn accent" title="Ajouter des absences en plus">
-                <span>➕</span> Ajouter Excel
-            </label>
-            <input type="file" id="appendExcelFile" accept=".xlsx, .xls, .csv">
+        <!-- Section 1: Main Grid Schedule -->
+        <section id="section-grid" class="flex flex-col gap-2 sm:gap-4">
+            
+            <!-- Controls Bar: Days Selector + Print Mode + Profs Absents Actions -->
+            <div class="bg-white p-2 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-200/80 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2 sm:gap-4 no-print">
+                <!-- Days Selector Scrollable horizontal on mobile -->
+                <div class="flex items-center justify-between sm:justify-start gap-1.5 overflow-x-auto no-scrollbar">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden sm:inline">Jour:</span>
+                    <div class="flex gap-1 w-full sm:w-auto" id="day-tabs"></div>
+                </div>
 
-            <button class="action-btn" onclick="openManualModal()">
-                <span>✏️</span> Filtrer
-            </button>
-        </div>
-    </div>
+                <div class="flex flex-wrap items-center gap-2 justify-end">
+                    <!-- Bouton Profs Absents (Affiche le nombre d'absents du jour) -->
+                    <button onclick="openAbsentProfsModal()" class="flex items-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm">
+                        <i class="fa-solid fa-user-xmark text-rose-600"></i>
+                        <span>Prof. Absents</span>
+                        <span id="absent-count-badge" class="bg-rose-600 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">0</span>
+                    </button>
 
-    <div class="app-body">
-        <div class="section-header">
-            <div class="section-label" id="sectionTitle">Absences restantes du jour</div>
-            <span id="counterBadge" style="font-size: 0.75rem; background: #e5e7eb; padding: 2px 8px; border-radius: 10px; font-weight: bold;">0</span>
-        </div>
-        <div id="cardsContainer"></div>
-    </div>
-</div>
+                    <!-- Bouton d'importation Excel / CSV pour Profs Absents -->
+                    <label class="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-file-import text-xs"></i>
+                        <span>Importer Absences</span>
+                        <input type="file" id="import-abs-file" onchange="handleAbsentProfsImport(event)" class="hidden" accept=".xlsx, .xls, .csv">
+                    </label>
 
-<div class="modal" id="manualModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <div class="modal-title">Gérer les profs absents</div>
-            <span onclick="closeManualModal()" style="cursor:pointer; font-size:1.2rem;">✕</span>
-        </div>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Cochez les professeurs à afficher :</p>
-        <div class="teachers-checklist" id="teachersChecklist"></div>
-        <div class="modal-footer">
-            <button class="btn-modal btn-cancel" onclick="closeManualModal()">Annuler</button>
-            <button class="btn-modal btn-confirm" onclick="applyManualAbsences()">Valider</button>
-        </div>
-    </div>
-</div>
+                    <!-- Bouton rapide d'exportation ICS -->
+                    <button onclick="openIcsExportModal()" class="flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-xl text-xs font-bold transition">
+                        <i class="fa-solid fa-calendar-arrow-down text-indigo-600"></i> ICS
+                    </button>
 
-<script>
-    function updateClock() {
-        const now = new Date();
-        document.getElementById('clock').textContent = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        document.getElementById('date').textContent = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
+                    <!-- Option d'impression dédiée -->
+                    <div class="hidden sm:flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-xl">
+                        <span class="text-xs font-bold text-indigo-900"><i class="fa-solid fa-print text-indigo-600 mr-1"></i> Mode :</span>
+                        <select id="print-mode-select" class="text-xs bg-white border border-indigo-200 rounded-lg px-2 py-1 font-semibold text-slate-700 focus:outline-none">
+                            <option value="current">Jour uniquement</option>
+                            <option value="all">Semaine complète</option>
+                        </select>
+                        <button onclick="triggerPrintSelected()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2.5 py-1 rounded-lg font-bold transition">
+                            Imprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-    let allAbsencesData = [
-        { prof: "BERNARD CLEMENT", matiere: "MATHEMATIQUES", classe: "5 A (KARA Baran)", debut: "10h10", duree: "1h00", date: "06/11/2026", remplacant: "" },
-        { prof: "BERNARD CLEMENT", matiere: "MATHEMATIQUES", classe: "4 E P1", debut: "11h10", duree: "1h00", date: "03/11/2026", remplacant: "" },
-        { prof: "CAMARA DESCAMPS JACOB", matiere: "FRANC.LANGUE ETRANG.", classe: "4D / 5A / 5C / 5E", debut: "14h25", duree: "1h00", date: "03/11/2026", remplacant: "" },
-        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5 A P1", debut: "08h00", duree: "1h00", date: "02/11/2026", remplacant: "" },
-        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5 A P2", debut: "10h10", duree: "1h00", date: "02/11/2026", remplacant: "" },
-        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5 A (KARA Baran)", debut: "13h25", duree: "1h00", date: "02/11/2026", remplacant: "" },
-        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "3 C", debut: "14h25", duree: "1h00", date: "02/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "6 B P1", debut: "08h00", duree: "1h00", date: "03/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "6 B", debut: "08h00", duree: "1h00", date: "02/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "3 A", debut: "09h00", duree: "1h00", date: "03/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "4 C P2", debut: "09h00", duree: "1h00", date: "02/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "6 B P2", debut: "10h10", duree: "1h00", date: "03/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "6 B", debut: "10h10", duree: "1h00", date: "02/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "5 A P2", debut: "11h30", duree: "1h00", date: "02/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "4 C P1", debut: "11h10", duree: "1h00", date: "03/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "3 A P1", debut: "13h25", duree: "1h00", date: "02/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "3 A", debut: "13h25", duree: "1h00", date: "03/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "3 A P2", debut: "14h25", duree: "1h00", date: "02/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "3 A", debut: "14h25", duree: "1h00", date: "02/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "VIE DE CLASSE", classe: "6 B", debut: "15h35", duree: "1h00", date: "03/11/2026", remplacant: "" },
-        { prof: "D'ANTONI SIGRID", matiere: "DEVOIRS FAITS", classe: "6 B P1", debut: "16h35", duree: "1h00", date: "03/11/2026", remplacant: "" },
-        { prof: "GUACU REDA", matiere: "MATHEMATIQUES", classe: "4 B P2", debut: "14h25", duree: "1h00", date: "05/11/2026", remplacant: "" },
-        { prof: "GIRAUD MARGOT", matiere: "FRANCAIS", classe: "5 D", debut: "08h00", duree: "1h00", date: "03/11/2026", remplacant: "CHIKHAOUI H." },
-        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "6 D", debut: "08h00", duree: "1h00", date: "03/11/2026", remplacant: "MOUMENI A." }
-    ];
+            <!-- Section Pauses AED -->
+            <div id="aed-breaks-bar" class="no-print bg-white px-2.5 py-1.5 rounded-xl border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-between gap-1.5 sm:gap-3 text-xs">
+                <div class="flex items-center gap-1.5 font-bold text-amber-900 flex-shrink-0">
+                    <i class="fa-solid fa-mug-hot text-amber-600 text-xs"></i>
+                    <span class="text-[11px] sm:text-xs">Pauses Midi:</span>
+                </div>
 
-    let viewMode = 'remaining';
+                <div class="flex items-center gap-2 sm:gap-4 flex-wrap flex-1 justify-start">
+                    <!-- Pause 11h30 -->
+                    <div class="flex items-center gap-1 bg-amber-50/80 border border-amber-200/60 px-1.5 py-0.5 rounded-lg">
+                        <span class="text-[10px] font-extrabold text-amber-900 whitespace-nowrap">11h30</span>
+                        <div id="break-list-11h30" class="flex items-center gap-1 flex-wrap"></div>
+                        <div class="relative inline-block text-left">
+                            <button onclick="toggleBreakDropdown('11h30')" class="bg-amber-600 hover:bg-amber-700 text-white w-4 h-4 rounded text-[10px] font-bold flex items-center justify-center transition leading-none" title="Ajouter">+</button>
+                            <div id="break-dropdown-11h30" class="hidden absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-lg shadow-xl z-30 py-0.5 text-xs"></div>
+                        </div>
+                    </div>
 
-    function getTodayFormatted() {
-        const now = new Date();
-        const d = String(now.getDate()).padStart(2, '0');
-        const m = String(now.getMonth() + 1).padStart(2, '0');
-        const y = now.getFullYear();
-        return `${d}/${m}/${y}`;
-    }
+                    <!-- Pause 12h00 -->
+                    <div class="flex items-center gap-1 bg-amber-50/80 border border-amber-200/60 px-1.5 py-0.5 rounded-lg">
+                        <span class="text-[10px] font-extrabold text-amber-900 whitespace-nowrap">12h00</span>
+                        <div id="break-list-12h00" class="flex items-center gap-1 flex-wrap"></div>
+                        <div class="relative inline-block text-left">
+                            <button onclick="toggleBreakDropdown('12h00')" class="bg-amber-600 hover:bg-amber-700 text-white w-4 h-4 rounded text-[10px] font-bold flex items-center justify-center transition leading-none" title="Ajouter">+</button>
+                            <div id="break-dropdown-12h00" class="hidden absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-lg shadow-xl z-30 py-0.5 text-xs"></div>
+                        </div>
+                    </div>
 
-    function getEndTimeInMinutes(debutStr, dureeStr) {
-        if (!debutStr) return 1440;
-        let cleanDebut = debutStr.toLowerCase().replace('h', ':');
-        let parts = cleanDebut.split(':');
-        let hours = parseInt(parts[0], 10) || 0;
-        let minutes = parseInt(parts[1], 10) || 0;
+                    <!-- Pause 12h30 -->
+                    <div class="flex items-center gap-1 bg-amber-50/80 border border-amber-200/60 px-1.5 py-0.5 rounded-lg">
+                        <span class="text-[10px] font-extrabold text-amber-900 whitespace-nowrap">12h30</span>
+                        <div id="break-list-12h30" class="flex items-center gap-1 flex-wrap"></div>
+                        <div class="relative inline-block text-left">
+                            <button onclick="toggleBreakDropdown('12h30')" class="bg-amber-600 hover:bg-amber-700 text-white w-4 h-4 rounded text-[10px] font-bold flex items-center justify-center transition leading-none" title="Ajouter">+</button>
+                            <div id="break-dropdown-12h30" class="hidden absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-lg shadow-xl z-30 py-0.5 text-xs"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        let durHours = 1;
-        let durMinutes = 0;
-        if (dureeStr) {
-            let cleanDuree = dureeStr.toLowerCase().replace('h', ':');
-            let durParts = cleanDuree.split(':');
-            durHours = parseInt(durParts[0], 10) || 0;
-            durMinutes = parseInt(durParts[1], 10) || 0;
-        }
-
-        return (hours + durHours) * 60 + (minutes + durMinutes);
-    }
-
-    function isCourseRemaining(debutStr, dureeStr) {
-        const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        const endMinutes = getEndTimeInMinutes(debutStr, dureeStr);
-        return endMinutes > currentMinutes;
-    }
-
-    function setViewMode(mode) {
-        viewMode = mode;
-        document.querySelectorAll('.view-tab').forEach(btn => btn.classList.remove('active'));
-        if (mode === 'remaining') document.getElementById('btnRemaining').classList.add('active');
-        if (mode === 'day') document.getElementById('btnDay').classList.add('active');
-        if (mode === 'all') document.getElementById('btnAll').classList.add('active');
-
-        updateViewUI();
-        renderCards();
-    }
-
-    function updateViewUI() {
-        const sectionTitle = document.getElementById('sectionTitle');
-        if (viewMode === 'remaining') {
-            sectionTitle.textContent = "Absences restantes du jour";
-        } else if (viewMode === 'day') {
-            sectionTitle.textContent = "Toutes les absences du jour";
-        } else {
-            sectionTitle.textContent = "Toutes les absences (Semaine)";
-        }
-    }
-
-    function renderCards() {
-        const container = document.getElementById('cardsContainer');
-        container.innerHTML = '';
-
-        const todayStr = getTodayFormatted();
-        
-        let displayedData = allAbsencesData.filter(item => {
-            if (!item.date) return false;
-            let cleanItemDate = item.date.trim();
-            if (cleanItemDate.includes('-')) {
-                const parts = cleanItemDate.split('T')[0].split('-');
-                if (parts.length === 3) {
-                    cleanItemDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-                }
-            }
-
-            if (viewMode === 'all') return true;
-
-            const isToday = (cleanItemDate === todayStr);
-            if (viewMode === 'day') return isToday;
-
-            return isToday && isCourseRemaining(item.debut, item.duree);
-        });
-
-        document.getElementById('counterBadge').textContent = displayedData.length;
-
-        if (displayedData.length === 0) {
-            let msg = "Aucune absence à venir pour le reste de la journée.";
-            if (viewMode === 'day') msg = "Aucune absence enregistrée pour la journée (" + todayStr + ").";
-            if (viewMode === 'all') msg = "Aucune absence enregistrée.";
-
-            container.innerHTML = `
-                <div class="empty-state">
-                    ${msg}<br><br>
-                    <small style="color:var(--primary); cursor:pointer; text-decoration:underline;" onclick="setViewMode('all')">Voir l'historique complet</small>
-                </div>`;
-            return;
-        }
-
-        displayedData.forEach(item => {
-            const hasRemplacant = item.remplacant && item.remplacant.trim() !== "";
-            const card = document.createElement('div');
-            card.className = `absence-card ${hasRemplacant ? 'replaced' : ''}`;
-
-            card.innerHTML = `
-                <div class="card-header">
-                    <span class="prof-name">${item.prof}</span>
-                    <span class="badge ${hasRemplacant ? 'replaced' : 'absent'}">
-                        ${hasRemplacant ? 'Remplacé' : 'Non Remplacé'}
+            <!-- Badges de présence pour Portail et Permanence -->
+            <div id="realtime-post-badges" class="no-print flex flex-wrap items-center gap-2 text-xs">
+                <!-- Badge Portail -->
+                <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-900 px-3 py-1.5 rounded-xl shadow-sm">
+                    <div class="flex items-center gap-1.5 font-bold">
+                        <span class="p-1 bg-blue-600 text-white rounded-lg flex items-center justify-center w-5 h-5 text-[10px]">
+                            <i class="fa-solid fa-door-open"></i>
+                        </span>
+                        <span>Portail :</span>
+                    </div>
+                    <span id="realtime-portail-status" class="font-semibold text-blue-800 text-[11px] sm:text-xs">
+                        Aucun AED
                     </span>
                 </div>
-                <div class="card-date-tag">📅 Date : ${item.date || 'Non spécifiée'}</div>
-                <div class="card-details">
-                    <div class="detail-item">
-                        <span>Matière</span>
-                        <strong>${item.matiere || 'N/C'}</strong>
+
+                <!-- Badge Permanence -->
+                <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1.5 rounded-xl shadow-sm">
+                    <div class="flex items-center gap-1.5 font-bold">
+                        <span class="p-1 bg-amber-500 text-white rounded-lg flex items-center justify-center w-5 h-5 text-[10px]">
+                            <i class="fa-solid fa-book-open"></i>
+                        </span>
+                        <span>Permanence :</span>
                     </div>
-                    <div class="detail-item">
-                        <span>Classe / Groupe</span>
-                        <strong>${item.classe}</strong>
+                    <span id="realtime-permanence-status" class="font-semibold text-amber-800 text-[11px] sm:text-xs">
+                        Aucun AED
+                    </span>
+                </div>
+            </div>
+
+            <!-- Alert CPE Container -->
+            <div id="cpe-alerts-bar" class="hidden flex flex-col gap-1.5"></div>
+
+            <!-- Screen Schedule Matrix Container -->
+            <div id="screen-schedule-container" class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col print-full-width">
+                <div class="hidden print:block p-2 border-b-2 border-indigo-600 mb-1">
+                    <h2 class="text-lg font-bold text-slate-900">Collège - Planning des Postes Vie Scolaire</h2>
+                    <p id="print-day-title" class="text-xs font-semibold text-indigo-700">Jour : Lundi</p>
+                </div>
+
+                <!-- Desktop / Mobile Matrix View -->
+                <div id="desktop-matrix-wrapper" class="overflow-x-auto overflow-y-auto max-h-[82vh] custom-scrollbar max-w-full relative">
+                    <table class="w-full border-collapse text-left text-xs sm:text-sm" id="schedule-matrix-table">
+                        <thead>
+                            <tr class="bg-slate-100/80 text-slate-700 border-b border-slate-200" id="matrix-header-row"></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100" id="matrix-body"></tbody>
+                    </table>
+                </div>
+
+                <div id="no-aed-warning" class="hidden p-6 sm:p-12 text-center flex flex-col items-center justify-center gap-2">
+                    <div class="w-10 h-10 sm:w-14 sm:h-14 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center text-lg sm:text-xl">
+                        <i class="fa-solid fa-user-slash"></i>
                     </div>
-                    <div class="detail-item">
-                        <span>Horaire</span>
-                        <strong>${item.debut} (${item.duree})</strong>
+                    <h3 class="text-sm sm:text-lg font-bold text-slate-800">Aucun AED présent ce jour-là</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 max-w-md">Personne n'a de créneau de travail planifié pour cette journée.</p>
+                </div>
+            </div>
+
+            <!-- Zone dynamique réservée à l'impression multi-pages -->
+            <div id="print-multi-container" class="hidden print:block"></div>
+
+        </section>
+
+        <!-- Section 2: AED Management & Contracts -->
+        <section id="section-aed" class="hidden flex flex-col gap-4 sm:gap-6 no-print">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-800">Équipe Vie Scolaire & Contrats</h2>
+                    <p class="text-xs sm:text-sm text-slate-500">Gérez le personnel, le statut étudiant et suivez le quota horaire.</p>
+                </div>
+                <button onclick="openAEDModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm px-4 py-2.5 rounded-xl font-bold shadow transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Ajouter un AED
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5" id="aed-cards-container"></div>
+        </section>
+
+        <!-- Section 3: Equity Dashboard -->
+        <section id="section-equity" class="hidden flex flex-col gap-4 sm:gap-6 no-print">
+            <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                <div>
+                    <div class="flex items-center gap-2 text-indigo-600 font-bold uppercase text-[11px] tracking-wider mb-1">
+                        <i class="fa-solid fa-scale-balanced"></i> Module d'Équité
+                    </div>
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-800">Équilibre & Répartition des Postes</h2>
+                    <p class="text-xs sm:text-sm text-slate-500">Analyse globale et cumulée des affectations.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 flex flex-col gap-4">
+                    <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-indigo-600"></i> Cumul Hebdomadaire par Poste
+                    </h3>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-xs text-left border-collapse" id="equity-table">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200" id="equity-table-header"></tr>
+                            </thead>
+                            <tbody id="equity-table-body" class="divide-y divide-slate-100"></tbody>
+                        </table>
                     </div>
                 </div>
-                ${hasRemplacant ? `
-                    <div class="replacement-info">
-                        <span>👤 Remplaçant(e) / Info :</span> <strong>${item.remplacant}</strong>
-                    </div>
-                ` : `
-                    <div class="replacement-info" style="color: var(--danger);">
-                        <span>⚠️</span> Cours non assuré / annulé
-                    </div>
-                `}
-            `;
-            container.appendChild(card);
-        });
-    }
 
-    function parseExcelFile(file, isAppend = false) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 flex flex-col gap-4">
+                    <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                        <i class="fa-solid fa-shield-heart text-emerald-600"></i> Diagnostics
+                    </h3>
+                    <div id="equity-alerts-container" class="flex flex-col gap-3 text-xs"></div>
+                </div>
+            </div>
+        </section>
 
-            if (jsonData.length < 2) {
-                alert("Le fichier semble vide.");
+    </main>
+
+    <!-- Modal: Settings / Seuils CPE -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 no-print">
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+            <div class="bg-indigo-700 px-5 py-4 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-lg"></i>
+                    <h3 class="font-bold text-base sm:text-lg">Réglages - Seuils CPE</h3>
+                </div>
+                <button onclick="closeSettingsModal()" class="text-indigo-200 hover:text-white p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <div class="p-5 flex flex-col gap-4 text-xs sm:text-sm overflow-y-auto custom-scrollbar">
+                <p class="text-slate-500 text-xs">Ajustez le nombre d'AEDs minimum requis en début de journée (Matin 08h) et en fin de journée (Soir 17h) pour chaque jour de la semaine.</p>
+                
+                <div class="space-y-3" id="settings-days-list">
+                    <!-- Généré dynamiquement -->
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 mt-2">
+                    <button type="button" onclick="closeSettingsModal()" class="px-5 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md">
+                        Enregistrer & Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Professeurs Absents en Temps Réel -->
+    <div id="absent-profs-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 no-print">
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-3xl w-full overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
+            <div class="bg-rose-700 px-5 py-4 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-user-xmark text-lg"></i>
+                    <div>
+                        <h3 class="font-bold text-base sm:text-lg">Professeurs Absents</h3>
+                        <p id="absent-modal-sub" class="text-xs text-rose-200">Visualisation des absences importées</p>
+                    </div>
+                </div>
+                <button onclick="closeAbsentProfsModal()" class="text-rose-200 hover:text-white p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <div class="p-4 sm:p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-slate-600 uppercase">Filtrer jour :</label>
+                        <select id="absent-filter-day" onchange="renderAbsentProfsList()" class="text-xs bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-700 focus:outline-none">
+                            <option value="ALL">Tous les jours</option>
+                            <option value="Lundi">Lundi</option>
+                            <option value="Mardi">Mardi</option>
+                            <option value="Mercredi">Mercredi</option>
+                            <option value="Jeudi">Jeudi</option>
+                            <option value="Vendredi">Vendredi</option>
+                        </select>
+                    </div>
+
+                    <button onclick="clearAbsentProfsData()" class="text-xs font-bold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-200 transition">
+                        <i class="fa-solid fa-trash-can mr-1"></i> Vider la liste
+                    </button>
+                </div>
+
+                <!-- Liste des profs absents -->
+                <div id="absent-profs-list-container" class="space-y-2.5">
+                    <!-- Contenu inséré en JS -->
+                </div>
+            </div>
+
+            <div class="bg-slate-50 px-5 py-3 border-t border-slate-100 flex justify-between items-center text-xs">
+                <span id="absent-total-count" class="font-bold text-slate-600">Total : 0 absences enregistrées</span>
+                <button onclick="closeAbsentProfsModal()" class="px-4 py-2 rounded-xl font-bold text-slate-700 bg-slate-200 hover:bg-slate-300 transition">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: AED Edit / Add -->
+    <div id="aed-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto no-print">
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden transform transition-all">
+            <div class="bg-slate-50 px-5 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 id="aed-modal-title" class="font-bold text-slate-800 text-base sm:text-lg">Ajouter un AED</h3>
+                <button onclick="closeAEDModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl bg-slate-200/50">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            
+            <form id="aed-form" onsubmit="saveAED(event)" class="p-4 sm:p-6 flex flex-col gap-4 sm:gap-5 overflow-y-auto custom-scrollbar flex-1">
+                <input type="hidden" id="aed-id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Nom / Prénom</label>
+                        <input type="text" id="aed-name" required placeholder="ex: Thomas DUBOIS" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Base Contrat</label>
+                        <select id="aed-contract" onchange="updateContractHoursPreview()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold bg-white">
+                            <option value="100">100% - Temps Plein</option>
+                            <option value="75">75% - Temps Partiel</option>
+                            <option value="50">50% - Mi-temps</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50/70 border border-amber-200/80 p-3.5 sm:p-4 rounded-xl flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="aed-is-student" onchange="toggleStudentStatus()" class="w-4 h-4 text-amber-600 rounded focus:ring-amber-500">
+                            <label for="aed-is-student" class="text-xs font-bold text-amber-900 cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-graduation-cap text-amber-600"></i> Statut Étudiant (Crédit d'Heures)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="student-hours-container" class="hidden flex flex-row items-center justify-between gap-3 pt-2 border-t border-amber-200/60">
+                        <span class="text-xs text-amber-800 font-medium">Quota hebdo spécifique :</span>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="aed-custom-hours" step="0.5" min="1" max="50" class="w-20 px-2.5 py-1.5 border border-amber-300 rounded-lg text-xs font-bold text-slate-800 text-center">
+                            <span class="text-xs font-bold text-amber-900">heures/sem.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Couleur d'identification</label>
+                    <div class="flex items-center gap-3">
+                        <input type="color" id="aed-color" value="#4f46e5" class="h-10 w-16 p-1 rounded-xl border border-slate-300 cursor-pointer">
+                        <span class="text-xs text-slate-500 font-medium">Identifies les blocs sur le planning.</span>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-50/50 p-3.5 sm:p-4 rounded-xl border border-indigo-100 flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase text-indigo-900 tracking-wide flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock text-indigo-600"></i> Horaires de Présence
+                        </span>
+                        <span class="text-[10px] text-indigo-600 italic">Créneaux quotidiens</span>
+                    </div>
+
+                    <div class="space-y-2.5" id="presence-days-container"></div>
+                </div>
+
+                <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-100 mt-auto">
+                    <button type="button" onclick="closeAEDModal()" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100">
+                        Annuler
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md">
+                        Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Post Assignment -->
+    <div id="mission-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 no-print">
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all max-h-[90vh] flex flex-col">
+            <div class="bg-slate-50 px-5 py-4 border-b border-slate-100 flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-base sm:text-lg">Affectation de Poste</h3>
+                    <p id="mission-modal-subtitle" class="text-xs text-slate-500 font-medium">Lundi • AED</p>
+                </div>
+                <button onclick="closeMissionModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl bg-slate-200/50">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <form id="mission-form" onsubmit="saveMission(event)" class="p-4 sm:p-6 flex flex-col gap-4 overflow-y-auto">
+                <input type="hidden" id="mission-day">
+                <input type="hidden" id="mission-aed-id">
+                <input type="hidden" id="mission-id">
+
+                <div class="bg-indigo-50/60 p-3.5 rounded-xl border border-indigo-100 flex flex-col gap-2.5">
+                    <label class="text-xs font-bold uppercase text-indigo-900 tracking-wide flex items-center gap-1.5">
+                        <i class="fa-solid fa-layer-group text-indigo-600"></i> Plage de créneaux
+                    </label>
+                    
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                            <span class="text-[11px] text-slate-600 mb-1 block font-medium">Début</span>
+                            <select id="mission-start-slot" onchange="handleSlotRangeChange()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white font-semibold"></select>
+                        </div>
+                        <div>
+                            <span class="text-[11px] text-slate-600 mb-1 block font-medium">Fin</span>
+                            <select id="mission-end-slot" onchange="handleSlotRangeChange()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 text-xs sm:text-sm bg-white font-semibold"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1.5">Choix du Poste / Mission</label>
+                    <select id="mission-type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs sm:text-sm font-bold bg-white"></select>
+                </div>
+
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 flex flex-col gap-2.5">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-slate-700">Horaires exacts du poste</label>
+                        <button type="button" onclick="resetSlotTimes()" class="text-xs text-indigo-600 font-bold hover:underline">
+                            Réinitialiser
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                            <span class="text-[10px] text-slate-500 mb-1 block font-medium">Début</span>
+                            <input type="time" id="mission-start-time" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300 text-xs sm:text-sm font-bold">
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 mb-1 block font-medium">Fin</span>
+                            <input type="time" id="mission-end-time" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300 text-xs sm:text-sm font-bold">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Notes / Instructions</label>
+                    <input type="text" id="mission-notes" placeholder="ex: Consignes, badges..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm">
+                </div>
+
+                <div class="flex items-center justify-between mt-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="deleteMission()" id="btn-delete-mission" class="px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i> Effacer
+                    </button>
+                    
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeMissionModal()" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100">
+                            Annuler
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md">
+                            Enregistrer
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Export Calendar (.ics) -->
+    <div id="ics-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 no-print">
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all">
+            <div class="bg-indigo-700 px-5 py-4 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-arrow-down text-lg"></i>
+                    <h3 class="font-bold text-base sm:text-lg">Exporter l'Emploi du Temps (.ics)</h3>
+                </div>
+                <button onclick="closeIcsExportModal()" class="text-indigo-200 hover:text-white p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <div class="p-5 flex flex-col gap-4 text-xs sm:text-sm">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1.5">Sélectionner un membre de l'équipe</label>
+                    <select id="ics-aed-select" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"></select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1.5">Date du premier Lundi de la période</label>
+                    <input type="date" id="ics-start-date" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800">
+                    <p class="text-[10px] text-slate-400 mt-1">Les postes et missions de la semaine seront générés à partir de cette date en mode récurrent.</p>
+                </div>
+
+                <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-xl text-indigo-900 text-xs flex items-start gap-2">
+                    <i class="fa-solid fa-circle-info text-indigo-600 mt-0.5"></i>
+                    <span>Le fichier téléchargé permettra d'importer les postes et missions spécifiques directement dans Apple Calendar, Google Calendar ou Outlook.</span>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeIcsExportModal()" class="px-4 py-2 rounded-xl font-semibold text-slate-600 hover:bg-slate-100">
+                        Annuler
+                    </button>
+                    <button type="button" onclick="generateAndDownloadICS()" class="px-4 py-2 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i> Télécharger .ics
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration Firebase Realtime Database
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfnE-RT9a03CpyZMo756umIZDkt0284Qs",
+            authDomain: "planning-c1d76.firebaseapp.com",
+            databaseURL: "https://planning-c1d76-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "planning-c1d76",
+            storageBucket: "planning-c1d76.firebasestorage.app",
+            messagingSenderId: "935188634725",
+            appId: "1:935188634725:web:85d8bf6af61d6e6eca3a8c"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const planningRef = database.ref('jules-ferry/planning_v1');
+
+        const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+
+        function getCurrentDayName() {
+            const daysMap = { 1: 'Lundi', 2: 'Mardi', 3: 'Mercredi', 4: 'Jeudi', 5: 'Vendredi' };
+            const currentDayIndex = new Date().getDay();
+            return daysMap[currentDayIndex] || 'Lundi';
+        }
+
+        const SLOTS = [
+            { id: 'M1', label: 'M1', start: '08:00', end: '09:00', type: 'cours' },
+            { id: 'M2', label: 'M2', start: '09:00', end: '10:10', type: 'cours' },
+            { id: 'RECRE_M', label: 'Récré M', start: '10:10', end: '10:25', type: 'recre' },
+            { id: 'M3', label: 'M3', start: '10:25', end: '11:20', type: 'cours' },
+            { id: 'M4', label: 'M4', start: '11:20', end: '12:15', type: 'cours' },
+            { id: 'MERIDIENNE', label: 'Méridienne', start: '12:15', end: '13:25', type: 'pause' },
+            { id: 'S1', label: 'S1', start: '13:25', end: '14:25', type: 'cours' },
+            { id: 'S2', label: 'S2', start: '14:25', end: '15:25', type: 'cours' },
+            { id: 'RECRE_S', label: 'Récré S', start: '15:25', end: '15:40', type: 'recre' },
+            { id: 'S3', label: 'S3', start: '15:40', end: '16:35', type: 'cours' },
+            { id: 'S4', label: 'S4', start: '16:35', end: '17:35', type: 'cours' }
+        ];
+
+        const MISSION_TYPES = {
+            'Portail/permanence 2': { name: 'Portail/permanence 2', bg: 'bg-blue-600', text: 'text-white', border: 'border-blue-700', icon: 'fa-door-open' },
+            'Permanence': { name: 'Permanence', bg: 'bg-amber-500', text: 'text-white', border: 'border-amber-600', icon: 'fa-book-open' },
+            'A1': { name: 'A1', bg: 'bg-indigo-600', text: 'text-white', border: 'border-indigo-700', icon: 'fa-building' },
+            'B1': { name: 'B1', bg: 'bg-purple-600', text: 'text-white', border: 'border-purple-700', icon: 'fa-layer-group' },
+            'B2': { name: 'B2', bg: 'bg-violet-600', text: 'text-white', border: 'border-violet-700', icon: 'fa-cubes' },
+            'DP': { name: 'DP', bg: 'bg-orange-500', text: 'text-white', border: 'border-orange-600', icon: 'fa-utensils' },
+            'TOILETTES': { name: 'TOILETTES', bg: 'bg-rose-600', text: 'text-white', border: 'border-rose-700', icon: 'fa-restroom' },
+            'ESPLANADE': { name: 'ESPLANADE', bg: 'bg-emerald-600', text: 'text-white', border: 'border-emerald-700', icon: 'fa-tree' },
+            'COUR DIRECTION': { name: 'COUR DIRECTION', bg: 'bg-teal-600', text: 'text-white', border: 'border-teal-700', icon: 'fa-shield-halved' },
+            'COUR EPS': { name: 'COUR EPS', bg: 'bg-sky-600', text: 'text-white', border: 'border-sky-700', icon: 'fa-volleyball' },
+            'COUR CENTRALE': { name: 'COUR CENTRALE', bg: 'bg-cyan-600', text: 'text-white', border: 'border-cyan-700', icon: 'fa-shapes' },
+            'BUREAU': { name: 'BUREAU', bg: 'bg-slate-700', text: 'text-white', border: 'border-slate-800', icon: 'fa-laptop-code' },
+            'VOLANT A': { name: 'VOLANT A', bg: 'bg-fuchsia-600', text: 'text-white', border: 'border-fuchsia-700', icon: 'fa-person-walking-arrow-right' },
+            'VOLANT B': { name: 'VOLANT B', bg: 'bg-pink-600', text: 'text-white', border: 'border-pink-700', icon: 'fa-person-walking-arrow-loop-left' },
+            'RENFORT VIE SCOLAIRE': { name: 'RENFORT VIE SCOLAIRE', bg: 'bg-red-600', text: 'text-white', border: 'border-red-700', icon: 'fa-user-shield' },
+            'SUIVI': { name: 'SUIVI', bg: 'bg-lime-600', text: 'text-white', border: 'border-lime-700', icon: 'fa-clipboard-check' }
+        };
+
+        const CONTRACT_HOURS = { '100': 40, '75': 30, '50': 20 };
+
+        let isInitialLoad = true;
+
+        let appState = {
+            currentDay: getCurrentDayName(),
+            cpeConstraints: {},
+            aeds: [],
+            missions: [],
+            aedBreaks: {},
+            absentProfs: [] // Structure: [ { prof: '', matiere: '', classe: '', duree: '', date: '', debut: '', dayName: '' } ]
+        };
+
+        function toggleRowHighlight(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) {
+                row.classList.toggle('highlighted-row');
+            }
+        }
+
+        function initCpeConstraints() {
+            if (!appState.cpeConstraints || typeof appState.cpeConstraints.minMorning !== 'undefined') {
+                const oldMorning = (appState.cpeConstraints && appState.cpeConstraints.minMorning) || 4;
+                const oldEvening = (appState.cpeConstraints && appState.cpeConstraints.minEvening) || 4;
+                appState.cpeConstraints = {};
+                DAYS.forEach(day => {
+                    appState.cpeConstraints[day] = {
+                        minMorning: oldMorning,
+                        minEvening: day === 'Mercredi' ? 0 : oldEvening
+                    };
+                });
+            } else {
+                DAYS.forEach(day => {
+                    if (!appState.cpeConstraints[day]) {
+                        appState.cpeConstraints[day] = {
+                            minMorning: 4,
+                            minEvening: day === 'Mercredi' ? 0 : 4
+                        };
+                    }
+                });
+            }
+        }
+
+        function initAedBreaks() {
+            if (!appState.aedBreaks) {
+                appState.aedBreaks = {};
+            }
+            DAYS.forEach(day => {
+                if (!appState.aedBreaks[day]) {
+                    appState.aedBreaks[day] = { '11h30': [], '12h00': [], '12h30': [] };
+                } else {
+                    if (!appState.aedBreaks[day]['11h30']) appState.aedBreaks[day]['11h30'] = [];
+                    if (!appState.aedBreaks[day]['12h00']) appState.aedBreaks[day]['12h00'] = [];
+                    if (!appState.aedBreaks[day]['12h30']) appState.aedBreaks[day]['12h30'] = [];
+                }
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('aed_timetable_app_v5', JSON.stringify(appState));
+                if (planningRef) {
+                    planningRef.set(appState);
+                }
+            } catch (e) {
+                console.error("Erreur de sauvegarde de l'état :", e);
+            }
+        }
+
+        function initFirebaseSync() {
+            planningRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    const activeDay = isInitialLoad ? getCurrentDayName() : (appState.currentDay || getCurrentDayName());
+                    appState = data;
+                    appState.currentDay = activeDay;
+                    initCpeConstraints();
+                    initAedBreaks();
+                    if (!appState.aeds) appState.aeds = [];
+                    if (!appState.missions) appState.missions = [];
+                    if (!appState.absentProfs) appState.absentProfs = [];
+                    localStorage.setItem('aed_timetable_app_v5', JSON.stringify(appState));
+                } else {
+                    seedDefaultData();
+                }
+                isInitialLoad = false;
+                renderAll();
+            }, (error) => {
+                console.warn("Échec de synchronisation Firebase, lecture du cache local :", error);
+                loadLocalFallback();
+                renderAll();
+            });
+        }
+
+        function loadLocalFallback() {
+            try {
+                const saved = localStorage.getItem('aed_timetable_app_v5');
+                if (saved) {
+                    const activeDay = isInitialLoad ? getCurrentDayName() : (appState.currentDay || getCurrentDayName());
+                    appState = JSON.parse(saved);
+                    appState.currentDay = activeDay;
+                    initCpeConstraints();
+                    initAedBreaks();
+                    if (!appState.absentProfs) appState.absentProfs = [];
+                } else {
+                    seedDefaultData();
+                }
+            } catch (e) {
+                console.error("Erreur de lecture du cache local", e);
+                seedDefaultData();
+            }
+            isInitialLoad = false;
+        }
+
+        function seedDefaultData() {
+            const defaultPresence = {
+                'Lundi': { active: true, start1: '07:45', end1: '12:15', split: true, start2: '13:15', end2: '17:00' },
+                'Mardi': { active: true, start1: '07:45', end1: '12:15', split: true, start2: '13:15', end2: '17:00' },
+                'Mercredi': { active: true, start1: '07:45', end1: '12:30', split: false, start2: '', end2: '' },
+                'Jeudi': { active: true, start1: '07:45', end1: '12:15', split: true, start2: '13:15', end2: '17:00' },
+                'Vendredi': { active: true, start1: '07:45', end1: '12:15', split: true, start2: '13:15', end2: '17:00' }
+            };
+
+            const defaultPresencePartiel = {
+                'Lundi': { active: true, start1: '08:00', end1: '12:00', split: true, start2: '14:00', end2: '17:00' },
+                'Mardi': { active: true, start1: '08:00', end1: '12:00', split: true, start2: '14:00', end2: '17:00' },
+                'Mercredi': { active: false, start1: '', end1: '', split: false, start2: '', end2: '' },
+                'Jeudi': { active: true, start1: '08:00', end1: '12:00', split: true, start2: '14:00', end2: '17:00' },
+                'Vendredi': { active: false, start1: '', end1: '', split: false, start2: '', end2: '' }
+            };
+
+            appState.currentDay = getCurrentDayName();
+            appState.cpeConstraints = {
+                'Lundi': { minMorning: 4, minEvening: 4 },
+                'Mardi': { minMorning: 4, minEvening: 4 },
+                'Mercredi': { minMorning: 4, minEvening: 0 },
+                'Jeudi': { minMorning: 4, minEvening: 4 },
+                'Vendredi': { minMorning: 4, minEvening: 4 }
+            };
+
+            appState.aedBreaks = {};
+            DAYS.forEach(day => {
+                appState.aedBreaks[day] = { '11h30': [], '12h00': [], '12h30': [] };
+            });
+
+            appState.absentProfs = [];
+
+            appState.aeds = [
+                { id: 'aed-1', name: 'Sophie MARTIN', contract: 100, isStudent: false, customHours: 40, color: '#4f46e5', presence: JSON.parse(JSON.stringify(defaultPresence)) },
+                { id: 'aed-2', name: 'Lucas BERNARD', contract: 100, isStudent: true, customHours: 35, color: '#059669', presence: JSON.parse(JSON.stringify(defaultPresence)) },
+                { id: 'aed-3', name: 'Camille PETIT', contract: 50, isStudent: true, customHours: 18, color: '#d97706', presence: JSON.parse(JSON.stringify(defaultPresencePartiel)) },
+                { id: 'aed-4', name: 'Karim BENALI', contract: 100, isStudent: false, customHours: 40, color: '#2563eb', presence: JSON.parse(JSON.stringify(defaultPresence)) }
+            ];
+
+            appState.missions = [
+                { id: 'm-1', day: 'Lundi', aedId: 'aed-1', startSlotIndex: 0, endSlotIndex: 1, type: 'Permanence', startTime: '08:00', endTime: '10:10', notes: 'Permanence 1' },
+                { id: 'm-2', day: 'Lundi', aedId: 'aed-1', startSlotIndex: 2, endSlotIndex: 2, type: 'COUR CENTRALE', startTime: '10:10', endTime: '10:25', notes: 'Surveillance récréation' },
+                { id: 'm-3', day: 'Lundi', aedId: 'aed-2', startSlotIndex: 0, endSlotIndex: 1, type: 'Portail/permanence 2', startTime: '08:00', endTime: '10:10', notes: '' },
+                { id: 'm-4', day: 'Lundi', aedId: 'aed-2', startSlotIndex: 6, endSlotIndex: 10, type: 'A1', startTime: '13:25', endTime: '17:35', notes: 'S1 à S4 complet' },
+                { id: 'm-5', day: 'Lundi', aedId: 'aed-3', startSlotIndex: 5, endSlotIndex: 5, type: 'DP', startTime: '12:15', endTime: '13:25', notes: 'Demi-pension' }
+            ];
+            saveState();
+        }
+
+        function renderAll() {
+            renderDayTabs();
+            renderBreaksBar();
+            renderMatrix();
+            renderAEDCards();
+            renderEquityDashboard();
+            updateBadges();
+            updateAbsentProfsBadge();
+        }
+
+        window.onload = function() {
+            populateSlotDropdowns();
+            populateMissionTypeDropdown();
+            renderPresenceFormFields();
+            initFirebaseSync();
+
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const daysUntilMonday = (1 + 7 - dayOfWeek) % 7;
+            const nextMonday = new Date(today);
+            nextMonday.setDate(today.getDate() + (daysUntilMonday === 0 ? 0 : daysUntilMonday));
+            const dateStr = nextMonday.toISOString().split('T')[0];
+            const dateInput = document.getElementById('ics-start-date');
+            if (dateInput) dateInput.value = dateStr;
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.relative')) {
+                    ['11h30', '12h00', '12h30'].forEach(timeSlot => {
+                        const dd = document.getElementById(`break-dropdown-${timeSlot}`);
+                        if (dd) dd.classList.add('hidden');
+                    });
+                }
+            });
+        };
+
+        /* Gestion des Professeurs Absents */
+        function handleAbsentProfsImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const rawJson = XLSX.utils.sheet_to_json(worksheet);
+
+                    const parsedAbsences = [];
+                    const dayNamesMap = { 1: 'Lundi', 2: 'Mardi', 3: 'Mercredi', 4: 'Jeudi', 5: 'Vendredi' };
+
+                    rawJson.forEach(row => {
+                        const prof = row['Professeur'] || row['PROFESSEUR'] || row['Nom'] || '';
+                        const matiere = row['Matière'] || row['MATIERE'] || row['Discipline'] || '';
+                        const classe = row['Classe'] || row['CLASSE'] || row['Groupes'] || '';
+                        const duree = row['Durée'] || row['DUREE'] || '';
+                        const rawDate = row['Date'] || row['DATE'] || '';
+                        const debut = row['Début'] || row['DEBUT'] || row['Heure'] || '';
+
+                        let dateFormatted = rawDate;
+                        let dayName = '';
+
+                        if (rawDate) {
+                            if (typeof rawDate === 'number') {
+                                const parsedDate = XLSX.SSF.parse_date_code(rawDate);
+                                if (parsedDate) {
+                                    const jsDate = new Date(parsedDate.y, parsedDate.m - 1, parsedDate.d);
+                                    dateFormatted = `${parsedDate.d.toString().padStart(2, '0')}/${parsedDate.m.toString().padStart(2, '0')}/${parsedDate.y}`;
+                                    dayName = dayNamesMap[jsDate.getDay()] || '';
+                                }
+                            } else {
+                                const dObj = new Date(rawDate);
+                                if (!isNaN(dObj.getTime())) {
+                                    dayName = dayNamesMap[dObj.getDay()] || '';
+                                }
+                            }
+                        }
+
+                        if (prof) {
+                            parsedAbsences.push({ prof, matiere, classe, duree, date: dateFormatted, debut, dayName });
+                        }
+                    });
+
+                    appState.absentProfs = parsedAbsences;
+                    saveState();
+                    updateAbsentProfsBadge();
+                    showToast(`${parsedAbsences.length} absences de professeurs importées.`);
+                    openAbsentProfsModal();
+                } catch (err) {
+                    console.error(err);
+                    alert("Erreur lors de la lecture du fichier d'absences.");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            e.target.value = '';
+        }
+
+        function updateAbsentProfsBadge() {
+            const badge = document.getElementById('absent-count-badge');
+            if (!badge) return;
+            const currentDayAbs = (appState.absentProfs || []).filter(item => !item.dayName || item.dayName === appState.currentDay);
+            badge.textContent = currentDayAbs.length;
+        }
+
+        function openAbsentProfsModal() {
+            const modal = document.getElementById('absent-profs-modal');
+            const selectFilter = document.getElementById('absent-filter-day');
+            if (selectFilter) selectFilter.value = appState.currentDay;
+            renderAbsentProfsList();
+            modal.classList.remove('hidden');
+        }
+
+        function closeAbsentProfsModal() {
+            document.getElementById('absent-profs-modal').classList.add('hidden');
+        }
+
+        function renderAbsentProfsList() {
+            const container = document.getElementById('absent-profs-list-container');
+            const totalCountEl = document.getElementById('absent-total-count');
+            const filterDay = document.getElementById('absent-filter-day').value;
+
+            const allAbs = appState.absentProfs || [];
+            let filtered = allAbs;
+            if (filterDay !== 'ALL') {
+                filtered = allAbs.filter(a => !a.dayName || a.dayName === filterDay);
+            }
+
+            if (totalCountEl) totalCountEl.textContent = `Total : ${allAbs.length} absences enregistrées (${filtered.length} affichées)`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-slate-400 font-medium bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        <i class="fa-solid fa-folder-open text-2xl mb-2 text-slate-300"></i>
+                        <p>Aucun professeur absent répertorié pour ce critère.</p>
+                    </div>
+                `;
                 return;
             }
 
-            const headers = jsonData[0].map(h => h ? h.toString().trim().toLowerCase() : '');
+            container.innerHTML = filtered.map(abs => `
+                <div class="bg-white border border-slate-200/90 hover:border-rose-300 p-3 rounded-xl shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 transition">
+                    <div class="flex items-start gap-2.5">
+                        <div class="p-2 bg-rose-50 text-rose-600 rounded-lg font-bold text-xs flex-shrink-0 mt-0.5">
+                            <i class="fa-solid fa-user-slash"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-extrabold text-slate-800 text-sm">${escapeHtml(abs.prof)}</span>
+                                <span class="px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-600 rounded-md">${escapeHtml(abs.matiere)}</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-0.5"><strong class="text-slate-700">Classe :</strong> ${escapeHtml(abs.classe)}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex sm:flex-col items-end justify-between w-full sm:w-auto border-t sm:border-0 border-slate-100 pt-1.5 sm:pt-0 text-right text-xs">
+                        <div class="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded text-[11px]">
+                            ${abs.debut ? `À ${escapeHtml(abs.debut)}` : ''} ${abs.duree ? `(${escapeHtml(abs.duree)})` : ''}
+                        </div>
+                        <span class="text-[10px] text-slate-400 font-medium">${abs.dayName ? abs.dayName + ' ' : ''}${abs.date || ''}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function clearAbsentProfsData() {
+            if (confirm("Voulez-vous réinitialiser et vider toute la liste des professeurs absents ?")) {
+                appState.absentProfs = [];
+                saveState();
+                updateAbsentProfsBadge();
+                renderAbsentProfsList();
+                showToast("Liste des professeurs absents vidée.");
+            }
+        }
+
+        /* Modal Réglages CPE */
+        function openSettingsModal() {
+            initCpeConstraints();
+            const container = document.getElementById('settings-days-list');
             
-            const idxProf = headers.findIndex(h => h.includes('professeur'));
-            const idxMat = headers.findIndex(h => h.includes('matière') || h.includes('matiere'));
-            const idxClasse = headers.findIndex(h => h.includes('classe'));
-            const idxDurée = headers.findIndex(h => h.includes('durée') || h.includes('duree'));
-            const idxDate = headers.findIndex(h => h.includes('date'));
-            const idxDebut = headers.findIndex(h => h.includes('début') || h.includes('debut'));
-            const idxAction = headers.findIndex(h => h.includes('a donné lieu') || h.includes('remplac'));
+            container.innerHTML = DAYS.map(day => {
+                const c = appState.cpeConstraints[day] || { minMorning: 4, minEvening: 4 };
+                return `
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+                        <span class="font-bold text-slate-800 text-xs sm:text-sm w-24">${day}</span>
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs text-slate-500 font-medium">Matin:</span>
+                                <div class="flex items-center bg-white border border-slate-300 rounded-lg shadow-sm">
+                                    <button onclick="updateSettingsCPE('${day}', 'minMorning', -1)" class="px-2 py-0.5 font-bold text-slate-600 hover:bg-slate-100 text-xs">-</button>
+                                    <span id="set-morning-${day}" class="px-2 font-extrabold text-indigo-700 text-xs">${c.minMorning}</span>
+                                    <button onclick="updateSettingsCPE('${day}', 'minMorning', 1)" class="px-2 py-0.5 font-bold text-slate-600 hover:bg-slate-100 text-xs">+</button>
+                                </div>
+                            </div>
+                            
+                            ${day !== 'Mercredi' ? `
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs text-slate-500 font-medium">Soir:</span>
+                                <div class="flex items-center bg-white border border-slate-300 rounded-lg shadow-sm">
+                                    <button onclick="updateSettingsCPE('${day}', 'minEvening', -1)" class="px-2 py-0.5 font-bold text-slate-600 hover:bg-slate-100 text-xs">-</button>
+                                    <span id="set-evening-${day}" class="px-2 font-extrabold text-indigo-700 text-xs">${c.minEvening}</span>
+                                    <button onclick="updateSettingsCPE('${day}', 'minEvening', 1)" class="px-2 py-0.5 font-bold text-slate-600 hover:bg-slate-100 text-xs">+</button>
+                                </div>
+                            </div>
+                            ` : '<span class="text-[10px] text-slate-400 italic">Pas de cours l\'aprem</span>'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
 
-            let parsedAbsences = [];
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
 
-            for (let i = 1; i < jsonData.length; i++) {
-                let row = jsonData[i];
-                if (!row || row.length === 0) continue;
+        function updateSettingsCPE(day, type, val) {
+            initCpeConstraints();
+            if (!appState.cpeConstraints[day]) appState.cpeConstraints[day] = { minMorning: 4, minEvening: 4 };
+            appState.cpeConstraints[day][type] = Math.max(0, (appState.cpeConstraints[day][type] || 0) + val);
+            saveState();
+            
+            const el = document.getElementById(type === 'minMorning' ? `set-morning-${day}` : `set-evening-${day}`);
+            if (el) el.textContent = appState.cpeConstraints[day][type];
+            renderMatrix();
+        }
 
-                let prof = idxProf !== -1 ? row[idxProf] : row[0];
-                if (!prof || prof.toString().toUpperCase() === 'TOTAL' || prof.toString().trim() === '') continue;
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
 
-                let matiere = idxMat !== -1 ? row[idxMat] : (row[1] || '');
-                let classe = idxClasse !== -1 ? row[idxClasse] : (row[2] || '');
-                let durée = idxDurée !== -1 ? row[idxDurée] : (row[3] || '');
-                let dateVal = idxDate !== -1 ? row[idxDate] : (row[4] || '');
-                let debut = idxDebut !== -1 ? row[idxDebut] : (row[5] || '');
-                let actionVal = idxAction !== -1 ? row[idxAction] : (row[6] || '');
+        /* Export iCal / .ics */
+        function openIcsExportModal() {
+            const modal = document.getElementById('ics-modal');
+            const select = document.getElementById('ics-aed-select');
+            
+            if (!appState.aeds || appState.aeds.length === 0) {
+                alert("Aucun AED enregistré.");
+                return;
+            }
 
-                if (typeof dateVal === 'number') {
-                    const d = XLSX.SSF.parse_date_code(dateVal);
-                    if (d) {
-                        dateVal = `${String(d.d).padStart(2, '0')}/${String(d.m).padStart(2, '0')}/${d.y}`;
-                    }
-                } else if (dateVal instanceof Date) {
-                    const d = String(dateVal.getDate()).padStart(2, '0');
-                    const m = String(dateVal.getMonth() + 1).padStart(2, '0');
-                    const y = dateVal.getFullYear();
-                    dateVal = `${d}/${m}/${y}`;
-                } else if (dateVal) {
-                    let str = dateVal.toString().trim();
-                    if (str.includes('-')) {
-                        const parts = str.split('T')[0].split('-');
-                        if (parts.length === 3) {
-                            dateVal = `${parts[2]}/${parts[1]}/${parts[0]}`;
-                        }
-                    }
-                }
+            select.innerHTML = appState.aeds.map(aed => 
+                `<option value="${aed.id}">${escapeHtml(aed.name)}</option>`
+            ).join('');
 
-                parsedAbsences.push({
-                    prof: prof ? prof.toString().trim() : 'Inconnu',
-                    matiere: matiere ? matiere.toString().trim() : '',
-                    classe: classe ? classe.toString().trim() : 'Classe N/C',
-                    debut: debut ? debut.toString().trim() : '',
-                    duree: durée ? durée.toString().trim() : '',
-                    date: dateVal ? dateVal.toString().trim() : 'Date N/C',
-                    remplacant: actionVal ? actionVal.toString().trim() : ''
+            modal.classList.remove('hidden');
+        }
+
+        function closeIcsExportModal() {
+            document.getElementById('ics-modal').classList.add('hidden');
+        }
+
+        function generateAndDownloadICS() {
+            const aedId = document.getElementById('ics-aed-select').value;
+            const startDateVal = document.getElementById('ics-start-date').value;
+
+            if (!startDateVal) {
+                alert("Veuillez choisir une date de début.");
+                return;
+            }
+
+            const aed = appState.aeds.find(a => a.id === aedId);
+            if (!aed) return;
+
+            const startDate = new Date(startDateVal);
+            const dayOffsets = { 'Lundi': 0, 'Mardi': 1, 'Mercredi': 2, 'Jeudi': 3, 'Vendredi': 4 };
+
+            let icsContent = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Vie Scolaire//Planning AED//FR',
+                'CALSCALE:GREGORIAN',
+                'METHOD:PUBLISH'
+            ];
+
+            const formatICSDate = (dateObj, timeStr) => {
+                const [hours, minutes] = timeStr.split(':').map(Number);
+                const d = new Date(dateObj);
+                d.setHours(hours, minutes, 0, 0);
+                
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                const hh = String(d.getHours()).padStart(2, '0');
+                const min = String(d.getMinutes()).padStart(2, '0');
+                const ss = '00';
+
+                return `${yyyy}${mm}${dd}T${hh}${min}${ss}`;
+            };
+
+            const numWeeks = 40;
+
+            for (let w = 0; w < numWeeks; w++) {
+                const weekStartDate = new Date(startDate);
+                weekStartDate.setDate(startDate.getDate() + (w * 7));
+
+                DAYS.forEach(day => {
+                    const offset = dayOffsets[day];
+                    const dayDate = new Date(weekStartDate);
+                    dayDate.setDate(weekStartDate.getDate() + offset);
+
+                    const dayMissions = (appState.missions || []).filter(m => m.aedId === aed.id && m.day === day);
+                    dayMissions.forEach(m => {
+                        const dtStart = formatICSDate(dayDate, m.startTime);
+                        const dtEnd = formatICSDate(dayDate, m.endTime);
+                        const uid = `mission-${m.id}-${w}-${Date.now()}@viescolaire`;
+
+                        icsContent.push('BEGIN:VEVENT');
+                        icsContent.push(`UID:${uid}`);
+                        icsContent.push(`SUMMARY:Poste : ${m.type}`);
+                        icsContent.push(`DESCRIPTION:Poste Vie Scolaire : ${m.type}${m.notes ? '\\nNotes: ' + m.notes : ''}`);
+                        icsContent.push(`DTSTART:${dtStart}`);
+                        icsContent.push(`DTEND:${dtEnd}`);
+                        icsContent.push('END:VEVENT');
+                    });
                 });
             }
 
-            if (parsedAbsences.length > 0) {
-                if (isAppend) {
-                    allAbsencesData = allAbsencesData.concat(parsedAbsences);
-                    alert(`Ajout réussi ! ${parsedAbsences.length} lignes supplémentaires intégrées.`);
+            icsContent.push('END:VCALENDAR');
+
+            const blob = new Blob([icsContent.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            const safeName = aed.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            link.download = `planning_postes_${safeName}.ics`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            closeIcsExportModal();
+            showToast(`Planning .ics exporté pour ${aed.name}`);
+        }
+
+        /* Gestion des Pauses des AEDs */
+        function renderBreaksBar() {
+            initAedBreaks();
+            const dayBreaks = appState.aedBreaks[appState.currentDay] || { '11h30': [], '12h00': [], '12h30': [] };
+            
+            const activeAeds = (appState.aeds || []).filter(aed => 
+                aed.presence && aed.presence[appState.currentDay] && aed.presence[appState.currentDay].active
+            );
+
+            ['11h30', '12h00', '12h30'].forEach(timeSlot => {
+                const listEl = document.getElementById(`break-list-${timeSlot}`);
+                const dropdownEl = document.getElementById(`break-dropdown-${timeSlot}`);
+                if (!listEl || !dropdownEl) return;
+
+                const assignedAedIds = dayBreaks[timeSlot] || [];
+
+                if (assignedAedIds.length === 0) {
+                    listEl.innerHTML = `<span class="text-[9px] text-slate-400 italic">Aucun</span>`;
                 } else {
-                    allAbsencesData = parsedAbsences;
-                    alert(`Remplacement réussi ! ${allAbsencesData.length} lignes chargées.`);
+                    listEl.innerHTML = assignedAedIds.map(aedId => {
+                        const aed = (appState.aeds || []).find(a => a.id === aedId);
+                        if (!aed) return '';
+                        return `
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-bold shadow-xs text-white" style="background-color: ${aed.color}">
+                                <span>${escapeHtml(aed.name)}</span>
+                                <button onclick="removeAedFromBreak('${timeSlot}', '${aed.id}')" class="hover:text-red-200 text-[9px] focus:outline-none" title="Supprimer">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </span>
+                        `;
+                    }).join('');
                 }
-                renderCards();
-            } else {
-                alert("Aucune ligne valide trouvée dans le fichier.");
+
+                const availableAeds = activeAeds.filter(aed => !assignedAedIds.includes(aed.id));
+                if (availableAeds.length === 0) {
+                    dropdownEl.innerHTML = `<div class="px-2.5 py-1 text-[10px] text-slate-400 font-medium">Aucun dispo</div>`;
+                } else {
+                    dropdownEl.innerHTML = availableAeds.map(aed => `
+                        <button onclick="addAedToBreak('${timeSlot}', '${aed.id}')" class="w-full text-left px-2.5 py-1 hover:bg-slate-100 font-medium flex items-center gap-1.5 text-slate-700 text-[11px]">
+                            <span class="w-2 h-2 rounded-full inline-block" style="background-color: ${aed.color}"></span>
+                            <span class="truncate">${escapeHtml(aed.name)}</span>
+                        </button>
+                    `).join('');
+                }
+            });
+        }
+
+        function toggleBreakDropdown(timeSlot) {
+            ['11h30', '12h00', '12h30'].forEach(slot => {
+                const dd = document.getElementById(`break-dropdown-${slot}`);
+                if (dd) {
+                    if (slot === timeSlot) {
+                        dd.classList.toggle('hidden');
+                    } else {
+                        dd.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        function addAedToBreak(timeSlot, aedId) {
+            initAedBreaks();
+            const dayBreaks = appState.aedBreaks[appState.currentDay];
+            if (!dayBreaks[timeSlot]) dayBreaks[timeSlot] = [];
+
+            if (!dayBreaks[timeSlot].includes(aedId)) {
+                dayBreaks[timeSlot].push(aedId);
+                saveState();
+                renderBreaksBar();
             }
-        };
-        reader.readAsArrayBuffer(file);
-    }
 
-    document.getElementById('excelFile').addEventListener('change', function(e) {
-        if (e.target.files[0]) parseExcelFile(e.target.files[0], false);
-        e.target.value = '';
-    });
+            const dropdownEl = document.getElementById(`break-dropdown-${timeSlot}`);
+            if (dropdownEl) dropdownEl.classList.add('hidden');
+        }
 
-    document.getElementById('appendExcelFile').addEventListener('change', function(e) {
-        if (e.target.files[0]) parseExcelFile(e.target.files[0], true);
-        e.target.value = '';
-    });
+        function removeAedFromBreak(timeSlot, aedId) {
+            initAedBreaks();
+            const dayBreaks = appState.aedBreaks[appState.currentDay];
+            if (dayBreaks[timeSlot]) {
+                dayBreaks[timeSlot] = dayBreaks[timeSlot].filter(id => id !== aedId);
+                saveState();
+                renderBreaksBar();
+            }
+        }
 
-    function openManualModal() {
-        const modal = document.getElementById('manualModal');
-        const listContainer = document.getElementById('teachersChecklist');
-        listContainer.innerHTML = '';
+        /* Badges Portail & Permanence */
+        function updateBadges() {
+            const portailBadge = document.getElementById('realtime-portail-status');
+            const permanenceBadge = document.getElementById('realtime-permanence-status');
 
-        const profs = [...new Set(allAbsencesData.map(item => item.prof))];
+            const now = new Date();
+            const currentMinutes = (now.getHours() * 60) + now.getMinutes();
 
-        profs.forEach((prof) => {
-            const item = document.createElement('label');
-            item.className = 'check-item';
-            item.innerHTML = `
-                <input type="checkbox" value="${prof}" checked>
-                <span>${prof}</span>
+            const activeDayMissions = (appState.missions || []).filter(m => m.day === appState.currentDay);
+            const portailAeds = [];
+            const permanenceAeds = [];
+
+            activeDayMissions.forEach(m => {
+                const startM = timeToMinutes(m.startTime);
+                const endM = timeToMinutes(m.endTime);
+                
+                if (currentMinutes >= startM && currentMinutes < endM) {
+                    const aedObj = (appState.aeds || []).find(a => a.id === m.aedId);
+                    if (aedObj) {
+                        if (m.type === 'Portail/permanence 2') {
+                            portailAeds.push(aedObj);
+                        } else if (m.type === 'Permanence') {
+                            permanenceAeds.push(aedObj);
+                        }
+                    }
+                }
+            });
+
+            if (portailBadge) {
+                if (portailAeds.length > 0) {
+                    const names = portailAeds.map(a => `<span class="font-bold underline decoration-2">${escapeHtml(a.name)}</span>`).join(', ');
+                    portailBadge.innerHTML = `<span class="bg-blue-600 text-white px-1.5 py-0.5 rounded font-extrabold mr-1 text-[10px]">${portailAeds.length}</span> ${names}`;
+                } else {
+                    portailBadge.textContent = "Aucun AED";
+                }
+            }
+
+            if (permanenceBadge) {
+                if (permanenceAeds.length > 0) {
+                    const names = permanenceAeds.map(a => `<span class="font-bold underline decoration-2">${escapeHtml(a.name)}</span>`).join(', ');
+                    permanenceBadge.innerHTML = `<span class="bg-amber-500 text-white px-1.5 py-0.5 rounded font-extrabold mr-1 text-[10px]">${permanenceAeds.length}</span> ${names}`;
+                } else {
+                    permanenceBadge.textContent = "Aucun AED";
+                }
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            if (toast && msgEl) {
+                msgEl.textContent = message;
+                toast.classList.remove('hidden');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 3000);
+            }
+        }
+
+        function switchMainTab(tab) {
+            const gridSec = document.getElementById('section-grid');
+            const aedSec = document.getElementById('section-aed');
+            const equitySec = document.getElementById('section-equity');
+
+            gridSec.classList.add('hidden');
+            aedSec.classList.add('hidden');
+            equitySec.classList.add('hidden');
+
+            if (tab === 'grid') {
+                gridSec.classList.remove('hidden');
+                renderMatrix();
+            } else if (tab === 'aed') {
+                aedSec.classList.remove('hidden');
+                renderAEDCards();
+            } else if (tab === 'equity') {
+                equitySec.classList.remove('hidden');
+                renderEquityDashboard();
+            }
+        }
+
+        function renderDayTabs() {
+            const container = document.getElementById('day-tabs');
+            container.innerHTML = DAYS.map(day => {
+                const isActive = appState.currentDay === day;
+                return `
+                    <button onclick="selectDay('${day}')" class="flex-1 sm:flex-none px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-150 whitespace-nowrap ${
+                        isActive ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }">
+                        ${day}
+                    </button>
+                `;
+            }).join('');
+
+            document.getElementById('print-day-title').textContent = `Jour : ${appState.currentDay}`;
+        }
+
+        function selectDay(day) {
+            appState.currentDay = day;
+            renderDayTabs();
+            renderBreaksBar();
+            renderMatrix();
+            updateAbsentProfsBadge();
+        }
+
+        function populateSlotDropdowns() {
+            const startSelect = document.getElementById('mission-start-slot');
+            const endSelect = document.getElementById('mission-end-slot');
+
+            const optionsHTML = SLOTS.map((slot, index) => 
+                `<option value="${index}">${slot.label} (${slot.start} - ${slot.end})</option>`
+            ).join('');
+
+            startSelect.innerHTML = optionsHTML;
+            endSelect.innerHTML = optionsHTML;
+        }
+
+        function populateMissionTypeDropdown() {
+            const select = document.getElementById('mission-type');
+            select.innerHTML = Object.keys(MISSION_TYPES).map(key => 
+                `<option value="${key}">${MISSION_TYPES[key].name}</option>`
+            ).join('');
+        }
+
+        function getAEDTargetHours(aed) {
+            if (aed.isStudent && aed.customHours) {
+                return parseFloat(aed.customHours);
+            }
+            return CONTRACT_HOURS[aed.contract] || 40;
+        }
+
+        function calculateAEDPresenceHours(aed) {
+            if (!aed.presence) return 0;
+            let totalMinutes = 0;
+            DAYS.forEach(day => {
+                const p = aed.presence[day];
+                if (p && p.active) {
+                    if (p.start1 && p.end1) {
+                        const m1 = timeToMinutes(p.end1) - timeToMinutes(p.start1);
+                        if (m1 > 0) totalMinutes += m1;
+                    }
+                    if (p.split && p.start2 && p.end2) {
+                        const m2 = timeToMinutes(p.end2) - timeToMinutes(p.start2);
+                        if (m2 > 0) totalMinutes += m2;
+                    }
+                }
+            });
+            return totalMinutes / 60;
+        }
+
+        function isAEDPresentAtTime(aed, day, timeStr) {
+            if (!aed.presence || !aed.presence[day] || !aed.presence[day].active) return false;
+            const p = aed.presence[day];
+            const t = timeToMinutes(timeStr);
+            if (p.start1 && p.end1 && t >= timeToMinutes(p.start1) && t <= timeToMinutes(p.end1)) return true;
+            if (p.split && p.start2 && p.end2 && t >= timeToMinutes(p.start2) && t <= timeToMinutes(p.end2)) return true;
+            return false;
+        }
+
+        function timeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            const [h, m] = timeStr.split(':').map(Number);
+            return (h * 60) + m;
+        }
+
+        function generateDayScheduleHTML(targetDay, isPrint = false) {
+            const activeAedsForDay = (appState.aeds || []).filter(aed => 
+                aed.presence && aed.presence[targetDay] && aed.presence[targetDay].active
+            );
+
+            if (activeAedsForDay.length === 0) {
+                return '<div class="p-8 text-center text-slate-500 font-medium">Aucun AED de service ce jour-là.</div>';
+            }
+
+            let headerHTML = `
+                <th class="p-1 sm:p-3 w-20 sm:w-44 sticky-corner-th font-bold text-slate-700 uppercase tracking-wider text-[9px] sm:text-xs border-r border-b border-slate-300 shadow-sm">
+                    Créneaux / AED
+                </th>
             `;
-            listContainer.appendChild(item);
-        });
 
-        modal.style.display = 'flex';
-    }
+            activeAedsForDay.forEach(aed => {
+                const dayP = aed.presence[targetDay];
+                let presenceText = `${dayP.start1 || ''}-${dayP.end1 || ''}`;
+                if (dayP.split && dayP.start2) presenceText += ` / ${dayP.start2}-${dayP.end2}`;
 
-    function closeManualModal() {
-        document.getElementById('manualModal').style.display = 'none';
-    }
+                headerHTML += `
+                    <th class="p-1 sm:p-2 min-w-[90px] sm:min-w-[180px] font-bold border-r border-b border-slate-300 text-center sticky-header-th shadow-sm">
+                        <div class="flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap">
+                            <span class="w-2 h-2 sm:w-3 sm:h-3 rounded-full inline-block shadow-sm" style="background-color: ${aed.color}"></span>
+                            <span class="text-slate-900 font-extrabold text-[11px] sm:text-sm tracking-tight truncate max-w-[80px] sm:max-w-none">${escapeHtml(aed.name)}</span>
+                        </div>
+                        <div class="text-[8px] sm:text-[10px] px-1 py-0.2 rounded-full bg-indigo-50 text-indigo-700 font-medium inline-block whitespace-nowrap">
+                            <i class="fa-regular fa-clock mr-0.5"></i>${presenceText}
+                        </div>
+                    </th>
+                `;
+            });
 
-    function applyManualAbsences() {
-        const checkboxes = document.querySelectorAll('#teachersChecklist input[type="checkbox"]');
-        const profsAbsents = Array.from(checkboxes)
-            .filter(cb => cb.checked)
-            .map(cb => cb.value);
+            const dayMissions = (appState.missions || []).filter(m => m.day === targetDay);
+            let tbodyHTML = '';
 
-        allAbsencesData = allAbsencesData.filter(item => profsAbsents.includes(item.prof));
-        renderCards();
-        closeManualModal();
-    }
+            const skipCell = {};
+            activeAedsForDay.forEach(a => skipCell[a.id] = 0);
 
-    updateViewUI();
-    renderCards();
-</script>
+            SLOTS.forEach((slot, slotIdx) => {
+                let rowBgClass = 'hover:bg-slate-50/80';
+                if (slot.type === 'recre') rowBgClass = 'bg-amber-50/70 border-y border-amber-200/60';
+                if (slot.type === 'pause') rowBgClass = 'bg-slate-100/60';
 
+                const rowId = `slot-row-${slotIdx}`;
+                tbodyHTML += `<tr id="${rowId}" class="${rowBgClass} slot-row transition-colors">`;
+
+                tbodyHTML += `
+                    <td class="p-0.5 sm:p-2 font-semibold border-r border-b border-slate-200 sticky left-0 bg-white z-10 shadow-sm align-middle cursor-pointer" onclick="toggleRowHighlight('${rowId}')">
+                        <div class="flex flex-row items-center gap-1 sm:gap-2 justify-between sm:justify-start">
+                            <span class="px-1 sm:px-2 py-0.2 rounded text-[9px] sm:text-xs font-extrabold ${
+                                slot.type === 'recre' ? 'bg-amber-200 text-amber-900 border border-amber-300' : (slot.type === 'pause' ? 'bg-slate-200 text-slate-700' : 'bg-indigo-100 text-indigo-800')
+                            }">
+                                ${slot.label}
+                            </span>
+                            <span class="text-[8px] sm:text-xs text-slate-500 font-medium whitespace-nowrap hidden sm:inline">
+                                ${slot.start} - ${slot.end}
+                            </span>
+                        </div>
+                    </td>
+                `;
+
+                activeAedsForDay.forEach(aed => {
+                    if (skipCell[aed.id] > 0) {
+                        skipCell[aed.id]--;
+                        return;
+                    }
+
+                    const mission = dayMissions.find(m => m.aedId === aed.id && m.startSlotIndex === slotIdx);
+
+                    if (mission) {
+                        const rowSpan = (mission.endSlotIndex - mission.startSlotIndex) + 1;
+                        skipCell[aed.id] = rowSpan - 1;
+
+                        const styleInfo = MISSION_TYPES[mission.type] || MISSION_TYPES['Permanence'];
+
+                        tbodyHTML += `
+                            <td rowspan="${rowSpan}" class="p-0 border-r border-b border-slate-200 align-top h-full">
+                                <div ${!isPrint ? `onclick="event.stopPropagation(); openMissionModal('${aed.id}', '${mission.id}')"` : ''} 
+                                    class="mission-block w-full p-1 sm:p-1.5 rounded sm:rounded-xl ${styleInfo.bg} ${styleInfo.text} ${styleInfo.border} shadow-sm border cursor-pointer transition-all hover:brightness-105 flex flex-col justify-between overflow-hidden box-border">
+                                    
+                                    <div class="flex flex-col gap-0.5">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-extrabold text-[9px] sm:text-xs tracking-tight flex items-center gap-1 uppercase leading-tight truncate">
+                                                <i class="fa-solid ${styleInfo.icon} text-[8px] sm:text-xs opacity-90 hidden sm:inline"></i>
+                                                ${escapeHtml(styleInfo.name)}
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="text-[8px] sm:text-[11px] font-semibold opacity-95 flex items-center gap-0.5 whitespace-nowrap">
+                                            <i class="fa-regular fa-clock text-[7px] sm:text-[10px] hidden sm:inline"></i> ${mission.startTime} - ${mission.endTime}
+                                            ${rowSpan > 1 ? `<span class="ml-0.5 bg-black/20 px-1 py-0.2 rounded text-[7px] sm:text-[9px] font-bold">${rowSpan}h</span>` : ''}
+                                        </div>
+
+                                        ${mission.notes ? `<div class="text-[8px] sm:text-[10px] font-bold italic opacity-95 leading-tight break-words pt-0.5 border-t border-white/20">${escapeHtml(mission.notes)}</div>` : ''}
+                                    </div>
+                                </div>
+                            </td>
+                        `;
+                    } else {
+                        tbodyHTML += `
+                            <td class="p-0 border-r border-b border-slate-200 align-top">
+                                ${!isPrint ? `
+                                <div onclick="openMissionModal('${aed.id}', null,${slotIdx})" class="w-full h-full cursor-pointer hover:bg-indigo-50/50 group flex items-center justify-center p-0.5">
+                                    <div class="h-full w-full rounded border border-dashed border-slate-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-slate-400 text-[9px] font-medium bg-white/60">
+                                        <i class="fa-solid fa-plus text-[8px]"></i>
+                                    </div>
+                                </div>` : ''}
+                            </td>
+                        `;
+                    }
+                });
+
+                tbodyHTML += `</tr>`;
+            });
+
+            return `
+                <table class="w-full border-collapse text-left text-xs sm:text-sm">
+                    <thead>
+                        <tr class="bg-slate-100/80 text-slate-700 border-b border-slate-200">${headerHTML}</tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">${tbodyHTML}</tbody>
+                </table>
+            `;
+        }
+
+        function renderMatrix() {
+            const headerRow = document.getElementById('matrix-header-row');
+            const tbody = document.getElementById('matrix-body');
+            const warningBox = document.getElementById('no-aed-warning');
+            const alertsBar = document.getElementById('cpe-alerts-bar');
+            const desktopWrapper = document.getElementById('desktop-matrix-wrapper');
+
+            const activeAeds = (appState.aeds || []).filter(aed => 
+                aed.presence && aed.presence[appState.currentDay] && aed.presence[appState.currentDay].active
+            );
+
+            if (activeAeds.length === 0) {
+                headerRow.innerHTML = '';
+                tbody.innerHTML = '';
+                warningBox.classList.remove('hidden');
+                alertsBar.classList.add('hidden');
+                updateBadges();
+                return;
+            }
+            warningBox.classList.add('hidden');
+
+            if (desktopWrapper) desktopWrapper.classList.remove('hidden');
+
+            let morningCount = 0;
+            let eveningCount = 0;
+            (appState.aeds || []).forEach(aed => {
+                if (isAEDPresentAtTime(aed, appState.currentDay, '08:00')) morningCount++;
+                if (isAEDPresentAtTime(aed, appState.currentDay, '17:00')) eveningCount++;
+            });
+
+            initCpeConstraints();
+            const dayConstraints = appState.cpeConstraints[appState.currentDay] || { minMorning: 4, minEvening: 4 };
+
+            let alertsHTML = '';
+            if (dayConstraints.minMorning > 0 && morningCount < dayConstraints.minMorning) {
+                alertsHTML += `<div class="bg-rose-50 border-l-4 border-rose-500 p-2 sm:p-3 rounded-r-xl text-xs text-rose-800 flex items-center justify-between shadow-sm">
+                    <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i><strong>Alerte Matin (08h) [${appState.currentDay}] :</strong> ${morningCount}/${dayConstraints.minMorning} présent(s).</span>
+                </div>`;
+            }
+            
+            if (appState.currentDay !== 'Mercredi' && dayConstraints.minEvening > 0 && eveningCount < dayConstraints.minEvening) {
+                alertsHTML += `<div class="bg-rose-50 border-l-4 border-rose-500 p-2 sm:p-3 rounded-r-xl text-xs text-rose-800 flex items-center justify-between shadow-sm">
+                    <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i><strong>Alerte Soir (17h) [${appState.currentDay}] :</strong> ${eveningCount}/${dayConstraints.minEvening} présent(s).</span>
+                </div>`;
+            }
+
+            if (alertsHTML) {
+                alertsBar.innerHTML = alertsHTML;
+                alertsBar.classList.remove('hidden');
+            } else {
+                alertsBar.classList.add('hidden');
+            }
+
+            const html = generateDayScheduleHTML(appState.currentDay, false);
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            const tableElem = doc.querySelector('table');
+            if(tableElem) {
+                headerRow.innerHTML = doc.querySelector('thead tr').innerHTML;
+                tbody.innerHTML = doc.querySelector('tbody').innerHTML;
+            } else {
+                headerRow.innerHTML = '';
+                tbody.innerHTML = '';
+            }
+
+            updateBadges();
+        }
+
+        function triggerPrintSelected() {
+            const mode = document.getElementById('print-mode-select').value;
+            triggerPrint(mode);
+        }
+
+        function triggerPrint(mode) {
+            const multiContainer = document.getElementById('print-multi-container');
+            const screenContainer = document.getElementById('screen-schedule-container');
+
+            if (mode === 'all') {
+                screenContainer.classList.add('print:hidden');
+                multiContainer.classList.remove('hidden');
+                
+                let fullHTML = '';
+                DAYS.forEach((day, index) => {
+                    const isLast = index === DAYS.length - 1;
+                    fullHTML += `
+                        <div class="print-single-page ${!isLast ? 'print-page-break' : ''} bg-white p-1">
+                            <div class="border-b-2 border-indigo-600 pb-1 mb-1">
+                                <h2 class="text-lg font-bold text-slate-900">Collège - Planning des Postes Vie Scolaire</h2>
+                                <p class="text-xs font-semibold text-indigo-700">Jour : ${day}</p>
+                            </div>
+                            ${generateDayScheduleHTML(day, true)}
+                        </div>
+                    `;
+                });
+                multiContainer.innerHTML = fullHTML;
+            } else {
+                screenContainer.classList.remove('print:hidden');
+                multiContainer.classList.add('hidden');
+                multiContainer.innerHTML = '';
+            }
+
+            window.print();
+        }
+
+        function toggleStudentQuick(aedId) {
+            const aed = appState.aeds.find(a => a.id === aedId);
+            if(aed) {
+                aed.isStudent = !aed.isStudent;
+                if(aed.isStudent && !aed.customHours) {
+                    aed.customHours = CONTRACT_HOURS[aed.contract] || 40;
+                }
+                saveState();
+                renderAEDCards();
+                renderMatrix();
+                showToast(`Statut étudiant mis à jour (${aed.name}).`);
+            }
+        }
+
+        function renderAEDCards() {
+            const container = document.getElementById('aed-cards-container');
+            if (!container) return;
+
+            if (!appState.aeds || appState.aeds.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full p-8 bg-white rounded-2xl border border-slate-200 text-center text-slate-500">
+                        Aucun AED enregistré. Cliquez sur "+ Nouvel AED" pour démarrer.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = appState.aeds.map(aed => {
+                const targetHours = getAEDTargetHours(aed);
+                const presenceHours = calculateAEDPresenceHours(aed);
+                const diffPresence = presenceHours - targetHours;
+
+                let presenceStatus = '';
+                if (Math.abs(diffPresence) < 0.1) {
+                    presenceStatus = `<span class="text-emerald-600 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Conforme (${presenceHours}h)</span>`;
+                } else if (diffPresence < 0) {
+                    presenceStatus = `<span class="text-rose-600 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> Incomplet (${presenceHours}h / ${targetHours}h)</span>`;
+                } else {
+                    presenceStatus = `<span class="text-amber-600 font-bold flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> Surplus (+${diffPresence.toFixed(1)}h)</span>`;
+                }
+
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition p-4 sm:p-5 flex flex-col justify-between gap-3 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 right-0 h-1.5" style="background-color: ${aed.color}"></div>
+                        
+                        <div class="flex flex-col gap-3">
+                            <div class="flex justify-between items-start gap-2 pt-1">
+                                <div>
+                                    <h3 class="font-extrabold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                                        ${escapeHtml(aed.name)}
+                                    </h3>
+                                    <span class="text-xs text-slate-500 font-medium">Contrat ${aed.contract}% (${targetHours}h prévues)</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="openAEDModal('${aed.id}')" class="p-2 text-slate-400 hover:text-indigo-600 rounded-xl hover:bg-slate-100 transition" title="Éditer">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button onclick="deleteAED('${aed.id}')" class="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-slate-100 transition" title="Supprimer">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bg-indigo-50/60 border border-indigo-100 p-3 rounded-xl flex flex-col gap-1">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-600 font-semibold">Présence réelle :</span>
+                                    ${presenceStatus}
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-50 border border-slate-200/80 p-3 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-graduation-cap text-amber-600 text-sm"></i>
+                                    <div>
+                                        <span class="text-xs font-bold text-slate-700 block">Étudiant</span>
+                                        <span class="text-[10px] text-slate-500 font-medium">Quota: ${targetHours}h/sem.</span>
+                                    </div>
+                                </div>
+                                <button onclick="toggleStudentQuick('${aed.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition ${aed.isStudent ? 'bg-amber-500 text-white shadow' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                                    ${aed.isStudent ? 'OUI' : 'NON'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-100 pt-2.5 flex justify-between items-center text-xs text-slate-500 font-medium">
+                            <span>Postes programmés :</span>
+                            <span class="font-bold text-slate-800">${(appState.missions || []).filter(m => m.aedId === aed.id).length}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPresenceFormFields(aed = null) {
+            const container = document.getElementById('presence-days-container');
+            if (!container) return;
+
+            container.innerHTML = DAYS.map(day => {
+                const dayData = (aed && aed.presence && aed.presence[day]) ? aed.presence[day] : {
+                    active: true, start1: '07:45', end1: '17:00', split: false, start2: '', end2: ''
+                };
+
+                return `
+                    <div class="bg-white p-3 rounded-xl border border-slate-200/80 flex flex-col gap-2 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <label class="inline-flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="pres-active-${day}" ${dayData.active ? 'checked' : ''} class="w-4 h-4 text-indigo-600 rounded">
+                                <span class="text-xs font-bold text-slate-800">${day}</span>
+                            </label>
+
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs text-slate-600">
+                                <input type="checkbox" id="pres-split-${day}" ${dayData.split ? 'checked' : ''} onchange="toggleDaySplit('${day}')" class="w-3.5 h-3.5 text-indigo-600 rounded">
+                                <span class="text-[10px] font-medium">2nd créneau</span>
+                            </label>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                            <div class="flex items-center gap-1 text-[11px]">
+                                <span class="text-slate-500 font-medium w-14">C1:</span>
+                                <input type="time" id="pres-start1-${day}" value="${dayData.start1 || ''}" class="p-1 border rounded-lg text-xs font-medium w-full">
+                                <span>à</span>
+                                <input type="time" id="pres-end1-${day}" value="${dayData.end1 || ''}" class="p-1 border rounded-lg text-xs font-medium w-full">
+                            </div>
+
+                            <div id="slot2-container-${day}" class="${dayData.split ? 'flex' : 'hidden'} items-center gap-1 text-[11px]">
+                                <span class="text-slate-500 font-medium w-14">C2:</span>
+                                <input type="time" id="pres-start2-${day}" value="${dayData.start2 || ''}" class="p-1 border rounded-lg text-xs font-medium w-full">
+                                <span>à</span>
+                                <input type="time" id="pres-end2-${day}" value="${dayData.end2 || ''}" class="p-1 border rounded-lg text-xs font-medium w-full">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleDaySplit(day) {
+            const isChecked = document.getElementById(`pres-split-${day}`).checked;
+            const container = document.getElementById(`slot2-container-${day}`);
+            if (isChecked) {
+                container.classList.remove('hidden');
+                container.classList.add('flex');
+            } else {
+                container.classList.add('hidden');
+                container.classList.remove('flex');
+            }
+        }
+
+        function openAEDModal(aedId = null) {
+            const modal = document.getElementById('aed-modal');
+            const title = document.getElementById('aed-modal-title');
+            
+            if (aedId) {
+                const aed = appState.aeds.find(a => a.id === aedId);
+                if (!aed) return;
+                title.textContent = "Modifier l'AED";
+                document.getElementById('aed-id').value = aed.id;
+                document.getElementById('aed-name').value = aed.name;
+                document.getElementById('aed-contract').value = aed.contract;
+                document.getElementById('aed-is-student').checked = aed.isStudent;
+                document.getElementById('aed-custom-hours').value = aed.customHours || CONTRACT_HOURS[aed.contract];
+                document.getElementById('aed-color').value = aed.color || '#4f46e5';
+                
+                toggleStudentStatus();
+                renderPresenceFormFields(aed);
+            } else {
+                title.textContent = "Ajouter un AED";
+                document.getElementById('aed-id').value = '';
+                document.getElementById('aed-name').value = '';
+                document.getElementById('aed-contract').value = '100';
+                document.getElementById('aed-is-student').checked = false;
+                document.getElementById('aed-custom-hours').value = '40';
+                document.getElementById('aed-color').value = '#4f46e5';
+                
+                toggleStudentStatus();
+                renderPresenceFormFields(null);
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeAEDModal() {
+            document.getElementById('aed-modal').classList.add('hidden');
+        }
+
+        function toggleStudentStatus() {
+            const isStudent = document.getElementById('aed-is-student').checked;
+            const container = document.getElementById('student-hours-container');
+            if (isStudent) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function updateContractHoursPreview() {
+            const contract = document.getElementById('aed-contract').value;
+            if (!document.getElementById('aed-is-student').checked) {
+                document.getElementById('aed-custom-hours').value = CONTRACT_HOURS[contract] || 40;
+            }
+        }
+
+        function saveAED(e) {
+            e.preventDefault();
+            const id = document.getElementById('aed-id').value;
+            const name = document.getElementById('aed-name').value.trim();
+            const contract = parseInt(document.getElementById('aed-contract').value);
+            const isStudent = document.getElementById('aed-is-student').checked;
+            const customHours = parseFloat(document.getElementById('aed-custom-hours').value) || CONTRACT_HOURS[contract];
+            const color = document.getElementById('aed-color').value;
+
+            const presence = {};
+            DAYS.forEach(day => {
+                const split = document.getElementById(`pres-split-${day}`).checked;
+                presence[day] = {
+                    active: document.getElementById(`pres-active-${day}`).checked,
+                    start1: document.getElementById(`pres-start1-${day}`).value,
+                    end1: document.getElementById(`pres-end1-${day}`).value,
+                    split: split,
+                    start2: split ? document.getElementById(`pres-start2-${day}`).value : '',
+                    end2: split ? document.getElementById(`pres-end2-${day}`).value : ''
+                };
+            });
+
+            if (!appState.aeds) appState.aeds = [];
+
+            if (id) {
+                const index = appState.aeds.findIndex(a => a.id === id);
+                if (index !== -1) {
+                    appState.aeds[index] = { id, name, contract, isStudent, customHours, color, presence };
+                }
+            } else {
+                const newId = 'aed-' + Date.now();
+                appState.aeds.push({ id: newId, name, contract, isStudent, customHours, color, presence });
+            }
+
+            saveState();
+            closeAEDModal();
+            renderMatrix();
+            renderAEDCards();
+            renderEquityDashboard();
+            showToast("AED enregistré avec succès.");
+        }
+
+        function deleteAED(id) {
+            if (confirm("Voulez-vous vraiment supprimer cet AED et toutes ses affectations ?")) {
+                appState.aeds = (appState.aeds || []).filter(a => a.id !== id);
+                appState.missions = (appState.missions || []).filter(m => m.aedId !== id);
+                
+                if (appState.aedBreaks) {
+                    DAYS.forEach(day => {
+                        if (appState.aedBreaks[day]) {
+                            ['11h30', '12h00', '12h30'].forEach(slot => {
+                                if (appState.aedBreaks[day][slot]) {
+                                    appState.aedBreaks[day][slot] = appState.aedBreaks[day][slot].filter(aId => aId !== id);
+                                }
+                            });
+                        }
+                    });
+                }
+
+                saveState();
+                renderBreaksBar();
+                renderMatrix();
+                renderAEDCards();
+                renderEquityDashboard();
+                showToast("AED supprimé.");
+            }
+        }
+
+        function openMissionModal(aedId, missionId = null, defaultSlotIndex = 0) {
+            const modal = document.getElementById('mission-modal');
+            const aed = (appState.aeds || []).find(a => a.id === aedId);
+            if (!aed) return;
+
+            document.getElementById('mission-day').value = appState.currentDay;
+            document.getElementById('mission-aed-id').value = aedId;
+            document.getElementById('mission-modal-subtitle').textContent = `${appState.currentDay} • ${aed.name}`;
+
+            const deleteBtn = document.getElementById('btn-delete-mission');
+
+            if (missionId) {
+                const mission = (appState.missions || []).find(m => m.id === missionId);
+                if (!mission) return;
+
+                document.getElementById('mission-id').value = mission.id;
+                document.getElementById('mission-start-slot').value = mission.startSlotIndex;
+                document.getElementById('mission-end-slot').value = mission.endSlotIndex;
+                document.getElementById('mission-type').value = mission.type;
+                document.getElementById('mission-start-time').value = mission.startTime;
+                document.getElementById('mission-end-time').value = mission.endTime;
+                document.getElementById('mission-notes').value = mission.notes || '';
+                deleteBtn.classList.remove('hidden');
+            } else {
+                document.getElementById('mission-id').value = '';
+                document.getElementById('mission-start-slot').value = defaultSlotIndex;
+                document.getElementById('mission-end-slot').value = defaultSlotIndex;
+                document.getElementById('mission-type').value = Object.keys(MISSION_TYPES)[0];
+                document.getElementById('mission-notes').value = '';
+                resetSlotTimes();
+                deleteBtn.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeMissionModal() {
+            document.getElementById('mission-modal').classList.add('hidden');
+        }
+
+        function handleSlotRangeChange() {
+            const startIdx = parseInt(document.getElementById('mission-start-slot').value);
+            let endIdx = parseInt(document.getElementById('mission-end-slot').value);
+
+            if (endIdx < startIdx) {
+                endIdx = startIdx;
+                document.getElementById('mission-end-slot').value = endIdx;
+            }
+
+            document.getElementById('mission-start-time').value = SLOTS[startIdx].start;
+            document.getElementById('mission-end-time').value = SLOTS[endIdx].end;
+        }
+
+        function resetSlotTimes() {
+            handleSlotRangeChange();
+        }
+
+        function saveMission(e) {
+            e.preventDefault();
+            const id = document.getElementById('mission-id').value;
+            const day = document.getElementById('mission-day').value;
+            const aedId = document.getElementById('mission-aed-id').value;
+            const startSlotIndex = parseInt(document.getElementById('mission-start-slot').value);
+            const endSlotIndex = parseInt(document.getElementById('mission-end-slot').value);
+            const type = document.getElementById('mission-type').value;
+            const startTime = document.getElementById('mission-start-time').value;
+            const endTime = document.getElementById('mission-end-time').value;
+            const notes = document.getElementById('mission-notes').value.trim();
+
+            if (!appState.missions) appState.missions = [];
+
+            if (id) {
+                const index = appState.missions.findIndex(m => m.id === id);
+                if (index !== -1) {
+                    appState.missions[index] = { id, day, aedId, startSlotIndex, endSlotIndex, type, startTime, endTime, notes };
+                }
+            } else {
+                const newId = 'm-' + Date.now();
+                appState.missions.push({ id: newId, day, aedId, startSlotIndex, endSlotIndex, type, startTime, endTime, notes });
+            }
+
+            saveState();
+            closeMissionModal();
+            renderMatrix();
+            renderEquityDashboard();
+            showToast("Affectation enregistrée.");
+        }
+
+        function deleteMission() {
+            const id = document.getElementById('mission-id').value;
+            if (id) {
+                appState.missions = (appState.missions || []).filter(m => m.id !== id);
+                saveState();
+                closeMissionModal();
+                renderMatrix();
+                renderEquityDashboard();
+                showToast("Affectation effacée.");
+            }
+        }
+
+        function renderEquityDashboard() {
+            const headerRow = document.getElementById('equity-table-header');
+            const tbody = document.getElementById('equity-table-body');
+            const alertsContainer = document.getElementById('equity-alerts-container');
+
+            if (!headerRow || !tbody || !alertsContainer) return;
+
+            if (!appState.aeds || appState.aeds.length === 0) {
+                headerRow.innerHTML = '';
+                tbody.innerHTML = '<tr><td class="p-4 text-center text-slate-400">Aucune donnée disponible</td></tr>';
+                alertsContainer.innerHTML = '';
+                return;
+            }
+
+            let headerHTML = `<th class="p-3 bg-slate-200/70 font-bold">Postes / Missions</th>`;
+            appState.aeds.forEach(aed => {
+                headerHTML += `<th class="p-3 font-bold text-center border-l border-slate-200">${escapeHtml(aed.name)}</th>`;
+            });
+            headerRow.innerHTML = headerHTML;
+
+            const postSums = {};
+            Object.keys(MISSION_TYPES).forEach(type => {
+                postSums[type] = {};
+                appState.aeds.forEach(aed => postSums[type][aed.id] = 0);
+            });
+
+            (appState.missions || []).forEach(m => {
+                if (postSums[m.type] && postSums[m.type][m.aedId] !== undefined) {
+                    const startM = timeToMinutes(m.startTime);
+                    const endM = timeToMinutes(m.endTime);
+                    if (endM > startM) {
+                        postSums[m.type][m.aedId] += (endM - startM);
+                    }
+                }
+            });
+
+            let tbodyHTML = '';
+            Object.keys(MISSION_TYPES).forEach(typeKey => {
+                const typeObj = MISSION_TYPES[typeKey];
+                tbodyHTML += `<tr class="hover:bg-slate-50">
+                    <td class="p-2.5 font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full ${typeObj.bg}"></span>
+                        ${escapeHtml(typeObj.name)}
+                    </td>`;
+
+                appState.aeds.forEach(aed => {
+                    const minutes = postSums[typeKey][aed.id] || 0;
+                    const hours = (minutes / 60).toFixed(1);
+                    tbodyHTML += `<td class="p-2.5 text-center border-l border-slate-100 font-medium ${minutes > 0 ? 'text-indigo-900 font-bold' : 'text-slate-400'}">
+                        ${minutes > 0 ? `${hours}h` : '-'}
+                    </td>`;
+                });
+
+                tbodyHTML += `</tr>`;
+            });
+
+            tbody.innerHTML = tbodyHTML;
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `planning_vie_scolaire_${new Date().toISOString().slice(0, 10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data && data.aeds && data.missions) {
+                        appState = data;
+                        initCpeConstraints();
+                        initAedBreaks();
+                        if (!appState.absentProfs) appState.absentProfs = [];
+                        saveState();
+                        showToast("Données importées avec succès.");
+                    } else {
+                        alert("Le fichier JSON fourni n'a pas le bon format.");
+                    }
+                } catch (err) {
+                    alert("Erreur lors de la lecture du fichier JSON.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetData() {
+            if (confirm("Voulez-vous vraiment réinitialiser toutes les données aux valeurs par défaut ?")) {
+                localStorage.removeItem('aed_timetable_app_v5');
+                seedDefaultData();
+                showToast("Données réinitialisées.");
+            }
+        }
+    </script>
 </body>
 </html>
