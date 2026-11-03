@@ -2,302 +2,450 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Absences des Professeurs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Absences Profs - Mobile</title>
     <!-- SheetJS pour la lecture des fichiers Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --accent: #e74c3c;
-            --success: #2ecc71;
-            --bg: #f8f9fa;
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --bg-app: #f3f4f6;
             --card-bg: #ffffff;
-            --text: #333333;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --danger: #ef4444;
+            --danger-bg: #fee2e2;
+            --success: #10b981;
+            --success-bg: #d1fae5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: var(--bg);
-            color: var(--text);
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        /* Conteneur simulant un écran de smartphone */
+        .mobile-frame {
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            max-height: 896px;
+            background-color: var(--bg-app);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
         }
 
-        header {
+        @media (min-width: 430px) {
+            .mobile-frame {
+                border-radius: 40px;
+                border: 10px solid #111;
+                height: 85vh;
+            }
+        }
+
+        /* En-tête mobile */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 20px 20px 15px 20px;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: var(--primary);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
-        .clock-container {
-            text-align: right;
+        .app-title {
+            font-size: 1.25rem;
+            font-weight: 700;
         }
 
-        #clock {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #ecf0f1;
+        .live-clock {
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
         }
 
-        #date {
-            font-size: 1rem;
-            color: #bdc3c7;
+        .live-date {
+            font-size: 0.8rem;
+            opacity: 0.85;
+            text-transform: capitalize;
         }
 
-        .actions-bar {
+        /* Barre d'actions rapides */
+        .quick-actions {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px 20px 10px 20px;
         }
 
-        .btn {
-            background-color: var(--secondary);
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 5px;
+        .action-btn {
+            flex: 1;
+            background: white;
+            border: 1px solid #e5e7eb;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
             cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.2s;
         }
 
-        .btn:hover {
-            opacity: 0.9;
+        .action-btn:active {
+            transform: scale(0.97);
+            background: #f9fafb;
         }
 
-        .btn-danger {
-            background-color: var(--accent);
-        }
-
-        .btn-success {
-            background-color: var(--success);
+        .action-btn span {
+            font-size: 1.1rem;
         }
 
         input[type="file"] {
             display: none;
         }
 
-        .file-label {
-            background-color: var(--primary);
-            color: white;
-            padding: 10px 18px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
+        /* Corps de l'application (Liste des cartes) */
+        .app-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 20px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        /* Modal Styles */
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Carte d'absence style application */
+        .absence-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-left: 5px solid var(--danger);
+        }
+
+        .absence-card.replaced {
+            border-left-color: var(--success);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .prof-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        .badge.absent {
+            background-color: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        .badge.replaced {
+            background-color: var(--success-bg);
+            color: var(--success);
+        }
+
+        .card-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .detail-item strong {
+            color: var(--text-main);
+            display: block;
+        }
+
+        .replacement-info {
+            background: #f9fafb;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Fenêtre Modale (BottomSheet style mobile) */
         .modal {
             display: none;
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            z-index: 100;
+            justify-content: flex-end;
+            flex-direction: column;
         }
 
         .modal-content {
             background: white;
-            padding: 25px;
-            border-radius: 8px;
-            width: 500px;
-            max-width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .teacher-list {
+            width: 100%;
+            max-height: 75vh;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin: 15px 0;
+            animation: slideUp 0.3s ease-out;
         }
 
-        .teacher-item {
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .teachers-checklist {
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+            max-height: 40vh;
+        }
+
+        .check-item {
             display: flex;
             align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .check-item input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .modal-footer {
+            display: flex;
             gap: 10px;
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
         }
 
-        /* Data Display */
-        .table-container {
-            background: var(--card-bg);
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            overflow-x: auto;
+        .btn-modal {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
+        .btn-cancel {
+            background: #e5e7eb;
+            color: var(--text-main);
         }
 
-        th, td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        th {
-            background-color: #f1f3f5;
-            color: var(--primary);
-        }
-
-        tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        .badge-replaced {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-
-        .badge-absent {
-            background-color: #ffebee;
-            color: #c62828;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: bold;
+        .btn-confirm {
+            background: var(--primary);
+            color: white;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <div>
-            <h2>Tableau d'Absence des Professeurs</h2>
-            <small>Suivi du jour et remplaçants</small>
+<div class="mobile-frame">
+    <!-- En-tête -->
+    <div class="app-header">
+        <div class="header-top">
+            <div class="app-title">🏫 Vie Scolaire</div>
+            <div class="live-clock" id="clock">00:00</div>
         </div>
-        <div class="clock-container">
-            <div id="clock">00:00:00</div>
-            <div id="date">--/--/----</div>
-        </div>
-    </header>
-
-    <div class="actions-bar">
-        <label for="excelFile" class="file-label">📥 Importer Liste Excel</label>
-        <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
-
-        <button class="btn btn-secondary" onclick="openManualModal()">✏️ Gestion Manuelle des Absents</button>
+        <div class="live-date" id="date">Chargement...</div>
     </div>
 
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Professeur Absent / Statut</th>
-                    <th>Matière</th>
-                    <th>Classe & Groupes impactés</th>
-                    <th>Horaire & Durée</th>
-                    <th>Remplaçant(e)</th>
-                </tr>
-            </thead>
-            <tbody id="absencesTable">
-                <!-- Données injectées dynamiquement -->
-            </tbody>
-        </table>
+    <!-- Actions Rapides -->
+    <div class="quick-actions">
+        <label for="excelFile" class="action-btn">
+            <span>📥</span> Importer Excel
+        </label>
+        <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
+
+        <button class="action-btn" onclick="openManualModal()">
+            <span>✏️</span> Sélection Manuelle
+        </button>
+    </div>
+
+    <!-- Corps de la liste -->
+    <div class="app-body">
+        <div class="section-label">Absences du jour</div>
+        <div id="cardsContainer">
+            <!-- Injecté dynamiquement -->
+        </div>
     </div>
 </div>
 
-<!-- Modal pour cocher la liste des profs -->
+<!-- Modal Sélection Manuelle -->
 <div class="modal" id="manualModal">
     <div class="modal-content">
-        <h3>Signaler des profs absents aujourd'hui</h3>
-        <p><small>Cochez les professeurs absents pour mettre à jour la liste :</small></p>
-        <div class="teacher-list" id="teachersChecklist">
-            <!-- Liste générée dynamiquement -->
+        <div class="modal-header">
+            <div class="modal-title">Gérer les profs absents</div>
+            <span onclick="closeManualModal()" style="cursor:pointer; font-size:1.2rem;">✕</span>
         </div>
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
-            <button class="btn btn-danger" onclick="closeManualModal()">Annuler</button>
-            <button class="btn btn-success" onclick="applyManualAbsences()">Enregistrer</button>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Cochez les professeurs présents dans la liste active :</p>
+        <div class="teachers-checklist" id="teachersChecklist">
+            <!-- Généré dynamiquement -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal btn-cancel" onclick="closeManualModal()">Annuler</button>
+            <button class="btn-modal btn-confirm" onclick="applyManualAbsences()">Valider</button>
         </div>
     </div>
 </div>
 
 <script>
-    // 1. Gestion de l'Horloge Temps Réel
+    // 1. Horloge en temps réel
     function updateClock() {
         const now = new Date();
-        document.getElementById('clock').textContent = now.toLocaleTimeString('fr-FR');
-        document.getElementById('date').textContent = now.toLocaleDateString('fr-FR', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
+        document.getElementById('clock').textContent = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('date').textContent = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Données initiales extraites du document
+    // Données initiales issues du document (03/11/2026)[span_0](start_span)[span_0](end_span)
     let absencesData = [
-        { prof: "CLEMENT BERNARD", matiere: "MATHEMATIQUES", classe: "4E4EP1", debut: "11:10", duree: "1:00", date: "03/11/2026", remplacant: "" },
-        { prof: "CAMARA DESCAMPS JACOB", matiere: "FRANCAIS", classe: "4 D (NASIRI Z., SBAIHIA R., SA KARA B., MULLIMBA R., WASSA D., REZZAG S.)", debut: "14:25", duree: "1:00", date: "03/11/2026", remplacant: "" },
-        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5D", debut: "09:00", duree: "1:00", date: "03/11/2026", remplacant: "GIRAUD MARGOT" },
-        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5D5D P2", debut: "10:10", duree: "1:00", date: "03/11/2026", remplacant: "GIRAUD MARGOT" },
-        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5D5D P1", debut: "11:10", duree: "1:00", date: "03/11/2026", remplacant: "GIRAUD MARGOT" },
-        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "5D", debut: "07:00", duree: "1:00", date: "03/11/2026", remplacant: "MOUMENIA" },
-        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "3E", debut: "09:00", duree: "1:00", date: "03/11/2026", remplacant: "MOUMENIA" },
-        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "5D5D P1", debut: "10:10", duree: "1:00", date: "03/11/2026", remplacant: "MOUMENIA" },
-        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "5D5D P2", debut: "11:10", duree: "1:00", date: "03/11/2026", remplacant: "MOUMENIA" },
-        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "4D", debut: "13:25", duree: "1:00", date: "03/11/2026", remplacant: "MOUMENIA" },
-        { prof: "JOUAN FANTINE", matiere: "ANGLAIS LVI", classe: "5A5A SA KARA Baran", debut: "10:10", duree: "1:00", date: "03/11/2026", remplacant: "" },
-        { prof: "JOUAN FANTINE", matiere: "ANGLAIS LVI", classe: "4-4C P2", debut: "11:30", duree: "1:00", date: "03/11/2026", remplacant: "" },
-        { prof: "JOUAN FANTINE", matiere: "ANGLAIS LVI", classe: "4D", debut: "14:25", duree: "1:00", date: "03/11/2026", remplacant: "" },
-        { prof: "TELAA NOUARI", matiere: "ED PHYSIQUE & SPORT", classe: "5F", debut: "11:10", duree: "1:00", date: "03/11/2026", remplacant: "" }
+        { prof: "CLEMENT BERNARD", matiere: "MATHEMATIQUES", classe: "4E4EP1", debut: "11:10", duree: "1:00", remplacant: "" },
+        { prof: "CAMARA DESCAMPS JACOB", matiere: "FRANCAIS", classe: "4 D (Groupes multiples)", debut: "14:25", duree: "1:00", remplacant: "" },
+        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5D", debut: "09:00", duree: "1:00", remplacant: "GIRAUD MARGOT" },
+        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5D5D P2", debut: "10:10", duree: "1:00", remplacant: "GIRAUD MARGOT" },
+        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "5D", debut: "07:00", duree: "1:00", remplacant: "MOUMENIA" },
+        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "3E", debut: "09:00", duree: "1:00", remplacant: "MOUMENIA" },
+        { prof: "JOUAN FANTINE", matiere: "ANGLAIS LV1", classe: "5A5A SA KARA Baran", debut: "10:10", duree: "1:00", remplacant: "" },
+        { prof: "TELAA NOUARI", matiere: "ED PHYSIQUE & SPORT", classe: "5F", debut: "11:10", duree: "1:00", remplacant: "" }
     ];
 
-    // Rendu du tableau
-    function renderTable() {
-        const tbody = document.getElementById('absencesTable');
-        tbody.innerHTML = '';
+    // Rendu des cartes mobiles
+    function renderCards() {
+        const container = document.getElementById('cardsContainer');
+        container.innerHTML = '';
 
         if (absencesData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Aucune absence enregistrée.</td></tr>`;
+            container.innerHTML = `<div class="empty-state">Aucune absence enregistrée pour le moment.</div>`;
             return;
         }
 
         absencesData.forEach(item => {
-            const tr = document.createElement('tr');
-            
             const hasRemplacant = item.remplacant && item.remplacant.trim() !== "";
-            const statusBadge = hasRemplacant 
-                ? `<span class="badge-replaced">Remplacé</span>` 
-                : `<span class="badge-absent">Non Remplacé (Cours annulé)</span>`;
+            const card = document.createElement('div');
+            card.className = `absence-card ${hasRemplacant ? 'replaced' : ''}`;
 
-            tr.innerHTML = `
-                <td><strong>${item.prof}</strong><br>${statusBadge}</td>
-                <td>${item.matiere || '-'}</td>
-                <td><strong>${item.classe}</strong></td>
-                <td>${item.debut} (${item.duree})</td>
-                <td>${hasRemplacant ? '🟢 ' + item.remplacant : '🔴 Aucun'}</td>
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="prof-name">${item.prof}</span>
+                    <span class="badge ${hasRemplacant ? 'replaced' : 'absent'}">
+                        ${hasRemplacant ? 'Remplacé' : 'Absent'}
+                    </span>
+                </div>
+                <div class="card-details">
+                    <div class="detail-item">
+                        <span>Matière</span>
+                        <strong>${item.matiere || 'N/C'}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Classe / Groupe</span>
+                        <strong>${item.classe}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Horaire</span>
+                        <strong>${item.debut} (${item.duree})</strong>
+                    </div>
+                </div>
+                ${hasRemplacant ? `
+                    <div class="replacement-info">
+                        <span>👤 Remplaçant(e) :</span> <strong>${item.remplacant}</strong>
+                    </div>
+                ` : `
+                    <div class="replacement-info" style="color: var(--danger);">
+                        <span>⚠️</span> Cours non assuré / annulé
+                    </div>
+                `}
             `;
-            tbody.appendChild(tr);
+            container.appendChild(card);
         });
     }
 
-    // 2. Importation d'un fichier Excel (Efface et Remplace les anciennes données)
+    // 2. Import Excel (remplace les données)
     document.getElementById('excelFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -309,7 +457,6 @@
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
-            // Effacer et charger les nouvelles données
             absencesData = jsonData.map(row => ({
                 prof: row['Professeur'] || row['PROF'] || row['Prof'] || 'Inconnu',
                 matiere: row['Matière'] || row['MATIERE'] || '',
@@ -319,27 +466,26 @@
                 remplacant: row['Remplaçant'] || row['REMPLACANT'] || row['Remplacement'] || ''
             }));
 
-            renderTable();
-            alert('Nouvelle liste importée avec succès ! Les anciennes données ont été effacées.');
+            renderCards();
+            alert('Nouvelles données importées avec succès !');
         };
         reader.readAsArrayBuffer(file);
     });
 
-    // 3. Gestion manuelle des profs absents
+    // 3. Gestion manuelle des absents
     function openManualModal() {
         const modal = document.getElementById('manualModal');
         const listContainer = document.getElementById('teachersChecklist');
         listContainer.innerHTML = '';
 
-        // Récupération unique des noms de profs dans les données actuelles
         const profs = [...new Set(absencesData.map(item => item.prof))];
 
         profs.forEach((prof, index) => {
-            const item = document.createElement('div');
-            item.className = 'teacher-item';
+            const item = document.createElement('label');
+            item.className = 'check-item';
             item.innerHTML = `
-                <input type="checkbox" id="prof_${index}" value="${prof}" checked>
-                <label for="prof_${index}">${prof}</label>
+                <input type="checkbox" value="${prof}" checked>
+                <span>${prof}</span>
             `;
             listContainer.appendChild(item);
         });
@@ -357,15 +503,13 @@
             .filter(cb => cb.checked)
             .map(cb => cb.value);
 
-        // Filtrer les données pour ne garder que les profs cochés
         absencesData = absencesData.filter(item => profsAbsents.includes(item.prof));
-        
-        renderTable();
+        renderCards();
         closeManualModal();
     }
 
-    // Premier affichage
-    renderTable();
+    // Chargement initial
+    renderCards();
 </script>
 
 </body>
