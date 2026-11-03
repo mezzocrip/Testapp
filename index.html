@@ -36,7 +36,6 @@
             min-height: 100vh;
         }
 
-        /* Conteneur simulant un écran de smartphone */
         .mobile-frame {
             width: 100%;
             max-width: 420px;
@@ -58,7 +57,6 @@
             }
         }
 
-        /* En-tête mobile */
         .app-header {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
@@ -94,7 +92,6 @@
             text-transform: capitalize;
         }
 
-        /* Barre d'actions rapides */
         .quick-actions {
             display: flex;
             gap: 10px;
@@ -132,7 +129,6 @@
             display: none;
         }
 
-        /* Corps de l'application (Liste des cartes) */
         .app-body {
             flex: 1;
             overflow-y: auto;
@@ -151,7 +147,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Carte d'absence style application */
         .absence-card {
             background: var(--card-bg);
             border-radius: 16px;
@@ -159,7 +154,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             border-left: 5px solid var(--danger);
         }
 
@@ -196,6 +191,17 @@
             color: var(--success);
         }
 
+        /* Badge pour la date sur la vignette */
+        .card-date-tag {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+            background: #eef2ff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            width: fit-content;
+        }
+
         .card-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -226,7 +232,6 @@
             font-size: 0.9rem;
         }
 
-        /* Fenêtre Modale (BottomSheet style mobile) */
         .modal {
             display: none;
             position: absolute;
@@ -325,7 +330,6 @@
 <body>
 
 <div class="mobile-frame">
-    <!-- En-tête -->
     <div class="app-header">
         <div class="header-top">
             <div class="app-title">🏫 Vie Scolaire</div>
@@ -334,7 +338,6 @@
         <div class="live-date" id="date">Chargement...</div>
     </div>
 
-    <!-- Actions Rapides -->
     <div class="quick-actions">
         <label for="excelFile" class="action-btn">
             <span>📥</span> Importer Excel
@@ -346,7 +349,6 @@
         </button>
     </div>
 
-    <!-- Corps de la liste -->
     <div class="app-body">
         <div class="section-label">Absences du jour</div>
         <div id="cardsContainer">
@@ -355,17 +357,14 @@
     </div>
 </div>
 
-<!-- Modal Sélection Manuelle -->
 <div class="modal" id="manualModal">
     <div class="modal-content">
         <div class="modal-header">
             <div class="modal-title">Gérer les profs absents</div>
             <span onclick="closeManualModal()" style="cursor:pointer; font-size:1.2rem;">✕</span>
         </div>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Cochez les professeurs présents dans la liste active :</p>
-        <div class="teachers-checklist" id="teachersChecklist">
-            <!-- Généré dynamiquement -->
-        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Cochez les professeurs à afficher :</p>
+        <div class="teachers-checklist" id="teachersChecklist"></div>
         <div class="modal-footer">
             <button class="btn-modal btn-cancel" onclick="closeManualModal()">Annuler</button>
             <button class="btn-modal btn-confirm" onclick="applyManualAbsences()">Valider</button>
@@ -374,7 +373,6 @@
 </div>
 
 <script>
-    // 1. Horloge en temps réel
     function updateClock() {
         const now = new Date();
         document.getElementById('clock').textContent = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -383,29 +381,25 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Données initiales issues du document (03/11/2026)[span_0](start_span)[span_0](end_span)
+    // Données initiales d'exemple basées sur votre document (03/11/2026)[span_0](start_span)[span_0](end_span)
     let absencesData = [
-        { prof: "CLEMENT BERNARD", matiere: "MATHEMATIQUES", classe: "4E4EP1", debut: "11:10", duree: "1:00", remplacant: "" },
-        { prof: "CAMARA DESCAMPS JACOB", matiere: "FRANCAIS", classe: "4 D (Groupes multiples)", debut: "14:25", duree: "1:00", remplacant: "" },
-        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5D", debut: "09:00", duree: "1:00", remplacant: "GIRAUD MARGOT" },
-        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5D5D P2", debut: "10:10", duree: "1:00", remplacant: "GIRAUD MARGOT" },
-        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "5D", debut: "07:00", duree: "1:00", remplacant: "MOUMENIA" },
-        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "3E", debut: "09:00", duree: "1:00", remplacant: "MOUMENIA" },
-        { prof: "JOUAN FANTINE", matiere: "ANGLAIS LV1", classe: "5A5A SA KARA Baran", debut: "10:10", duree: "1:00", remplacant: "" },
-        { prof: "TELAA NOUARI", matiere: "ED PHYSIQUE & SPORT", classe: "5F", debut: "11:10", duree: "1:00", remplacant: "" }
+        { prof: "CLEMENT BERNARD", matiere: "MATHEMATIQUES", classe: "4E4EP1", debut: "11:10", duree: "1:00", date: "03/11/2026", remplacant: "" },
+        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5D", debut: "09:00", duree: "1:00", date: "03/11/2026", remplacant: "GIRAUD MARGOT" },
+        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "5D", debut: "07:00", duree: "1:00", date: "03/11/2026", remplacant: "MOUMENIA" },
+        { prof: "JOUAN FANTINE", matiere: "ANGLAIS LV1", classe: "5A5A SA KARA Baran", debut: "10:10", duree: "1:00", date: "03/11/2026", remplacant: "" }
     ];
 
-    // Rendu des cartes mobiles
     function renderCards() {
         const container = document.getElementById('cardsContainer');
         container.innerHTML = '';
 
         if (absencesData.length === 0) {
-            container.innerHTML = `<div class="empty-state">Aucune absence enregistrée pour le moment.</div>`;
+            container.innerHTML = `<div class="empty-state">Aucune absence enregistrée.</div>`;
             return;
         }
 
         absencesData.forEach(item => {
+            // Détection élargie du remplacement (cherche si le mot "Remplacement" ou un nom apparaît)
             const hasRemplacant = item.remplacant && item.remplacant.trim() !== "";
             const card = document.createElement('div');
             card.className = `absence-card ${hasRemplacant ? 'replaced' : ''}`;
@@ -414,9 +408,10 @@
                 <div class="card-header">
                     <span class="prof-name">${item.prof}</span>
                     <span class="badge ${hasRemplacant ? 'replaced' : 'absent'}">
-                        ${hasRemplacant ? 'Remplacé' : 'Absent'}
+                        ${hasRemplacant ? 'Remplacé' : 'Non Remplacé'}
                     </span>
                 </div>
+                <div class="card-date-tag">📅 Date : ${item.date || 'Non spécifiée'}</div>
                 <div class="card-details">
                     <div class="detail-item">
                         <span>Matière</span>
@@ -445,7 +440,7 @@
         });
     }
 
-    // 2. Import Excel (remplace les données)
+    // Importation Excel robuste (analyse intelligente des colonnes du fichier)
     document.getElementById('excelFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -455,24 +450,85 @@
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }); // Lecture brute par lignes
 
-            absencesData = jsonData.map(row => ({
-                prof: row['Professeur'] || row['PROF'] || row['Prof'] || 'Inconnu',
-                matiere: row['Matière'] || row['MATIERE'] || '',
-                classe: row['Classe'] || row['CLASSE'] || row['Groupe'] || 'Non spécifiée',
-                debut: row['Debut'] || row['Début'] || row['Heure'] || '',
-                duree: row['Duree'] || row['Durée'] || '1h',
-                remplacant: row['Remplaçant'] || row['REMPLACANT'] || row['Remplacement'] || ''
-            }));
+            if (jsonData.length < 2) {
+                alert("Le fichier semble vide ou mal formaté.");
+                return;
+            }
 
-            renderCards();
-            alert('Nouvelles données importées avec succès !');
+            // Récupération des en-têtes (ligne 1)
+            const headers = jsonData[0].map(h => h ? h.toString().trim().toUpperCase() : '');
+            
+            // Recherche indicielle des colonnes clés pour s'adapter à votre tableau
+            const idxProf = headers.findIndex(h => h.includes('PROF') || h.includes('ENSEIGNANT'));
+            const idxMat = headers.findIndex(h => h.includes('MATIERE') || h.includes('DISCIPLINE'));
+            const idxClasse = headers.findIndex(h => h.includes('CLASSE') || h.includes('CAT') || h.includes('GROUPE'));
+            const idxDebut = headers.findIndex(h => h.includes('DEBUT') || h.includes('HEURE'));
+            const idxDuree = headers.findIndex(h => h.includes('DUREE'));
+            const idxRem = headers.findIndex(h => h.includes('REMPLAC') || h.includes('CHANGEMENT') || h.includes('COMM'));
+            const idxDate = headers.findIndex(h => h.includes('/') || h.includes('DATE') || h.match(/\d{2}\/\d{2}/));
+
+            let newAbsences = [];
+
+            // Parcours des lignes de données (à partir de la ligne 1)
+            for (let i = 1; i < jsonData.length; i++) {
+                let row = jsonData[i];
+                if (!row || row.length === 0) continue;
+
+                // Extraction souple avec replis sur les colonnes courantes
+                let prof = idxProf !== -1 ? row[idxProf] : (row[0] || 'Inconnu');
+                let matiere = idxMat !== -1 ? row[idxMat] : (row[1] || '');
+                let classe = idxClasse !== -1 ? row[idxClasse] : (row[2] || 'Classe N/C');
+                let debut = idxDebut !== -1 ? row[idxDebut] : '';
+                let duree = idxDuree !== -1 ? row[idxDuree] : '1:00';
+                
+                // Recherche de date dans la ligne si non trouvée par en-tête
+                let dateVal = "Date non spécifiée";
+                if (idxDate !== -1 && row[idxDate]) {
+                    dateVal = row[idxDate].toString();
+                } else {
+                    // Cherche une cellule contenant une date (ex: jj/mm/aaaa) dans toute la ligne
+                    let foundDate = row.find(cell => cell && cell.toString().match(/\d{2}\/\d{2}\/\d{4}/));
+                    if (foundDate) dateVal = foundDate.toString();
+                }
+
+                // Recherche de remplaçant ou de texte de remplacement dans la ligne
+                let remplacantVal = "";
+                if (idxRem !== -1 && row[idxRem]) {
+                    remplacantVal = row[idxRem].toString();
+                } else {
+                    // Cherche un mot-clé "Remplacement" ou un nom entre parenthèses dans toute la ligne
+                    let foundRem = row.find(cell => cell && (cell.toString().toUpperCase().includes('REMPLAC') || cell.toString().toUpperCase().includes('CHANGEMENT')));
+                    if (foundRem) {
+                        remplacantVal = foundRem.toString();
+                    }
+                }
+
+                if (prof && prof.toString().trim() !== '') {
+                    newAbsences.push({
+                        prof: prof.toString().trim(),
+                        matiere: matiere ? matiere.toString().trim() : '',
+                        classe: classe ? classe.toString().trim() : '',
+                        debut: debut ? debut.toString().trim() : '',
+                        duree: duree ? duree.toString().trim() : '',
+                        date: dateVal,
+                        remplacant: remplacantVal ? remplacantVal.trim() : ''
+                    });
+                }
+            }
+
+            if (newAbsences.length > 0) {
+                absencesData = newAbsences;
+                renderCards();
+                alert(`Import réussi ! ${absencesData.length} lignes chargées avec leurs dates et remplaçants.`);
+            } else {
+                alert("Aucune donnée valide n'a pu être extraite du fichier.");
+            }
         };
         reader.readAsArrayBuffer(file);
     });
 
-    // 3. Gestion manuelle des absents
     function openManualModal() {
         const modal = document.getElementById('manualModal');
         const listContainer = document.getElementById('teachersChecklist');
@@ -480,7 +536,7 @@
 
         const profs = [...new Set(absencesData.map(item => item.prof))];
 
-        profs.forEach((prof, index) => {
+        profs.forEach((prof) => {
             const item = document.createElement('label');
             item.className = 'check-item';
             item.innerHTML = `
@@ -508,7 +564,6 @@
         closeManualModal();
     }
 
-    // Chargement initial
     renderCards();
 </script>
 
