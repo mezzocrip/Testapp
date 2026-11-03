@@ -112,9 +112,9 @@
             flex: 1;
             background: white;
             border: 1px solid #e5e7eb;
-            padding: 10px 8px;
+            padding: 10px 6px;
             border-radius: 12px;
-            font-size: 0.75rem;
+            font-size: 0.73rem;
             font-weight: 600;
             color: var(--text-main);
             display: flex;
@@ -124,14 +124,20 @@
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             transition: all 0.2s;
+            text-align: center;
         }
 
-        /* Style spécifique pour les boutons de vue actifs */
         .action-btn.view-tab.active {
             background: #eef2ff;
             color: var(--primary);
             border-color: var(--primary);
             box-shadow: inset 0 0 0 1px var(--primary);
+        }
+
+        .action-btn.accent {
+            background: #eef2ff;
+            color: var(--primary);
+            border-color: #c7d2fe;
         }
 
         .action-btn:active {
@@ -361,27 +367,32 @@
 
     <!-- Actions Rapides & Boutons de vues séparés -->
     <div class="quick-actions">
-        <!-- Ligne 1 : Boutons d'affichage spécifiques -->
+        <!-- Ligne 1 : Vues -->
         <div class="actions-row">
             <button class="action-btn view-tab active" id="btnRemaining" onclick="setViewMode('remaining')">
-                <span>⏳</span> Restants du jour
+                <span>⏳</span> Restants
             </button>
             <button class="action-btn view-tab" id="btnDay" onclick="setViewMode('day')">
-                <span>📅</span> Journée entière
+                <span>📅</span> Journée
             </button>
             <button class="action-btn view-tab" id="btnAll" onclick="setViewMode('all')">
-                <span>📂</span> Semaine (Tout)
+                <span>📂</span> Semaine
             </button>
         </div>
-        <!-- Ligne 2 : Import et Sélection manuelle -->
+        <!-- Ligne 2 : Gestion Fichiers & Sélection -->
         <div class="actions-row">
-            <label for="excelFile" class="action-btn">
-                <span>📥</span> Importer Excel
+            <label for="excelFile" class="action-btn accent">
+                <span>📥</span> Remplacer Fichier
             </label>
             <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
 
+            <label for="appendExcelFile" class="action-btn accent" title="Ajouter des absences en plus">
+                <span>➕</span> Ajouter Excel
+            </label>
+            <input type="file" id="appendExcelFile" accept=".xlsx, .xls, .csv">
+
             <button class="action-btn" onclick="openManualModal()">
-                <span>✏️</span> Sélection
+                <span>✏️</span> Filtrer
             </button>
         </div>
     </div>
@@ -446,7 +457,7 @@
         { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "6 D", debut: "08h00", duree: "1h00", date: "03/11/2026", remplacant: "MOUMENI A." }
     ];
 
-    let viewMode = 'remaining'; // Modes : 'remaining', 'day', 'all'
+    let viewMode = 'remaining';
 
     function getTodayFormatted() {
         const now = new Date();
@@ -484,8 +495,6 @@
 
     function setViewMode(mode) {
         viewMode = mode;
-        
-        // Gestion visuelle des classes "active" sur les boutons
         document.querySelectorAll('.view-tab').forEach(btn => btn.classList.remove('active'));
         if (mode === 'remaining') document.getElementById('btnRemaining').classList.add('active');
         if (mode === 'day') document.getElementById('btnDay').classList.add('active');
@@ -497,7 +506,6 @@
 
     function updateViewUI() {
         const sectionTitle = document.getElementById('sectionTitle');
-
         if (viewMode === 'remaining') {
             sectionTitle.textContent = "Absences restantes du jour";
         } else if (viewMode === 'day') {
@@ -587,10 +595,8 @@
         });
     }
 
-    document.getElementById('excelFile').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
+    // Fonction mutualisée de traitement d'un fichier Excel
+    function parseExcelFile(file, isAppend = false) {
         const reader = new FileReader();
         reader.onload = function(e) {
             const data = new Uint8Array(e.target.result);
@@ -599,7 +605,7 @@
             const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
             if (jsonData.length < 2) {
-                alert("Le fichier me semble vide.");
+                alert("Le fichier semble vide.");
                 return;
             }
 
@@ -613,7 +619,7 @@
             const idxDebut = headers.findIndex(h => h.includes('début') || h.includes('debut'));
             const idxAction = headers.findIndex(h => h.includes('a donné lieu') || h.includes('remplac'));
 
-            let newAbsences = [];
+            let parsedAbsences = [];
 
             for (let i = 1; i < jsonData.length; i++) {
                 let row = jsonData[i];
@@ -649,7 +655,7 @@
                     }
                 }
 
-                newAbsences.push({
+                parsedAbsences.push({
                     prof: prof ? prof.toString().trim() : 'Inconnu',
                     matiere: matiere ? matiere.toString().trim() : '',
                     classe: classe ? classe.toString().trim() : 'Classe N/C',
@@ -660,15 +666,32 @@
                 });
             }
 
-            if (newAbsences.length > 0) {
-                allAbsencesData = newAbsences;
+            if (parsedAbsences.length > 0) {
+                if (isAppend) {
+                    allAbsencesData = allAbsencesData.concat(parsedAbsences);
+                    alert(`Ajout réussi ! ${parsedAbsences.length} lignes supplémentaires intégrées.`);
+                } else {
+                    allAbsencesData = parsedAbsences;
+                    alert(`Remplacement réussi ! ${allAbsencesData.length} lignes chargées.`);
+                }
                 renderCards();
-                alert(`Import réussi ! ${allAbsencesData.length} lignes chargées.`);
             } else {
-                alert("Aucune ligne valide trouvée.");
+                alert("Aucune ligne valide trouvée dans le fichier.");
             }
         };
         reader.readAsArrayBuffer(file);
+    }
+
+    // Bouton 1 : Remplacer tout le fichier
+    document.getElementById('excelFile').addEventListener('change', function(e) {
+        if (e.target.files[0]) parseExcelFile(e.target.files[0], false);
+        e.target.value = ''; // Reset pour permettre de re-sélectionner le même fichier
+    });
+
+    // Bouton 2 : Ajouter (append) des profs/absences en cas de pépin
+    document.getElementById('appendExcelFile').addEventListener('change', function(e) {
+        if (e.target.files[0]) parseExcelFile(e.target.files[0], true);
+        e.target.value = '';
     });
 
     function openManualModal() {
