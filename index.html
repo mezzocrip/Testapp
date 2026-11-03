@@ -38,7 +38,6 @@
             overflow: hidden;
         }
 
-        /* Cadre optimisé pour iPhone 16 Pro Max (Résolution logique : 430 x 932 px) */
         .mobile-frame {
             width: 100vw;
             height: 100vh;
@@ -49,7 +48,6 @@
             flex-direction: column;
             position: relative;
             overflow: hidden;
-            /* Prise en compte de la Dynamic Island et de la barre de balayage bas */
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
         }
@@ -107,16 +105,16 @@
 
         .actions-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .action-btn {
             flex: 1;
             background: white;
             border: 1px solid #e5e7eb;
-            padding: 10px;
+            padding: 10px 8px;
             border-radius: 12px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             color: var(--text-main);
             display: flex;
@@ -128,12 +126,12 @@
             transition: all 0.2s;
         }
 
-        .action-btn.full-width {
-            flex-direction: row;
-            justify-content: center;
+        /* Style spécifique pour les boutons de vue actifs */
+        .action-btn.view-tab.active {
             background: #eef2ff;
             color: var(--primary);
-            border-color: #c7d2fe;
+            border-color: var(--primary);
+            box-shadow: inset 0 0 0 1px var(--primary);
         }
 
         .action-btn:active {
@@ -361,8 +359,21 @@
         <div class="live-date" id="date">Chargement...</div>
     </div>
 
-    <!-- Actions Rapides -->
+    <!-- Actions Rapides & Boutons de vues séparés -->
     <div class="quick-actions">
+        <!-- Ligne 1 : Boutons d'affichage spécifiques -->
+        <div class="actions-row">
+            <button class="action-btn view-tab active" id="btnRemaining" onclick="setViewMode('remaining')">
+                <span>⏳</span> Restants du jour
+            </button>
+            <button class="action-btn view-tab" id="btnDay" onclick="setViewMode('day')">
+                <span>📅</span> Journée entière
+            </button>
+            <button class="action-btn view-tab" id="btnAll" onclick="setViewMode('all')">
+                <span>📂</span> Semaine (Tout)
+            </button>
+        </div>
+        <!-- Ligne 2 : Import et Sélection manuelle -->
         <div class="actions-row">
             <label for="excelFile" class="action-btn">
                 <span>📥</span> Importer Excel
@@ -373,10 +384,6 @@
                 <span>✏️</span> Sélection
             </button>
         </div>
-        <!-- Bouton de bascule de vue -->
-        <button class="action-btn full-width" id="toggleViewBtn" onclick="toggleViewMode()">
-            <span>📅</span> <span id="toggleBtnText">Afficher toute la journée</span>
-        </button>
     </div>
 
     <div class="app-body">
@@ -439,7 +446,7 @@
         { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "6 D", debut: "08h00", duree: "1h00", date: "03/11/2026", remplacant: "MOUMENI A." }
     ];
 
-    let viewMode = 'remaining';
+    let viewMode = 'remaining'; // Modes : 'remaining', 'day', 'all'
 
     function getTodayFormatted() {
         const now = new Date();
@@ -475,30 +482,27 @@
         return endMinutes > currentMinutes;
     }
 
-    function toggleViewMode() {
-        if (viewMode === 'remaining') {
-            viewMode = 'day';
-        } else if (viewMode === 'day') {
-            viewMode = 'all';
-        } else {
-            viewMode = 'remaining';
-        }
+    function setViewMode(mode) {
+        viewMode = mode;
+        
+        // Gestion visuelle des classes "active" sur les boutons
+        document.querySelectorAll('.view-tab').forEach(btn => btn.classList.remove('active'));
+        if (mode === 'remaining') document.getElementById('btnRemaining').classList.add('active');
+        if (mode === 'day') document.getElementById('btnDay').classList.add('active');
+        if (mode === 'all') document.getElementById('btnAll').classList.add('active');
+
         updateViewUI();
         renderCards();
     }
 
     function updateViewUI() {
-        const btnText = document.getElementById('toggleBtnText');
         const sectionTitle = document.getElementById('sectionTitle');
 
         if (viewMode === 'remaining') {
-            btnText.textContent = "Afficher toute la journée";
             sectionTitle.textContent = "Absences restantes du jour";
         } else if (viewMode === 'day') {
-            btnText.textContent = "Afficher TOUT l'historique (Semaine)";
             sectionTitle.textContent = "Toutes les absences du jour";
         } else {
-            btnText.textContent = "Filtrer sur les cours restants";
             sectionTitle.textContent = "Toutes les absences (Semaine)";
         }
     }
@@ -537,7 +541,7 @@
             container.innerHTML = `
                 <div class="empty-state">
                     ${msg}<br><br>
-                    <small style="color:var(--primary); cursor:pointer; text-decoration:underline;" onclick="toggleViewMode()">Changer le filtre de vue</small>
+                    <small style="color:var(--primary); cursor:pointer; text-decoration:underline;" onclick="setViewMode('all')">Voir l'historique complet</small>
                 </div>`;
             return;
         }
