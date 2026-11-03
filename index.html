@@ -289,7 +289,7 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2 justify-end">
-                    <!-- Bouton Profs Absents (Affiche le nombre d'absents du jour) -->
+                    <!-- Bouton Profs Absents (Affiche le nombre d'absents du jour en temps réel) -->
                     <button onclick="openAbsentProfsModal()" class="flex items-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm">
                         <i class="fa-solid fa-user-xmark text-rose-600"></i>
                         <span>Prof. Absents</span>
@@ -515,7 +515,7 @@
                     <i class="fa-solid fa-user-xmark text-lg"></i>
                     <div>
                         <h3 class="font-bold text-base sm:text-lg">Professeurs Absents</h3>
-                        <p id="absent-modal-sub" class="text-xs text-rose-200">Visualisation des absences importées</p>
+                        <p id="absent-modal-sub" class="text-xs text-rose-200">Suivi des absences importées</p>
                     </div>
                 </div>
                 <button onclick="closeAbsentProfsModal()" class="text-rose-200 hover:text-white p-1 rounded-lg">
@@ -523,23 +523,36 @@
                 </button>
             </div>
 
-            <div class="p-4 sm:p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1">
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                    <div class="flex items-center gap-2">
-                        <label class="text-xs font-bold text-slate-600 uppercase">Filtrer jour :</label>
-                        <select id="absent-filter-day" onchange="renderAbsentProfsList()" class="text-xs bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-700 focus:outline-none">
-                            <option value="ALL">Tous les jours</option>
-                            <option value="Lundi">Lundi</option>
-                            <option value="Mardi">Mardi</option>
-                            <option value="Mercredi">Mercredi</option>
-                            <option value="Jeudi">Jeudi</option>
-                            <option value="Vendredi">Vendredi</option>
-                        </select>
-                    </div>
-
-                    <button onclick="clearAbsentProfsData()" class="text-xs font-bold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-200 transition">
-                        <i class="fa-solid fa-trash-can mr-1"></i> Vider la liste
+            <!-- Onglets de vue : Temps réel, Journée, Semaine -->
+            <div class="bg-slate-100 px-4 pt-3 border-b border-slate-200 flex items-center justify-between gap-2">
+                <div class="flex gap-1.5" id="absent-tabs-container">
+                    <button onclick="setAbsentTab('realtime')" id="absent-tab-realtime" class="px-3 py-2 rounded-t-xl text-xs font-bold transition bg-white text-rose-700 border-t-2 border-rose-600 shadow-xs">
+                        <i class="fa-solid fa-clock mr-1"></i> En cours (Temps réel)
                     </button>
+                    <button onclick="setAbsentTab('day')" id="absent-tab-day" class="px-3 py-2 rounded-t-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-200">
+                        <i class="fa-solid fa-calendar-day mr-1"></i> Journée (<span id="absent-current-day-label">Lundi</span>)
+                    </button>
+                    <button onclick="setAbsentTab('week')" id="absent-tab-week" class="px-3 py-2 rounded-t-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-200">
+                        <i class="fa-solid fa-calendar-week mr-1"></i> Semaine entière
+                    </button>
+                </div>
+
+                <button onclick="clearAbsentProfsData()" class="text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-white hover:bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 transition mb-2">
+                    <i class="fa-solid fa-trash-can mr-1"></i> Vider
+                </button>
+            </div>
+
+            <div class="p-4 sm:p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar flex-1 bg-slate-50">
+                <!-- Filtre jour si on est sur l'onglet Journée -->
+                <div id="absent-day-filter-bar" class="hidden items-center gap-2 bg-white p-2.5 rounded-xl border border-slate-200 shadow-xs">
+                    <label class="text-xs font-bold text-slate-600 uppercase">Choisir le jour :</label>
+                    <select id="absent-filter-day" onchange="renderAbsentProfsList()" class="text-xs bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-700 focus:outline-none">
+                        <option value="Lundi">Lundi</option>
+                        <option value="Mardi">Mardi</option>
+                        <option value="Mercredi">Mercredi</option>
+                        <option value="Jeudi">Jeudi</option>
+                        <option value="Vendredi">Vendredi</option>
+                    </select>
                 </div>
 
                 <!-- Liste des profs absents -->
@@ -548,8 +561,8 @@
                 </div>
             </div>
 
-            <div class="bg-slate-50 px-5 py-3 border-t border-slate-100 flex justify-between items-center text-xs">
-                <span id="absent-total-count" class="font-bold text-slate-600">Total : 0 absences enregistrées</span>
+            <div class="bg-white px-5 py-3 border-t border-slate-100 flex justify-between items-center text-xs">
+                <span id="absent-total-count" class="font-bold text-slate-600">Total : 0 absences</span>
                 <button onclick="closeAbsentProfsModal()" class="px-4 py-2 rounded-xl font-bold text-slate-700 bg-slate-200 hover:bg-slate-300 transition">
                     Fermer
                 </button>
@@ -831,6 +844,8 @@
             absentProfs: [] // Structure: [ { prof: '', matiere: '', classe: '', duree: '', date: '', debut: '', dayName: '', estRemplace: false } ]
         };
 
+        let currentAbsentTab = 'realtime'; // 'realtime' | 'day' | 'week'
+
         function toggleRowHighlight(rowId) {
             const row = document.getElementById(rowId);
             if (row) {
@@ -1052,9 +1067,12 @@
                         const rawDate = row['Date'] || row['DATE'] || '';
                         const debut = row['Début'] || row['DEBUT'] || row['Heure'] || '';
                         
-                        // Détection si l'absence/cours est remplacé
-                        const remplaceVal = row['Remplacé'] || row['REMPLACE'] || row['Remplaçant'] || row['REMPLACANT'] || row['Motif'] || row['MOTIF'] || row['Statut'] || row['STATUT'] || '';
-                        const estRemplace = String(remplaceVal).toLowerCase().includes('remplaç') || String(remplaceVal).toLowerCase().includes('remplac');
+                        const remplaçant = row['Remplaçant'] || row['REMPLACANT'] || row['Prof remplaçant'] || '';
+                        const statut = String(row['Statut'] || row['STATUT'] || row['Remarque'] || row['REMARQUE'] || '').toLowerCase();
+                        
+                        const estRemplace = (String(remplaçant).trim() !== '' && String(remplaçant).trim() !== '-') ||
+                                            statut.includes('remplacé par') || 
+                                            statut.includes('cours assuré');
 
                         let dateFormatted = rawDate;
                         let dayName = '';
@@ -1097,17 +1115,38 @@
         function updateAbsentProfsBadge() {
             const badge = document.getElementById('absent-count-badge');
             if (!badge) return;
-            const currentDayAbs = (appState.absentProfs || []).filter(item => 
-                !item.estRemplace && (!item.dayName || item.dayName === appState.currentDay)
-            );
-            badge.textContent = currentDayAbs.length;
+            
+            // Compte en temps réel (pour aujourd'hui et à l'heure actuelle)
+            const now = new Date();
+            const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+            
+            const activeRealtimeAbs = (appState.absentProfs || []).filter(item => {
+                if (item.estRemplace) return false;
+                if (item.dayName && item.dayName !== appState.currentDay) return false;
+                
+                if (item.debut) {
+                    const startM = timeToMinutes(item.debut);
+                    // On considère l'absence active si on est dans une plage de 2h après le début (ou si pas de fin précise)
+                    if (currentMinutes >= startM && currentMinutes <= (startM + 120)) {
+                        return true;
+                    }
+                    return false;
+                }
+                return true; // S'il n'y a pas d'heure précise, on l'affiche par défaut
+            });
+
+            badge.textContent = activeRealtimeAbs.length;
         }
 
         function openAbsentProfsModal() {
             const modal = document.getElementById('absent-profs-modal');
+            const dayLabel = document.getElementById('absent-current-day-label');
+            if (dayLabel) dayLabel.textContent = appState.currentDay;
+            
             const selectFilter = document.getElementById('absent-filter-day');
             if (selectFilter) selectFilter.value = appState.currentDay;
-            renderAbsentProfsList();
+
+            setAbsentTab('realtime');
             modal.classList.remove('hidden');
         }
 
@@ -1115,26 +1154,75 @@
             document.getElementById('absent-profs-modal').classList.add('hidden');
         }
 
+        function setAbsentTab(tab) {
+            currentAbsentTab = tab;
+            
+            // Mise à jour visuelle des boutons d'onglets
+            const btnRealtime = document.getElementById('absent-tab-realtime');
+            const btnDay = document.getElementById('absent-tab-day');
+            const btnWeek = document.getElementById('absent-tab-week');
+            const filterBar = document.getElementById('absent-day-filter-bar');
+
+            [btnRealtime, btnDay, btnWeek].forEach(b => {
+                if(b) {
+                    b.className = "px-3 py-2 rounded-t-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-200";
+                }
+            });
+
+            if (tab === 'realtime' && btnRealtime) {
+                btnRealtime.className = "px-3 py-2 rounded-t-xl text-xs font-bold transition bg-white text-rose-700 border-t-2 border-rose-600 shadow-xs";
+                if(filterBar) filterBar.classList.add('hidden');
+            } else if (tab === 'day' && btnDay) {
+                btnDay.className = "px-3 py-2 rounded-t-xl text-xs font-bold transition bg-white text-rose-700 border-t-2 border-rose-600 shadow-xs";
+                if(filterBar) filterBar.classList.remove('hidden');
+                if(filterBar) filterBar.classList.add('flex');
+            } else if (tab === 'week' && btnWeek) {
+                btnWeek.className = "px-3 py-2 rounded-t-xl text-xs font-bold transition bg-white text-rose-700 border-t-2 border-rose-600 shadow-xs";
+                if(filterBar) filterBar.classList.add('hidden');
+            }
+
+            renderAbsentProfsList();
+        }
+
         function renderAbsentProfsList() {
             const container = document.getElementById('absent-profs-list-container');
             const totalCountEl = document.getElementById('absent-total-count');
-            const filterDay = document.getElementById('absent-filter-day').value;
+            const filterDayVal = document.getElementById('absent-filter-day').value;
 
-            // Ne conserver que les professeurs NON remplacés
-            const nonRemplacesAbs = (appState.absentProfs || []).filter(a => !a.estRemplace);
+            const allAbs = (appState.absentProfs || []).filter(a => !a.estRemplace);
+            let filtered = [];
 
-            let filtered = nonRemplacesAbs;
-            if (filterDay !== 'ALL') {
-                filtered = nonRemplacesAbs.filter(a => !a.dayName || a.dayName === filterDay);
+            const now = new Date();
+            const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+
+            if (currentAbsentTab === 'realtime') {
+                // Filtrer par jour actuel et heure en cours
+                filtered = allAbs.filter(item => {
+                    if (item.dayName && item.dayName !== appState.currentDay) return false;
+                    if (item.debut) {
+                        const startM = timeToMinutes(item.debut);
+                        return (currentMinutes >= startM && currentMinutes <= (startM + 120));
+                    }
+                    return true;
+                });
+            } else if (currentAbsentTab === 'day') {
+                // Filtrer par le jour sélectionné dans le menu déroulant
+                filtered = allAbs.filter(item => !item.dayName || item.dayName === filterDayVal);
+            } else if (currentAbsentTab === 'week') {
+                // Tous les absents de la semaine
+                filtered = allAbs;
             }
 
-            if (totalCountEl) totalCountEl.textContent = `Total : ${nonRemplacesAbs.length} absences enregistrées (${filtered.length} affichées)`;
+            if (totalCountEl) {
+                const tabTitles = { realtime: 'En cours (Temps réel)', day: `Journée (${filterDayVal})`, week: 'Semaine entière' };
+                totalCountEl.textContent = `${filtered.length} absence(s) affichée(s) — Mode : ${tabTitles[currentAbsentTab]}`;
+            }
 
             if (filtered.length === 0) {
                 container.innerHTML = `
-                    <div class="p-8 text-center text-slate-400 font-medium bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                    <div class="p-8 text-center text-slate-400 font-medium bg-white rounded-xl border border-dashed border-slate-200">
                         <i class="fa-solid fa-folder-open text-2xl mb-2 text-slate-300"></i>
-                        <p>Aucun professeur absent répertorié pour ce critère.</p>
+                        <p>Aucun professeur absent trouvé pour cette sélection.</p>
                     </div>
                 `;
                 return;
