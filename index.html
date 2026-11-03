@@ -365,15 +365,15 @@
                 <span>✏️</span> Sélection Manuelle
             </button>
         </div>
-        <!-- Bouton de bascule Vue Jour / Vue Totale -->
+        <!-- Bouton de bascule de vue -->
         <button class="action-btn full-width" id="toggleViewBtn" onclick="toggleViewMode()">
-            <span>📅</span> <span id="toggleBtnText">Afficher TOUT l'historique (Semaine)</span>
+            <span>📅</span> <span id="toggleBtnText">Afficher toute la journée</span>
         </button>
     </div>
 
     <div class="app-body">
         <div class="section-header">
-            <div class="section-label" id="sectionTitle">Absences du jour</div>
+            <div class="section-label" id="sectionTitle">Absences restantes du jour</div>
             <span id="counterBadge" style="font-size: 0.75rem; background: #e5e7eb; padding: 2px 8px; border-radius: 10px; font-weight: bold;">0</span>
         </div>
         <div id="cardsContainer"></div>
@@ -404,7 +404,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Données initiales extraites de votre fichier (toutes les lignes)
+    // Données initiales
     let allAbsencesData = [
         { prof: "BERNARD CLEMENT", matiere: "MATHEMATIQUES", classe: "5 A (KARA Baran)", debut: "10h10", duree: "1h00", date: "06/11/2026", remplacant: "" },
         { prof: "BERNARD CLEMENT", matiere: "MATHEMATIQUES", classe: "4 E P1", debut: "11h10", duree: "1h00", date: "03/11/2026", remplacant: "" },
@@ -432,29 +432,70 @@
         { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "6 D", debut: "08h00", duree: "1h00", date: "03/11/2026", remplacant: "MOUMENI A." }
     ];
 
-    let showOnlyToday = true;
+    // Modes : 'remaining' (par défaut : absents restants du jour), 'day' (tout le jour), 'all' (toute la semaine)
+    let viewMode = 'remaining';
 
     function getTodayFormatted() {
         const now = new Date();
         const d = String(now.getDate()).padStart(2, '0');
         const m = String(now.getMonth() + 1).padStart(2, '0');
         const y = now.getFullYear();
-        return `${d}/${m}/${y}`; // "03/11/2026"
+        return `${d}/${m}/${y}`;
+    }
+
+    // Convertit "14h25" + "1h00" en minutes depuis le début de la journée pour calculer l'heure de fin
+    function getEndTimeInMinutes(debutStr, dureeStr) {
+        if (!debutStr) return 1440; // Fin de journée si indéterminé
+        let cleanDebut = debutStr.toLowerCase().replace('h', ':');
+        let parts = cleanDebut.split(':');
+        let hours = parseInt(parts[0], 10) || 0;
+        let minutes = parseInt(parts[1], 10) || 0;
+
+        let durHours = 1;
+        let durMinutes = 0;
+        if (dureeStr) {
+            let cleanDuree = dureeStr.toLowerCase().replace('h', ':');
+            let durParts = cleanDuree.split(':');
+            durHours = parseInt(durParts[0], 10) || 0;
+            durMinutes = parseInt(durParts[1], 10) || 0;
+        }
+
+        return (hours + durHours) * 60 + (minutes + durMinutes);
+    }
+
+    function isCourseRemaining(debutStr, dureeStr) {
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const endMinutes = getEndTimeInMinutes(debutStr, dureeStr);
+        return endMinutes > currentMinutes;
     }
 
     function toggleViewMode() {
-        showOnlyToday = !showOnlyToday;
+        if (viewMode === 'remaining') {
+            viewMode = 'day';
+        } else if (viewMode === 'day') {
+            viewMode = 'all';
+        } else {
+            viewMode = 'remaining';
+        }
+        updateViewUI();
+        renderCards();
+    }
+
+    function updateViewUI() {
         const btnText = document.getElementById('toggleBtnText');
         const sectionTitle = document.getElementById('sectionTitle');
 
-        if (showOnlyToday) {
+        if (viewMode === 'remaining') {
+            btnText.textContent = "Afficher toute la journée";
+            sectionTitle.textContent = "Absences restantes du jour";
+        } else if (viewMode === 'day') {
             btnText.textContent = "Afficher TOUT l'historique (Semaine)";
-            sectionTitle.textContent = "Absences du jour";
+            sectionTitle.textContent = "Toutes les absences du jour";
         } else {
-            btnText.textContent = "Filtrer uniquement sur le jour";
+            btnText.textContent = "Filtrer sur les cours restants";
             sectionTitle.textContent = "Toutes les absences (Semaine)";
         }
-        renderCards();
     }
 
     function renderCards() {
@@ -463,29 +504,36 @@
 
         const todayStr = getTodayFormatted();
         
-        let displayedData = allAbsencesData;
-        if (showOnlyToday) {
-            displayedData = allAbsencesData.filter(item => {
-                if (!item.date) return false;
-                let cleanItemDate = item.date.trim();
-                // Normalisation des formats de date (JJ/MM/AAAA ou AAAA-MM-JJ)
-                if (cleanItemDate.includes('-')) {
-                    const parts = cleanItemDate.split('T')[0].split('-');
-                    if (parts.length === 3) {
-                        cleanItemDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-                    }
+        let displayedData = allAbsencesData.filter(item => {
+            if (!item.date) return false;
+            let cleanItemDate = item.date.trim();
+            if (cleanItemDate.includes('-')) {
+                const parts = cleanItemDate.split('T')[0].split('-');
+                if (parts.length === 3) {
+                    cleanItemDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
                 }
-                return cleanItemDate === todayStr;
-            });
-        }
+            }
+
+            if (viewMode === 'all') return true;
+
+            const isToday = (cleanItemDate === todayStr);
+            if (viewMode === 'day') return isToday;
+
+            // Mode 'remaining' : uniquement si c'est aujourd'hui ET que le cours n'est pas encore terminé
+            return isToday && isCourseRemaining(item.debut, item.duree);
+        });
 
         document.getElementById('counterBadge').textContent = displayedData.length;
 
         if (displayedData.length === 0) {
+            let msg = "Aucune absence à venir pour le reste de la journée.";
+            if (viewMode === 'day') msg = "Aucune absence enregistrée pour la journée (" + todayStr + ").";
+            if (viewMode === 'all') msg = "Aucune absence enregistrée.";
+
             container.innerHTML = `
                 <div class="empty-state">
-                    Aucune absence enregistrée ${showOnlyToday ? "pour aujourd'hui (" + todayStr + ")" : ""}.<br><br>
-                    <small style="color:var(--primary); cursor:pointer; text-decoration:underline;" onclick="toggleViewMode()">Cliquez ici pour voir l'autre mode</small>
+                    ${msg}<br><br>
+                    <small style="color:var(--primary); cursor:pointer; text-decoration:underline;" onclick="toggleViewMode()">Changer le filtre de vue</small>
                 </div>`;
             return;
         }
@@ -544,7 +592,7 @@
             const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
             if (jsonData.length < 2) {
-                alert("Le fichier semble vide.");
+                alert("Le fichier me semble vide.");
                 return;
             }
 
@@ -651,6 +699,7 @@
         closeManualModal();
     }
 
+    updateViewUI();
     renderCards();
 </script>
 
