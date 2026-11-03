@@ -6,6 +6,26 @@
     <title>Absences Profs - iPhone 16 Pro Max</title>
     <!-- SheetJS pour la lecture des fichiers Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- Firebase SDK (version modulaires via CDN) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        // Importez ici d'autres services Firebase si nécessaire (ex: firestore, database, etc.)
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDklb3V3oH7F-jAzgPD5fjmzSAbF4Inro",
+            authDomain: "absence-9785c.firebaseapp.com",
+            projectId: "absence-9785c",
+            storageBucket: "absence-9785c.appspot.com",
+            messagingSenderId: "778838051214",
+            appId: "1:778838051214:web:a4a50e0d1a227724447cdf"
+        };
+
+        // Initialisation de Firebase
+        const app = initializeApp(firebaseConfig);
+        window.firebaseApp = app; // Rendre accessible globalement si besoin dans les scripts de l'application
+    </script>
+
     <style>
         :root {
             --primary: #4f46e5;
@@ -595,7 +615,6 @@
         });
     }
 
-    // Fonction mutualisée de traitement d'un fichier Excel
     function parseExcelFile(file, isAppend = false) {
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -682,13 +701,11 @@
         reader.readAsArrayBuffer(file);
     }
 
-    // Bouton 1 : Remplacer tout le fichier
     document.getElementById('excelFile').addEventListener('change', function(e) {
         if (e.target.files[0]) parseExcelFile(e.target.files[0], false);
-        e.target.value = ''; // Reset pour permettre de re-sélectionner le même fichier
+        e.target.value = '';
     });
 
-    // Bouton 2 : Ajouter (append) des profs/absences en cas de pépin
     document.getElementById('appendExcelFile').addEventListener('change', function(e) {
         if (e.target.files[0]) parseExcelFile(e.target.files[0], true);
         e.target.value = '';
