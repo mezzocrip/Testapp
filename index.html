@@ -404,25 +404,42 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Données par défaut initiales issues de votre fichier
+    // Données initiales extraites de votre fichier (toutes les lignes)
     let allAbsencesData = [
         { prof: "BERNARD CLEMENT", matiere: "MATHEMATIQUES", classe: "5 A (KARA Baran)", debut: "10h10", duree: "1h00", date: "06/11/2026", remplacant: "" },
         { prof: "BERNARD CLEMENT", matiere: "MATHEMATIQUES", classe: "4 E P1", debut: "11h10", duree: "1h00", date: "03/11/2026", remplacant: "" },
         { prof: "CAMARA DESCAMPS JACOB", matiere: "FRANC.LANGUE ETRANG.", classe: "4D / 5A / 5C / 5E", debut: "14h25", duree: "1h00", date: "03/11/2026", remplacant: "" },
         { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5 A P1", debut: "08h00", duree: "1h00", date: "02/11/2026", remplacant: "" },
-        { prof: "GIRAUD MARGOT", matiere: "FRANCAIS", classe: "3 C P1", debut: "08h00", duree: "1h00", date: "06/11/2026", remplacant: "CHIKHAOUI H." },
-        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "5 D", debut: "08h00", duree: "1h00", date: "05/11/2026", remplacant: "MOUMENI A." },
-        { prof: "TELAA NOUARI", matiere: "ED.PHYSIQUE & SPORT.", classe: "4D", debut: "11h10", duree: "1h00", date: "02/11/2026", remplacant: "" }
+        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5 A P2", debut: "10h10", duree: "1h00", date: "02/11/2026", remplacant: "" },
+        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5 A (KARA Baran)", debut: "13h25", duree: "1h00", date: "02/11/2026", remplacant: "" },
+        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "3 C", debut: "14h25", duree: "1h00", date: "02/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "6 B P1", debut: "08h00", duree: "1h00", date: "03/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "6 B", debut: "08h00", duree: "1h00", date: "02/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "3 A", debut: "09h00", duree: "1h00", date: "03/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "4 C P2", debut: "09h00", duree: "1h00", date: "02/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "6 B P2", debut: "10h10", duree: "1h00", date: "03/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "6 B", debut: "10h10", duree: "1h00", date: "02/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "5 A P2", debut: "11h30", duree: "1h00", date: "02/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "4 C P1", debut: "11h10", duree: "1h00", date: "03/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "3 A P1", debut: "13h25", duree: "1h00", date: "02/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "3 A", debut: "13h25", duree: "1h00", date: "03/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "3 A P2", debut: "14h25", duree: "1h00", date: "02/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "FRANCAIS", classe: "3 A", debut: "14h25", duree: "1h00", date: "02/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "VIE DE CLASSE", classe: "6 B", debut: "15h35", duree: "1h00", date: "03/11/2026", remplacant: "" },
+        { prof: "D'ANTONI SIGRID", matiere: "DEVOIRS FAITS", classe: "6 B P1", debut: "16h35", duree: "1h00", date: "03/11/2026", remplacant: "" },
+        { prof: "GUACU REDA", matiere: "MATHEMATIQUES", classe: "4 B P2", debut: "14h25", duree: "1h00", date: "05/11/2026", remplacant: "" },
+        { prof: "GIRAUD MARGOT", matiere: "FRANCAIS", classe: "5 D", debut: "08h00", duree: "1h00", date: "03/11/2026", remplacant: "CHIKHAOUI H." },
+        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "6 D", debut: "08h00", duree: "1h00", date: "03/11/2026", remplacant: "MOUMENI A." }
     ];
 
-    let showOnlyToday = true; // Par défaut, n'affiche que le jour courant
+    let showOnlyToday = true;
 
     function getTodayFormatted() {
         const now = new Date();
         const d = String(now.getDate()).padStart(2, '0');
         const m = String(now.getMonth() + 1).padStart(2, '0');
         const y = now.getFullYear();
-        return `${d}/${m}/${y}`; // ex: "03/11/2026"
+        return `${d}/${m}/${y}`; // "03/11/2026"
     }
 
     function toggleViewMode() {
@@ -450,10 +467,10 @@
         if (showOnlyToday) {
             displayedData = allAbsencesData.filter(item => {
                 if (!item.date) return false;
-                // Nettoyage pour comparer "03/11/2026" ou "2026-11-03"
                 let cleanItemDate = item.date.trim();
+                // Normalisation des formats de date (JJ/MM/AAAA ou AAAA-MM-JJ)
                 if (cleanItemDate.includes('-')) {
-                    const parts = cleanItemDate.split(' ')[0].split('-'); // yyyy-mm-dd
+                    const parts = cleanItemDate.split('T')[0].split('-');
                     if (parts.length === 3) {
                         cleanItemDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
                     }
@@ -557,7 +574,6 @@
                 let debut = idxDebut !== -1 ? row[idxDebut] : (row[5] || '');
                 let actionVal = idxAction !== -1 ? row[idxAction] : (row[6] || '');
 
-                // Conversion propre des dates Excel (numéro de série ou format standard)
                 if (typeof dateVal === 'number') {
                     const d = XLSX.SSF.parse_date_code(dateVal);
                     if (d) {
@@ -569,7 +585,6 @@
                     const y = dateVal.getFullYear();
                     dateVal = `${d}/${m}/${y}`;
                 } else if (dateVal) {
-                    // Si c'est une chaîne type "2026-11-03T00:00:00" ou "2026-11-03"
                     let str = dateVal.toString().trim();
                     if (str.includes('-')) {
                         const parts = str.split('T')[0].split('-');
@@ -636,7 +651,6 @@
         closeManualModal();
     }
 
-    // Premier affichage au chargement
     renderCards();
 </script>
 
