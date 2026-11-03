@@ -191,7 +191,6 @@
             color: var(--success);
         }
 
-        /* Badge pour la date sur la vignette */
         .card-date-tag {
             font-size: 0.75rem;
             font-weight: 600;
@@ -351,9 +350,7 @@
 
     <div class="app-body">
         <div class="section-label">Absences du jour</div>
-        <div id="cardsContainer">
-            <!-- Injecté dynamiquement -->
-        </div>
+        <div id="cardsContainer"></div>
     </div>
 </div>
 
@@ -381,12 +378,15 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Données initiales d'exemple basées sur votre document (03/11/2026)[span_0](start_span)[span_0](end_span)
+    // Données initiales extraites directement de votre fichier
     let absencesData = [
-        { prof: "CLEMENT BERNARD", matiere: "MATHEMATIQUES", classe: "4E4EP1", debut: "11:10", duree: "1:00", date: "03/11/2026", remplacant: "" },
-        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5D", debut: "09:00", duree: "1:00", date: "03/11/2026", remplacant: "GIRAUD MARGOT" },
-        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "5D", debut: "07:00", duree: "1:00", date: "03/11/2026", remplacant: "MOUMENIA" },
-        { prof: "JOUAN FANTINE", matiere: "ANGLAIS LV1", classe: "5A5A SA KARA Baran", debut: "10:10", duree: "1:00", date: "03/11/2026", remplacant: "" }
+        { prof: "BERNARD CLEMENT", matiere: "MATHEMATIQUES", classe: "5 A (KARA Baran)", debut: "10h10", duree: "1h00", date: "06/11/2026", remplacant: "" },
+        { prof: "BERNARD CLEMENT", matiere: "MATHEMATIQUES", classe: "4 E P1", debut: "11h10", duree: "1h00", date: "03/11/2026", remplacant: "" },
+        { prof: "CAMARA DESCAMPS JACOB", matiere: "FRANC.LANGUE ETRANG.", classe: "4D / 5A / 5C / 5E (Groupes multiples)", debut: "14h25", duree: "1h00", date: "03/11/2026", remplacant: "" },
+        { prof: "CHIKHAOUI HENDA", matiere: "FRANCAIS", classe: "5 A P1", debut: "08h00", duree: "1h00", date: "02/11/2026", remplacant: "" },
+        { prof: "GIRAUD MARGOT", matiere: "FRANCAIS", classe: "3 C P1", debut: "08h00", duree: "1h00", date: "06/11/2026", remplacant: "CHIKHAOUI H." },
+        { prof: "HABIBES MOHAMED", matiere: "MATHEMATIQUES", classe: "5 D", debut: "08h00", duree: "1h00", date: "05/11/2026", remplacant: "MOUMENI A." },
+        { prof: "TELAA NOUARI", matiere: "ED.PHYSIQUE & SPORT.", classe: "4D", debut: "11h10", duree: "1h00", date: "02/11/2026", remplacant: "" }
     ];
 
     function renderCards() {
@@ -399,7 +399,6 @@
         }
 
         absencesData.forEach(item => {
-            // Détection élargie du remplacement (cherche si le mot "Remplacement" ou un nom apparaît)
             const hasRemplacant = item.remplacant && item.remplacant.trim() !== "";
             const card = document.createElement('div');
             card.className = `absence-card ${hasRemplacant ? 'replaced' : ''}`;
@@ -428,7 +427,7 @@
                 </div>
                 ${hasRemplacant ? `
                     <div class="replacement-info">
-                        <span>👤 Remplaçant(e) :</span> <strong>${item.remplacant}</strong>
+                        <span>👤 Remplaçant(e) / Info :</span> <strong>${item.remplacant}</strong>
                     </div>
                 ` : `
                     <div class="replacement-info" style="color: var(--danger);">
@@ -440,7 +439,7 @@
         });
     }
 
-    // Importation Excel robuste (analyse intelligente des colonnes du fichier)
+    // Importation Excel ultra-précise basée sur vos colonnes exactes
     document.getElementById('excelFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -450,80 +449,67 @@
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }); // Lecture brute par lignes
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
             if (jsonData.length < 2) {
-                alert("Le fichier semble vide ou mal formaté.");
+                alert("Le fichier semble vide.");
                 return;
             }
 
-            // Récupération des en-têtes (ligne 1)
-            const headers = jsonData[0].map(h => h ? h.toString().trim().toUpperCase() : '');
+            // Récupération des en-têtes de la ligne 0
+            const headers = jsonData[0].map(h => h ? h.toString().trim().toLowerCase() : '');
             
-            // Recherche indicielle des colonnes clés pour s'adapter à votre tableau
-            const idxProf = headers.findIndex(h => h.includes('PROF') || h.includes('ENSEIGNANT'));
-            const idxMat = headers.findIndex(h => h.includes('MATIERE') || h.includes('DISCIPLINE'));
-            const idxClasse = headers.findIndex(h => h.includes('CLASSE') || h.includes('CAT') || h.includes('GROUPE'));
-            const idxDebut = headers.findIndex(h => h.includes('DEBUT') || h.includes('HEURE'));
-            const idxDuree = headers.findIndex(h => h.includes('DUREE'));
-            const idxRem = headers.findIndex(h => h.includes('REMPLAC') || h.includes('CHANGEMENT') || h.includes('COMM'));
-            const idxDate = headers.findIndex(h => h.includes('/') || h.includes('DATE') || h.match(/\d{2}\/\d{2}/));
+            const idxProf = headers.findIndex(h => h.includes('professeur'));
+            const idxMat = headers.findIndex(h => h.includes('matière') || h.includes('matiere'));
+            const idxClasse = headers.findIndex(h => h.includes('classe'));
+            const idxDurée = headers.findIndex(h => h.includes('durée') || h.includes('duree'));
+            const idxDate = headers.findIndex(h => h.includes('date'));
+            const idxDebut = headers.findIndex(h => h.includes('début') || h.includes('debut'));
+            const idxAction = headers.findIndex(h => h.includes('a donné lieu') || h.includes('remplac'));
 
             let newAbsences = [];
 
-            // Parcours des lignes de données (à partir de la ligne 1)
+            // Lecture à partir de la ligne 1 (en ignorant la ligne de Total à la fin)
             for (let i = 1; i < jsonData.length; i++) {
                 let row = jsonData[i];
                 if (!row || row.length === 0) continue;
 
-                // Extraction souple avec replis sur les colonnes courantes
-                let prof = idxProf !== -1 ? row[idxProf] : (row[0] || 'Inconnu');
-                let matiere = idxMat !== -1 ? row[idxMat] : (row[1] || '');
-                let classe = idxClasse !== -1 ? row[idxClasse] : (row[2] || 'Classe N/C');
-                let debut = idxDebut !== -1 ? row[idxDebut] : '';
-                let duree = idxDuree !== -1 ? row[idxDuree] : '1:00';
-                
-                // Recherche de date dans la ligne si non trouvée par en-tête
-                let dateVal = "Date non spécifiée";
-                if (idxDate !== -1 && row[idxDate]) {
-                    dateVal = row[idxDate].toString();
-                } else {
-                    // Cherche une cellule contenant une date (ex: jj/mm/aaaa) dans toute la ligne
-                    let foundDate = row.find(cell => cell && cell.toString().match(/\d{2}\/\d{2}\/\d{4}/));
-                    if (foundDate) dateVal = foundDate.toString();
-                }
+                let prof = idxProf !== -1 ? row[idxProf] : row[0];
+                if (!prof || prof.toString().toUpperCase() === 'TOTAL' || prof.toString().trim() === '') continue;
 
-                // Recherche de remplaçant ou de texte de remplacement dans la ligne
-                let remplacantVal = "";
-                if (idxRem !== -1 && row[idxRem]) {
-                    remplacantVal = row[idxRem].toString();
-                } else {
-                    // Cherche un mot-clé "Remplacement" ou un nom entre parenthèses dans toute la ligne
-                    let foundRem = row.find(cell => cell && (cell.toString().toUpperCase().includes('REMPLAC') || cell.toString().toUpperCase().includes('CHANGEMENT')));
-                    if (foundRem) {
-                        remplacantVal = foundRem.toString();
+                let matiere = idxMat !== -1 ? row[idxMat] : (row[1] || '');
+                let classe = idxClasse !== -1 ? row[idxClasse] : (row[2] || '');
+                let durée = idxDurée !== -1 ? row[idxDurée] : (row[3] || '');
+                let dateVal = idxDate !== -1 ? row[idxDate] : (row[4] || '');
+                let debut = idxDebut !== -1 ? row[idxDebut] : (row[5] || '');
+                let actionVal = idxAction !== -1 ? row[idxAction] : (row[6] || '');
+
+                // Formatage de la date Excel si c'est un numéro sérialisé ou une chaîne
+                if (typeof dateVal === 'number') {
+                    // Conversion de la date Excel en format lisible si nécessaire, ou utilisation de SheetJS
+                    const d = XLSX.SSF.parse_date_code(dateVal);
+                    if (d) {
+                        dateVal = `${String(d.d).padStart(2, '0')}/${String(d.m).padStart(2, '0')}/${d.y}`;
                     }
                 }
 
-                if (prof && prof.toString().trim() !== '') {
-                    newAbsences.push({
-                        prof: prof.toString().trim(),
-                        matiere: matiere ? matiere.toString().trim() : '',
-                        classe: classe ? classe.toString().trim() : '',
-                        debut: debut ? debut.toString().trim() : '',
-                        duree: duree ? duree.toString().trim() : '',
-                        date: dateVal,
-                        remplacant: remplacantVal ? remplacantVal.trim() : ''
-                    });
-                }
+                newAbsences.push({
+                    prof: prof ? prof.toString().trim() : 'Inconnu',
+                    matiere: matiere ? matiere.toString().trim() : '',
+                    classe: classe ? classe.toString().trim() : 'Classe N/C',
+                    debut: debut ? debut.toString().trim() : '',
+                    duree: durée ? durée.toString().trim() : '',
+                    date: dateVal ? dateVal.toString().trim() : 'Date N/C',
+                    remplacant: actionVal ? actionVal.toString().trim() : ''
+                });
             }
 
             if (newAbsences.length > 0) {
                 absencesData = newAbsences;
                 renderCards();
-                alert(`Import réussi ! ${absencesData.length} lignes chargées avec leurs dates et remplaçants.`);
+                alert(`Import réussi ! ${absencesData.length} lignes chargées avec succès.`);
             } else {
-                alert("Aucune donnée valide n'a pu être extraite du fichier.");
+                alert("Aucune ligne valide trouvée dans le fichier.");
             }
         };
         reader.readAsArrayBuffer(file);
