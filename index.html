@@ -31,17 +31,6 @@
  touch-action: manipulation;
  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
  -webkit-tap-highlight-color: transparent;
- box-sizing: border-box;
- }
-
- html, body {
- max-width: 100vw;
- overflow-x: hidden;
- -webkit-overflow-scrolling: touch;
- }
-
- main {
- will-change: transform, scroll-position;
  }
  
 .no-scrollbar::-webkit-scrollbar {
@@ -61,11 +50,11 @@
  }
  
 .page-fade {
- animation: fadeIn 0.15s ease-out;
+ animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
  }
  @keyframes fadeIn {
- from { opacity: 0; }
- to { opacity: 1; }
+ from { opacity: 0; transform: translateY(6px); }
+ to { opacity: 1; transform: translateY(0); }
  }
  
 .card-no-exit {
@@ -81,10 +70,10 @@
  }
  </style>
 </head>
-<body class="h-full text-slate-800 antialiased flex flex-col min-h-screen pb-20 md:pb-0 overflow-x-hidden">
+<body class="h-full text-slate-800 antialiased flex flex-col min-h-screen pb-20 md:pb-0">
 
  <!-- EN-TÊTE PRINCIPAL -->
- <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-30 no-print border-b border-indigo-800/50 w-full">
+ <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-30 no-print border-b border-indigo-800/50">
  <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
  
 <div class="flex items-center space-x-2.5 cursor-pointer shrink-0" onclick="showListPage()">
@@ -176,10 +165,10 @@
  </button>
  </nav>
 
- <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8 overflow-x-hidden">
+ <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8">
 
  <!-- PAGE 1 : LISTE DES ÉLÈVES -->
- <section id="pageList" class="page-fade space-y-4 w-full">
+ <section id="pageList" class="page-fade space-y-4">
  <div class="bg-white rounded-2xl p-3.5 sm:p-5 shadow-xs border border-slate-200/80 flex flex-col gap-4">
  
 <div class="flex flex-col lg:flex-row gap-3 justify-between items-stretch lg:items-center">
@@ -305,7 +294,7 @@
  </div>
  </div>
 
- <div id="studentsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full"></div>
+ <div id="studentsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
 
  <div id="emptyMessage" class="hidden text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-6">
  <i data-lucide="user-x" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
@@ -315,7 +304,7 @@
  </section>
 
  <!-- PAGE 2 : FICHE DÉTAILLÉE ÉLÈVE -->
- <section id="pageDetail" class="hidden page-fade space-y-4 sm:space-y-6 w-full">
+ <section id="pageDetail" class="hidden page-fade space-y-4 sm:space-y-6">
  <div class="flex items-center justify-between gap-2 no-print">
  <button onclick="showListPage()" class="inline-flex items-center gap-2 bg-white active:bg-slate-100 text-slate-700 font-semibold px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs transition text-xs sm:text-sm">
  <i data-lucide="arrow-left" class="w-4 h-4"></i>
@@ -519,7 +508,7 @@
  </section>
 
  <!-- PAGE 3 : RÉCAPITULATIF DES ÉVÉNEMENTS -->
- <section id="pageRecap" class="hidden page-fade space-y-4 sm:space-y-6 w-full">
+ <section id="pageRecap" class="hidden page-fade space-y-4 sm:space-y-6">
  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
  <div>
  <h2 class="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -616,7 +605,7 @@
  </button>
  </div>
 
- <div id="recapCategoryList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 w-full"></div>
+ <div id="recapCategoryList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4"></div>
 
  <div id="recapEmptyMessage" class="hidden text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-6">
  <i data-lucide="check-circle-2" class="w-12 h-12 text-emerald-400 mx-auto mb-3"></i>
@@ -1676,7 +1665,7 @@
  const badgeClass = getClassBadgeColorClass(student.classe);
 
  const card = document.createElement('div');
- card.className = `rounded-2xl p-4 sm:p-5 border shadow-2xs hover:shadow-md transition relative flex flex-col justify-between group min-h-[230px] w-full ${isNoExit ? 'card-no-exit' : 'bg-white border-slate-200/90'}`;
+ card.className = `rounded-2xl p-4 sm:p-5 border shadow-2xs hover:shadow-md transition relative flex flex-col justify-between group min-h-[230px] ${isNoExit ? 'card-no-exit' : 'bg-white border-slate-200/90'}`;
 
  const formattedRetenues = Number.isInteger(retenues) ? retenues : retenues.toFixed(1);
 
@@ -2089,7 +2078,7 @@
  const safeId = sanitize(student.id);
 
  const card = document.createElement('div');
- card.className = "bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs hover:shadow-md transition flex flex-col justify-between w-full";
+ card.className = "bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs hover:shadow-md transition flex flex-col justify-between";
 
  let listHtml = catEvents.map(e => {
  const dateStr = extractDateFromText(e.motif) || e.date;
@@ -2220,7 +2209,7 @@
  const formattedRetenues = Number.isInteger(retenues) ? retenues : retenues.toFixed(1);
 
  const card = document.createElement('div');
- card.className = "bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs hover:shadow-md transition flex flex-col justify-between w-full";
+ card.className = "bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs hover:shadow-md transition flex flex-col justify-between";
 
  card.innerHTML = `
  <div>
@@ -2967,7 +2956,6 @@
  autorisationSortie: String(autoris).trim(),
  alerteCPE: false,
  docNonRendu: false,
- profPrincipal: '',
  badgeRepere: '',
  badgeCantine: '',
  events: []
