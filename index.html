@@ -1143,11 +1143,25 @@
         function updateAbsentProfsBadge() {
             const badge = document.getElementById('absent-count-badge');
             if (!badge) return;
+
+            const now = new Date();
+            const currentDayReal = getCurrentDayName();
+            const nowMinutes = (now.getHours() * 60) + now.getMinutes();
+            const thresholdMinutes = nowMinutes - 60; // Moins 1 heure
             
             // Compte pour le jour courant
             const activeDayAbs = (appState.absentProfs || []).filter(item => {
                 if (item.estRemplace) return false;
                 if (item.dayName && item.dayName !== appState.currentDay) return false;
+
+                // Si l'affichage concerne la journée actuelle en temps réel, masquer si dépassé de plus d'1h
+                if (appState.currentDay === currentDayReal && item.debut) {
+                    const startM = timeToMinutes(item.debut);
+                    if (startM > 0 && startM < thresholdMinutes) {
+                        return false;
+                    }
+                }
+
                 return true;
             });
 
@@ -1206,9 +1220,25 @@
             const allAbs = appState.absentProfs || [];
             let filtered = [];
 
+            const now = new Date();
+            const currentDayReal = getCurrentDayName();
+            const nowMinutes = (now.getHours() * 60) + now.getMinutes();
+            const thresholdMinutes = nowMinutes - 60; // Seuil à -1 heure
+
             if (currentAbsentTab === 'day') {
                 // Filtrer par le jour sélectionné dans le menu déroulant
-                filtered = allAbs.filter(item => !item.dayName || item.dayName === filterDayVal);
+                filtered = allAbs.filter(item => {
+                    if (item.dayName && item.dayName !== filterDayVal) return false;
+
+                    // Si nous sommes sur le jour réel en cours, masquer les heures dépassées de plus d'1h
+                    if (filterDayVal === currentDayReal && item.debut) {
+                        const startM = timeToMinutes(item.debut);
+                        if (startM > 0 && startM < thresholdMinutes) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
             } else if (currentAbsentTab === 'week') {
                 // Tous les absents de la semaine
                 filtered = allAbs;
@@ -1675,7 +1705,10 @@
 
         function timeToMinutes(timeStr) {
             if (!timeStr) return 0;
-            const [h, m] = timeStr.split(':').map(Number);
+            const parts = timeStr.trim().split(':');
+            if (parts.length < 2) return 0;
+            const h = parseInt(parts[0], 10) || 0;
+            const m = parseInt(parts[1], 10) || 0;
             return (h * 60) + m;
         }
 
