@@ -841,7 +841,7 @@
             aeds: [],
             missions: [],
             aedBreaks: {},
-            absentProfs: [] // Structure: [ { prof: '', matiere: '', classe: '', duree: '', date: '', debut: '', dayName: '', estRemplace: false } ]
+            absentProfs: [] // Structure: [ { prof: '', matiere: '', classe: '', duree: '', date: '', debut: '', fin: '', dayName: '', estRemplace: false } ]
         };
 
         let currentAbsentTab = 'realtime'; // 'realtime' | 'day' | 'week'
@@ -1042,7 +1042,7 @@
             });
         };
 
-        /* Gestion des Professeurs Absents */
+        /* Gestion des Professeurs Absents (Filtrage Temps Réel Corrigé) */
         function handleAbsentProfsImport(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1066,6 +1066,7 @@
                         const duree = row['Durée'] || row['DUREE'] || '';
                         const rawDate = row['Date'] || row['DATE'] || '';
                         const debut = row['Début'] || row['DEBUT'] || row['Heure'] || '';
+                        const fin = row['Fin'] || row['FIN'] || '';
                         
                         const remplaçant = row['Remplaçant'] || row['REMPLACANT'] || row['Prof remplaçant'] || '';
                         const statut = String(row['Statut'] || row['STATUT'] || row['Remarque'] || row['REMARQUE'] || '').toLowerCase();
@@ -1094,7 +1095,7 @@
                         }
 
                         if (prof) {
-                            parsedAbsences.push({ prof, matiere, classe, duree, date: dateFormatted, debut, dayName, estRemplace });
+                            parsedAbsences.push({ prof, matiere, classe, duree, date: dateFormatted, debut, fin, dayName, estRemplace });
                         }
                     });
 
@@ -1116,7 +1117,6 @@
             const badge = document.getElementById('absent-count-badge');
             if (!badge) return;
             
-            // Compte uniquement les profs absents restants de la journée
             const now = new Date();
             const currentMinutes = (now.getHours() * 60) + now.getMinutes();
             
@@ -1126,15 +1126,15 @@
                 
                 if (item.debut) {
                     const startM = timeToMinutes(item.debut);
-                    let durMinutes = 55;
-                    if (item.duree) {
-                        const hMatch = item.duree.match(/(\d+)\s*h/i);
-                        if (hMatch) durMinutes = parseInt(hMatch[1]) * 60;
+                    let endM = item.fin ? timeToMinutes(item.fin) : (startM + 55); // Par défaut 55 min si fin non renseignée
+                    
+                    // On vérifie strictement si l'heure actuelle se situe entre le début et la fin du cours
+                    if (currentMinutes >= startM && currentMinutes <= endM) {
+                        return true;
                     }
-                    const endM = startM + durMinutes;
-                    return currentMinutes <= endM;
+                    return false;
                 }
-                return true;
+                return false; // Pas d'heure de début, on ignore en temps réel
             });
 
             badge.textContent = activeRealtimeAbs.length;
@@ -1159,7 +1159,6 @@
         function setAbsentTab(tab) {
             currentAbsentTab = tab;
             
-            // Mise à jour visuelle des boutons d'onglets
             const btnRealtime = document.getElementById('absent-tab-realtime');
             const btnDay = document.getElementById('absent-tab-day');
             const btnWeek = document.getElementById('absent-tab-week');
@@ -1198,32 +1197,26 @@
             const currentMinutes = (now.getHours() * 60) + now.getMinutes();
 
             if (currentAbsentTab === 'realtime') {
-                // Filtrer pour afficher UNIQUEMENT les profs absents RESTANTS de la journée
+                // Filtrer par jour actuel ET heure actuelle exacte (entre début et fin du cours)
                 filtered = allAbs.filter(item => {
                     if (item.dayName && item.dayName !== appState.currentDay) return false;
                     if (item.debut) {
                         const startM = timeToMinutes(item.debut);
-                        let durMinutes = 55;
-                        if (item.duree) {
-                            const hMatch = item.duree.match(/(\d+)\s*h/i);
-                            if (hMatch) durMinutes = parseInt(hMatch[1]) * 60;
-                        }
-                        const endM = startM + durMinutes;
-                        // Conserve uniquement les absences dont le cours n'est pas encore terminé
-                        return currentMinutes <= endM;
+                        let endM = item.fin ? timeToMinutes(item.fin) : (startM + 55);
+                        
+                        // Condition stricte : l'heure courante est comprise entre le début et la fin du cours
+                        return (currentMinutes >= startM && currentMinutes <= endM);
                     }
-                    return true;
+                    return false;
                 });
             } else if (currentAbsentTab === 'day') {
-                // Filtrer par le jour sélectionné dans le menu déroulant
                 filtered = allAbs.filter(item => !item.dayName || item.dayName === filterDayVal);
             } else if (currentAbsentTab === 'week') {
-                // Tous les absents de la semaine
                 filtered = allAbs;
             }
 
             if (totalCountEl) {
-                const tabTitles = { realtime: 'Profs absents restants (Aujourd\'hui)', day: `Journée (${filterDayVal})`, week: 'Semaine entière' };
+                const tabTitles = { realtime: 'En cours (Temps réel)', day: `Journée (${filterDayVal})`, week: 'Semaine entière' };
                 totalCountEl.textContent = `${filtered.length} absence(s) affichée(s) — Mode : ${tabTitles[currentAbsentTab]}`;
             }
 
@@ -1231,7 +1224,7 @@
                 container.innerHTML = `
                     <div class="p-8 text-center text-slate-400 font-medium bg-white rounded-xl border border-dashed border-slate-200">
                         <i class="fa-solid fa-folder-open text-2xl mb-2 text-slate-300"></i>
-                        <p>Aucun professeur absent restant à venir pour le moment.</p>
+                        <p>Aucun professeur absent en cours actuellement pour cette sélection.</p>
                     </div>
                 `;
                 return;
@@ -1254,7 +1247,7 @@
 
                     <div class="flex sm:flex-col items-end justify-between w-full sm:w-auto border-t sm:border-0 border-slate-100 pt-1.5 sm:pt-0 text-right text-xs">
                         <div class="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded text-[11px]">
-                            ${abs.debut ? `À ${escapeHtml(abs.debut)}` : ''} ${abs.duree ? `(${escapeHtml(abs.duree)})` : ''}
+                            ${abs.debut ? `De ${escapeHtml(abs.debut)}` : ''} ${abs.fin ? `à ${escapeHtml(abs.fin)}` : ''}
                         </div>
                         <span class="text-[10px] text-slate-400 font-medium">${abs.dayName ? abs.dayName + ' ' : ''}${abs.date || ''}</span>
                     </div>
