@@ -838,7 +838,7 @@
             aeds: [],
             missions: [],
             aedBreaks: {},
-            absentProfs: [] // Structure: [ { prof: '', matiere: '', classe: '', duree: '', date: '', debut: '', dayName: '', estRemplace: false } ]
+            absentProfs: [] // Structure: [ { prof: '', matiere: '', classe: '', duree: '', date: '', debut: '', dayName: '', remplacant: '', estRemplace: false } ]
         };
 
         let currentAbsentTab = 'day'; // 'day' | 'week'
@@ -1040,6 +1040,18 @@
         };
 
         /* Gestion des Professeurs Absents */
+        function getExcelFieldValue(row, candidates) {
+            for (let key of Object.keys(row)) {
+                const normKey = key.trim().toLowerCase();
+                for (let cand of candidates) {
+                    if (normKey === cand.toLowerCase()) {
+                        return row[key];
+                    }
+                }
+            }
+            return '';
+        }
+
         function handleAbsentProfsImport(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1057,18 +1069,18 @@
                     const dayNamesMap = { 1: 'Lundi', 2: 'Mardi', 3: 'Mercredi', 4: 'Jeudi', 5: 'Vendredi' };
 
                     rawJson.forEach(row => {
-                        const prof = row['Professeur'] || row['PROFESSEUR'] || row['Nom'] || '';
-                        const matiere = row['Matière'] || row['MATIERE'] || row['Discipline'] || '';
-                        const classe = row['Classe'] || row['CLASSE'] || row['Groupes'] || '';
-                        const duree = row['Durée'] || row['DUREE'] || '';
-                        const rawDate = row['Date'] || row['DATE'] || '';
-                        const debut = row['Début'] || row['DEBUT'] || row['Heure'] || '';
+                        const prof = getExcelFieldValue(row, ['professeur', 'prof', 'nom']);
+                        const matiere = getExcelFieldValue(row, ['matière', 'matiere', 'discipline']);
+                        const classe = getExcelFieldValue(row, ['classe', 'classes', 'groupe', 'groupes']);
+                        const duree = getExcelFieldValue(row, ['durée', 'duree']);
+                        const rawDate = getExcelFieldValue(row, ['date']);
+                        const debut = getExcelFieldValue(row, ['début', 'debut', 'heure']);
                         
-                        const remplaçant = row['Remplaçant'] || row['REMPLACANT'] || row['Prof remplaçant'] || '';
-                        const statut = String(row['Statut'] || row['STATUT'] || row['Remarque'] || row['REMARQUE'] || '').toLowerCase();
+                        const remplaçant = getExcelFieldValue(row, ['remplacement', 'remplaçant', 'remplacant', 'prof remplaçant']);
+                        const statut = String(getExcelFieldValue(row, ['statut', 'remarque']) || '').toLowerCase();
                         
                         const estRemplace = (String(remplaçant).trim() !== '' && String(remplaçant).trim() !== '-') ||
-                                            statut.includes('remplacé par') || 
+                                            statut.includes('remplacé') || 
                                             statut.includes('cours assuré');
 
                         let dateFormatted = rawDate;
@@ -1086,12 +1098,31 @@
                                 const dObj = new Date(rawDate);
                                 if (!isNaN(dObj.getTime())) {
                                     dayName = dayNamesMap[dObj.getDay()] || '';
+                                } else if (typeof rawDate === 'string') {
+                                    // Vérification textuelle si le jour est spécifié dans la date
+                                    const rawLower = rawDate.toLowerCase();
+                                    for (let dayVal of DAYS) {
+                                        if (rawLower.includes(dayVal.toLowerCase())) {
+                                            dayName = dayVal;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
 
                         if (prof) {
-                            parsedAbsences.push({ prof, matiere, classe, duree, date: dateFormatted, debut, dayName, estRemplace });
+                            parsedAbsences.push({ 
+                                prof: String(prof).trim(), 
+                                matiere: String(matiere).trim(), 
+                                classe: String(classe).trim(), 
+                                duree: String(duree).trim(), 
+                                date: String(dateFormatted).trim(), 
+                                debut: String(debut).trim(), 
+                                dayName, 
+                                remplacant: String(remplaçant).trim(),
+                                estRemplace 
+                            });
                         }
                     });
 
@@ -1172,7 +1203,7 @@
             const totalCountEl = document.getElementById('absent-total-count');
             const filterDayVal = document.getElementById('absent-filter-day').value;
 
-            const allAbs = (appState.absentProfs || []).filter(a => !a.estRemplace);
+            const allAbs = appState.absentProfs || [];
             let filtered = [];
 
             if (currentAbsentTab === 'day') {
@@ -1206,25 +1237,29 @@
             }
 
             container.innerHTML = filtered.map(abs => `
-                <div class="bg-white border border-slate-200/90 hover:border-rose-300 p-3 rounded-xl shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 transition">
+                <div class="bg-white border ${abs.estRemplace ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200/90 hover:border-rose-300'} p-3 rounded-xl shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 transition">
                     <div class="flex items-start gap-2.5">
-                        <div class="p-2 bg-rose-50 text-rose-600 rounded-lg font-bold text-xs flex-shrink-0 mt-0.5">
-                            <i class="fa-solid fa-user-slash"></i>
+                        <div class="p-2 ${abs.estRemplace ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-50 text-rose-600'} rounded-lg font-bold text-xs flex-shrink-0 mt-0.5">
+                            <i class="fa-solid ${abs.estRemplace ? 'fa-user-check' : 'fa-user-slash'}"></i>
                         </div>
                         <div>
                             <div class="flex items-center gap-2 flex-wrap">
                                 <span class="font-extrabold text-slate-800 text-sm">${escapeHtml(abs.prof)}</span>
-                                <span class="px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-600 rounded-md">${escapeHtml(abs.matiere)}</span>
+                                ${abs.matiere ? `<span class="px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-600 rounded-md">${escapeHtml(abs.matiere)}</span>` : ''}
+                                ${abs.estRemplace ? `<span class="px-2 py-0.5 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 rounded-md border border-emerald-200">Remplacé ${abs.remplacant ? 'par ' + escapeHtml(abs.remplacant) : ''}</span>` : ''}
                             </div>
-                            <p class="text-xs text-slate-500 mt-0.5"><strong class="text-slate-700">Classe :</strong> ${escapeHtml(abs.classe)}</p>
+                            <div class="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
+                                ${abs.classe ? `<span><strong class="text-slate-700">Classe :</strong> ${escapeHtml(abs.classe)}</span>` : ''}
+                                ${abs.duree ? `<span><strong class="text-slate-700">Durée :</strong> ${escapeHtml(abs.duree)}</span>` : ''}
+                            </div>
                         </div>
                     </div>
 
                     <div class="flex sm:flex-col items-end justify-between w-full sm:w-auto border-t sm:border-0 border-slate-100 pt-1.5 sm:pt-0 text-right text-xs">
                         <div class="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded text-[11px]">
-                            ${abs.debut ? `À ${escapeHtml(abs.debut)}` : ''} ${abs.duree ? `(${escapeHtml(abs.duree)})` : ''}
+                            ${abs.debut ? `Début : ${escapeHtml(abs.debut)}` : 'Horaire N.R.'}
                         </div>
-                        <span class="text-[10px] text-slate-400 font-medium">${abs.dayName ? abs.dayName + ' ' : ''}${abs.date || ''}</span>
+                        <span class="text-[10px] text-slate-400 font-medium mt-0.5">${abs.dayName ? abs.dayName + ' ' : ''}${abs.date || ''}</span>
                     </div>
                 </div>
             `).join('');
