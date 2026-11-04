@@ -1116,7 +1116,7 @@
             const badge = document.getElementById('absent-count-badge');
             if (!badge) return;
             
-            // Compte en temps réel (pour aujourd'hui et à l'heure actuelle)
+            // Compte uniquement les profs absents restants de la journée
             const now = new Date();
             const currentMinutes = (now.getHours() * 60) + now.getMinutes();
             
@@ -1126,13 +1126,15 @@
                 
                 if (item.debut) {
                     const startM = timeToMinutes(item.debut);
-                    // On considère l'absence active si on est dans une plage de 2h après le début (ou si pas de fin précise)
-                    if (currentMinutes >= startM && currentMinutes <= (startM + 120)) {
-                        return true;
+                    let durMinutes = 55;
+                    if (item.duree) {
+                        const hMatch = item.duree.match(/(\d+)\s*h/i);
+                        if (hMatch) durMinutes = parseInt(hMatch[1]) * 60;
                     }
-                    return false;
+                    const endM = startM + durMinutes;
+                    return currentMinutes <= endM;
                 }
-                return true; // S'il n'y a pas d'heure précise, on l'affiche par défaut
+                return true;
             });
 
             badge.textContent = activeRealtimeAbs.length;
@@ -1196,12 +1198,19 @@
             const currentMinutes = (now.getHours() * 60) + now.getMinutes();
 
             if (currentAbsentTab === 'realtime') {
-                // Filtrer par jour actuel et heure en cours
+                // Filtrer pour afficher UNIQUEMENT les profs absents RESTANTS de la journée
                 filtered = allAbs.filter(item => {
                     if (item.dayName && item.dayName !== appState.currentDay) return false;
                     if (item.debut) {
                         const startM = timeToMinutes(item.debut);
-                        return (currentMinutes >= startM && currentMinutes <= (startM + 120));
+                        let durMinutes = 55;
+                        if (item.duree) {
+                            const hMatch = item.duree.match(/(\d+)\s*h/i);
+                            if (hMatch) durMinutes = parseInt(hMatch[1]) * 60;
+                        }
+                        const endM = startM + durMinutes;
+                        // Conserve uniquement les absences dont le cours n'est pas encore terminé
+                        return currentMinutes <= endM;
                     }
                     return true;
                 });
@@ -1214,7 +1223,7 @@
             }
 
             if (totalCountEl) {
-                const tabTitles = { realtime: 'En cours (Temps réel)', day: `Journée (${filterDayVal})`, week: 'Semaine entière' };
+                const tabTitles = { realtime: 'Profs absents restants (Aujourd\'hui)', day: `Journée (${filterDayVal})`, week: 'Semaine entière' };
                 totalCountEl.textContent = `${filtered.length} absence(s) affichée(s) — Mode : ${tabTitles[currentAbsentTab]}`;
             }
 
@@ -1222,7 +1231,7 @@
                 container.innerHTML = `
                     <div class="p-8 text-center text-slate-400 font-medium bg-white rounded-xl border border-dashed border-slate-200">
                         <i class="fa-solid fa-folder-open text-2xl mb-2 text-slate-300"></i>
-                        <p>Aucun professeur absent trouvé pour cette sélection.</p>
+                        <p>Aucun professeur absent restant à venir pour le moment.</p>
                     </div>
                 `;
                 return;
