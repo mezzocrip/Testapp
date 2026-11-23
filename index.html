@@ -250,7 +250,7 @@
  <span>PDF Alerte CPE</span>
  </button>
 
- <button onclick="triggerAbsenceImport()" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 text-amber-900 text-xs font-semibold px-3 py-2.5 rounded-xl border border-amber-300/80 transition shadow-2xs">
+ <button onclick="triggerAbsenceImport()" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 text-amber-900 text-xs font-semibold px-3 py-2.5 rounded-xl border border-amber-300/80 transition shadow-2xs" title="Importer toutes les feuilles d'un fichier PRONOTE">
  <i data-lucide="file-check-2" class="w-4 h-4 text-amber-600"></i>
  <span>Import PRONOTE</span>
  </button>
@@ -1156,7 +1156,7 @@
  </div>
  <div>
  <h3 class="font-bold text-base text-slate-800">Attention : Importation PRONOTE</h3>
- <p class="text-xs text-slate-600 mt-1.5">L'importation de nouvelles données <b>effacera toutes les anciennes données Vie Scolaire</b> existantes.</p>
+ <p class="text-xs text-slate-600 mt-1.5">L'importation de nouvelles données (toutes feuilles confondues) <b>effacera toutes les anciennes données Vie Scolaire</b> existantes.</p>
  <p class="text-xs font-semibold text-amber-700 mt-2">Souhaitez-vous continuer ?</p>
  </div>
  <div class="flex justify-center gap-2 pt-1">
@@ -2037,7 +2037,6 @@
  .trim();
  }
 
- // Normalisation conservant les séparateurs de mots pour un matching fiable
  function normalizeWordsForMatch(str) {
  if (!str) return '';
  return String(str)
@@ -2100,7 +2099,6 @@
  }).length;
  }
 
- // Retourne uniquement les absences injustifiées contenant « Motif non encore connu » (pour le PDF Absences Injustifiées)
  function getUnjustifiedUnknownReasonAbsences(student) {
  if (!student || !student.events) return [];
  return student.events.filter(e => {
@@ -3857,79 +3855,162 @@
  student.autorisationSortie = (student.autorisationSortie === 'Oui') ? 'Non' : 'Oui';
  }
  saveStorage();
+ }
+
+ closeModal('confirmToggleModal');
+ pendingToggleAction = null;
+
  filterStudents();
  if (selectedStudentId === studentId) {
  openStudentDetail(studentId);
  }
  }
 
- closeModal('confirmToggleModal');
- pendingToggleAction = null;
+ function showListPage() {
+ stopBadgeScanner();
+ hideSearchDropdown();
+ document.getElementById('pageDetail').classList.add('hidden');
+ document.getElementById('pageRecap').classList.add('hidden');
+ document.getElementById('pageBilan').classList.add('hidden');
+ document.getElementById('pageList').classList.remove('hidden');
+ updateMobileNavHighlight('list');
+ selectedStudentId = null;
+ filterStudents();
+ window.scrollTo(0, lastScrollPosition);
  }
 
- function openStudentDetail(id) {
- if (document.getElementById('pageList') && !document.getElementById('pageList').classList.contains('hidden')) {
+ function showRecapPage() {
+ if (!document.getElementById('pageList').classList.contains('hidden')) {
  lastScrollPosition = window.scrollY || window.pageYOffset || 0;
  }
  stopBadgeScanner();
  hideSearchDropdown();
+ document.getElementById('pageList').classList.add('hidden');
+ document.getElementById('pageDetail').classList.add('hidden');
+ document.getElementById('pageBilan').classList.add('hidden');
+ document.getElementById('pageRecap').classList.remove('hidden');
+ updateMobileNavHighlight('recap');
  updateAutoCpeAlerts();
+ populateClassFilter();
+ updateRecapBadges();
+ renderCurrentRecapView();
+ window.scrollTo(0, 0);
+ }
+
+ function switchRecapTab(cat) {
+ currentRecapCategory = cat;
+ document.querySelectorAll('.recap-tab').forEach(btn => {
+ btn.className = "recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100";
+ });
+ const activeBtn = document.getElementById(`tab-${cat}`);
+ if (activeBtn) {
+ activeBtn.className = "recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow-2xs";
+ }
+ renderCurrentRecapView();
+ }
+
+ function updateRecapBadges() {
+ const categories = ['retard', 'absence', 'retenue', 'emploi_bloque', 'exclusion', 'abs_injustifiee', 'carnet'];
+ categories.forEach(cat => {
+ const count = students.reduce((acc, s) => {
+ const matchCount = (s.events || []).filter(e => {
+ if (e.type === cat) return true;
+ const motifStatut = getStatutDetailFromMotif(e.motif);
+ if (cat === 'emploi_bloque' && motifStatut === 'emploi du temps bloqué') return true;
+ if (cat === 'exclusion' && motifStatut === 'Exclusion de cours') return true;
+ if (cat === 'retenue' && motifStatut === 'Retenue') return true;
+ if (cat === 'abs_injustifiee') {
+ const isAbs = e.type === 'absence' || (e.pronoteType && e.pronoteType.toLowerCase().includes('absence injustifiée'));
+ const hasOui = /\boui\b/i.test(e.motif || '');
+ const isJust = e.justified === 'Oui' || hasOui;
+ return isAbs && !isJust;
+ }
+ return false;
+ }).length;
+ return acc + matchCount;
+ }, 0);
+
+ const badge = document.getElementById(`badge-${cat}`);
+ if (badge) {
+ badge.textContent = count;
+ }
+ });
+ }
+
+ function openStudentDetail(id) {
+ if (!document.getElementById('pageList').classList.contains('hidden')) {
+ lastScrollPosition = window.scrollY || window.pageYOffset || 0;
+ }
+ stopBadgeScanner();
+ hideSearchDropdown();
  const student = students.find(s => s.id === id);
  if (!student) return;
+ updateAutoCpeAlerts();
 
  selectedStudentId = id;
+ showOnlyUnjustifiedAbsences = false;
+ currentHistoryFilter = 'all';
+ updateUnjustifiedBtnStyle();
+
+ document.querySelectorAll('.hist-tab').forEach(t => {
+ t.className = "hist-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-200/70";
+ });
+ const allTab = document.getElementById('hist-tab-all');
+ if (allTab) {
+ allTab.className = "hist-tab shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition bg-indigo-600 text-white shadow-2xs";
+ }
+
+ document.getElementById('detailName').textContent = `${student.nom ? student.nom.toUpperCase() : ''} ${student.prenom || ''}`;
+ 
+ const classBadgeEl = document.getElementById('detailClass');
+ classBadgeEl.textContent = student.classe || 'Non renseignée';
+ classBadgeEl.className = `text-xs px-2.5 py-0.5 rounded-full font-bold border shadow-2xs ${getClassBadgeColorClass(student.classe)}`;
+
+ document.getElementById('detailRegime').textContent = student.regime || 'Non renseigné';
+ document.getElementById('detailProf').textContent = student.profPrincipal || 'Non renseigné';
+
+ const pInit = student.prenom && student.prenom.length > 0 ? student.prenom[0] : '-';
+ const nInit = student.nom && student.nom.length > 0 ? student.nom[0] : '-';
+ document.getElementById('detailInitials').textContent = `${pInit}${nInit}`;
+
+ const exitBadge = document.getElementById('detailExitBadge');
+ if (student.autorisationSortie === 'Non') {
+ exitBadge.textContent = "Sortie : INTERDITE";
+ exitBadge.className = "text-xs px-2.5 py-0.5 rounded-full border border-red-400/50 bg-red-500/20 text-red-200 font-bold";
+ } else {
+ exitBadge.textContent = "Sortie : AUTORISÉE";
+ exitBadge.className = "text-xs px-2.5 py-0.5 rounded-full border border-emerald-400/40 bg-emerald-500/10 text-emerald-300";
+ }
+
+ const canteenIndicator = document.getElementById('detailCanteenIndicator');
+ const canteenQRBox = document.getElementById('detailCanteenQRBox');
+ const badgeInput = document.getElementById('canteenBadgeInput');
+
+ if (student.regime === 'Demi-pensionnaire') {
+ canteenIndicator.classList.remove('hidden');
+ canteenIndicator.classList.add('flex');
+ canteenQRBox.classList.remove('hidden');
+ canteenQRBox.classList.add('flex');
+ 
+ badgeInput.value = student.badgeCantine || '';
+ generateStudentQR(student);
+ } else {
+ canteenIndicator.classList.add('hidden');
+ canteenIndicator.classList.remove('flex');
+ canteenQRBox.classList.add('hidden');
+ canteenQRBox.classList.remove('flex');
+ }
+
+ updateDetailCardBadgesAndToggles(student);
+ updateCounters(student);
+ renderHistoryTable(student);
+ renderStudentSchedulePanel(student);
 
  document.getElementById('pageList').classList.add('hidden');
  document.getElementById('pageRecap').classList.add('hidden');
  document.getElementById('pageBilan').classList.add('hidden');
  document.getElementById('pageDetail').classList.remove('hidden');
-
- const initP = student.prenom && student.prenom.length > 0 ? student.prenom[0] : '-';
- const initN = student.nom && student.nom.length > 0 ? student.nom[0] : '-';
- document.getElementById('detailInitials').textContent = `${initP}${initN}`.toUpperCase();
- document.getElementById('detailName').textContent = `${student.nom ? student.nom.toUpperCase() : ''} ${student.prenom}`;
-
- const classBadge = document.getElementById('detailClass');
- classBadge.textContent = student.classe;
- classBadge.className = `text-xs px-2.5 py-0.5 rounded-full font-bold border shadow-2xs ${getClassBadgeColorClass(student.classe)}`;
-
- document.getElementById('detailRegime').textContent = student.regime;
- document.getElementById('detailProf').textContent = student.profPrincipal || 'Non renseigné';
-
- updateDetailCardBadgesAndToggles(student);
-
- const exitBadge = document.getElementById('detailExitBadge');
- if (student.autorisationSortie === 'Oui') {
- exitBadge.className = "text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold";
- exitBadge.textContent = "Sortie Autorisée : OUI";
- } else {
- exitBadge.className = "text-xs px-2.5 py-0.5 rounded-full bg-rose-500/30 text-rose-200 border border-rose-500/50 font-bold";
- exitBadge.textContent = "Sortie Autorisée : NON (Interdite)";
- }
-
- const canteenInd = document.getElementById('detailCanteenIndicator');
- const qrBox = document.getElementById('detailCanteenQRBox');
- if (student.regime === 'Demi-pensionnaire') {
- canteenInd.classList.remove('hidden');
- canteenInd.classList.add('inline-flex');
- qrBox.classList.remove('hidden');
- qrBox.classList.add('flex');
- generateStudentQR(student);
- document.getElementById('canteenBadgeInput').value = student.badgeCantine || '';
- } else {
- canteenInd.classList.add('hidden');
- canteenInd.classList.remove('inline-flex');
- qrBox.classList.add('hidden');
- qrBox.classList.remove('flex');
- }
-
- showOnlyUnjustifiedAbsences = false;
- updateUnjustifiedBtnStyle();
- setHistoryTab('all');
-
- updateCounters(student);
- renderHistoryTable(student);
- renderStudentSchedulePanel(student);
+ updateMobileNavHighlight('none');
  lucide.createIcons();
  window.scrollTo(0, 0);
  }
@@ -3937,75 +4018,56 @@
  function updateDetailCardBadgesAndToggles(student) {
  const cpeBadge = document.getElementById('detailCpeBadge');
  const docBadge = document.getElementById('detailDocBadge');
+ const cpeBtn = document.getElementById('detailToggleCpeBtn');
+ const cpeDot = document.getElementById('detailToggleCpeDot');
+ const cpeLabel = document.getElementById('detailCpeStatusLabel');
+ const docBtn = document.getElementById('detailToggleDocBtn');
+ const docDot = document.getElementById('detailToggleDocDot');
+ const docLabel = document.getElementById('detailDocStatusLabel');
+
  const thresholdBox = document.getElementById('detailThresholdBox');
  const thresholdText = document.getElementById('detailThresholdText');
+ const thresholdInfo = getExceededThresholdsInfo(student);
 
- const isCpe = !!student.alerteCPE;
- const isDoc = !!student.docNonRendu;
-
- if (isCpe) {
- cpeBadge.classList.remove('hidden');
- cpeBadge.classList.add('inline-flex');
- } else {
- cpeBadge.classList.add('hidden');
- cpeBadge.classList.remove('inline-flex');
- }
-
- if (isDoc) {
- docBadge.classList.remove('hidden');
- docBadge.classList.add('inline-flex');
- } else {
- docBadge.classList.add('hidden');
- docBadge.classList.remove('inline-flex');
- }
-
- const info = getExceededThresholdsInfo(student);
- if (thresholdBox && thresholdText) {
- if (info.hasExceeded) {
+ if (thresholdInfo.hasExceeded) {
  thresholdBox.classList.remove('hidden');
  thresholdBox.classList.add('flex');
- thresholdText.textContent = info.summaryText;
+ thresholdText.textContent = thresholdInfo.summaryText;
  } else {
  thresholdBox.classList.add('hidden');
  thresholdBox.classList.remove('flex');
- thresholdText.textContent = '';
- }
  }
 
- const cpeBtn = document.getElementById('detailToggleCpeBtn');
- const cpeDot = document.getElementById('detailToggleCpeDot');
- const cpeLbl = document.getElementById('detailCpeStatusLabel');
-
- if (cpeBtn && cpeDot && cpeLbl) {
- if (isCpe) {
+ if (student.alerteCPE) {
+ cpeBadge.classList.remove('hidden');
+ cpeBadge.classList.add('flex');
  cpeBtn.className = "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-rose-600";
  cpeDot.className = "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5";
- cpeLbl.textContent = "Activée";
- cpeLbl.className = "text-xs font-bold text-rose-700";
+ cpeLabel.textContent = "Activée";
+ cpeLabel.className = "text-xs font-bold text-rose-700";
  } else {
+ cpeBadge.classList.add('hidden');
+ cpeBadge.classList.remove('flex');
  cpeBtn.className = "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-300";
  cpeDot.className = "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0";
- cpeLbl.textContent = "Désactivée";
- cpeLbl.className = "text-xs font-semibold text-slate-500";
- }
+ cpeLabel.textContent = "Désactivée";
+ cpeLabel.className = "text-xs font-semibold text-slate-500";
  }
 
- const docBtn = document.getElementById('detailToggleDocBtn');
- const docDot = document.getElementById('detailToggleDocDot');
- const docLbl = document.getElementById('detailDocStatusLabel');
-
- if (docBtn && docDot && docLbl) {
- if (isDoc) {
+ if (student.docNonRendu) {
+ docBadge.classList.remove('hidden');
+ docBadge.classList.add('flex');
  docBtn.className = "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-amber-500";
  docDot.className = "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5";
- docLbl.textContent = "Oui";
- docLbl.className = "text-xs font-bold text-amber-700";
+ docLabel.textContent = "Oui (Non rendu)";
+ docLabel.className = "text-xs font-bold text-amber-700";
  } else {
+ docBadge.classList.add('hidden');
+ docBadge.classList.remove('flex');
  docBtn.className = "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-300";
  docDot.className = "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0";
- docLbl.textContent = "Non";
- docLbl.className = "text-xs font-semibold text-slate-500";
- }
+ docLabel.textContent = "Non";
+ docLabel.className = "text-xs font-semibold text-slate-500";
  }
  }
 
@@ -4033,71 +4095,73 @@
  function generateStudentQR(student) {
  const container = document.getElementById('qrcodeCanvas');
  container.innerHTML = '';
+
  const payload = JSON.stringify({
  id: student.id,
  nom: student.nom,
  prenom: student.prenom,
  classe: student.classe,
- badge: student.badgeCantine || ''
+ badge: student.badgeCantine || `REP-${student.id.slice(0,5)}`
  });
+
  qrCodeObj = new QRCode(container, {
  text: payload,
- width: 90,
- height: 90,
+ width: 100,
+ height: 100,
  colorDark: "#0f172a",
  colorLight: "#ffffff",
  correctLevel: QRCode.CorrectLevel.H
  });
  }
 
- function updateCanteenBadgeNumber(value) {
+ function updateCanteenBadgeNumber(badgeVal) {
  if (!selectedStudentId) return;
  const student = students.find(s => s.id === selectedStudentId);
  if (student) {
- student.badgeCantine = value.trim();
+ student.badgeCantine = badgeVal.trim();
  saveStorage();
  generateStudentQR(student);
  }
  }
 
+ // =========================================================
+ // 9. SCANNER QR CODE & CODES-BARRES BADGE CANTINE
+ // =========================================================
  function startBadgeScanner() {
- if (!selectedStudentId) return;
  const container = document.getElementById('scannerReaderContainer');
  if (!container) return;
- container.classList.remove('hidden');
 
  if (typeof Html5Qrcode === 'undefined') {
  alert("Bibliothèque de scan non chargée.");
  return;
  }
 
- stopBadgeScanner().then(() => {
+ container.classList.remove('hidden');
+
+ if (html5QrCodeScanner) {
+ stopBadgeScanner().then(() => initHtml5QrScanner());
+ } else {
+ initHtml5QrScanner();
+ }
+ }
+
+ function initHtml5QrScanner() {
+ if (!html5QrCodeScanner) {
  html5QrCodeScanner = new Html5Qrcode("badgeQrReader");
- const config = { fps: 10, qrbox: { width: 160, height: 160 } };
+ }
+
+ const config = { fps: 10, qrbox: { width: 170, height: 170 } };
+
  html5QrCodeScanner.start(
  { facingMode: "environment" },
  config,
  (decodedText) => {
- let badgeCode = decodedText.trim();
- try {
- const parsed = JSON.parse(decodedText);
- if (parsed && parsed.badge) badgeCode = String(parsed.badge).trim();
- else if (parsed && parsed.id) badgeCode = String(parsed.id).trim();
- } catch (e) {}
-
- const inputEl = document.getElementById('canteenBadgeInput');
- if (inputEl) {
- inputEl.value = badgeCode;
- updateCanteenBadgeNumber(badgeCode);
- }
- stopBadgeScanner();
+ handleScannedBadgeResult(decodedText);
  },
- (errorMessage) => {}
+ (errorMessage) => { }
  ).catch((err) => {
- console.error("Erreur caméra:", err);
- alert("Impossible d'accéder à la caméra : " + err);
- container.classList.add('hidden');
- });
+ alert("Impossible d'accéder à la caméra. Vérifiez les permissions ou la connexion HTTPS.");
+ stopBadgeScanner();
  });
  }
 
@@ -4106,142 +4170,91 @@
  if (container) container.classList.add('hidden');
 
  if (html5QrCodeScanner) {
- const scannerInstance = html5QrCodeScanner;
+ try {
+ return html5QrCodeScanner.stop().then(() => {
+ html5QrCodeScanner.clear();
  html5QrCodeScanner = null;
- return scannerInstance.stop().then(() => {
- scannerInstance.clear();
- }).catch(() => {});
+ }).catch(() => {
+ html5QrCodeScanner = null;
+ });
+ } catch (e) {
+ html5QrCodeScanner = null;
+ }
  }
  return Promise.resolve();
  }
 
- function showListPage() {
+ function handleScannedBadgeResult(decodedText) {
+ if (!selectedStudentId) return;
+ const student = students.find(s => s.id === selectedStudentId);
+ if (!student) return;
+
+ let extractedValue = decodedText ? decodedText.trim() : '';
+
+ try {
+ const parsed = JSON.parse(extractedValue);
+ if (parsed && typeof parsed === 'object') {
+ extractedValue = parsed.badge || parsed.badgeCantine || parsed.numero || parsed.id || extractedValue;
+ }
+ } catch (e) { }
+
+ student.badgeCantine = extractedValue;
+ saveStorage();
+
+ const badgeInput = document.getElementById('canteenBadgeInput');
+ if (badgeInput) badgeInput.value = extractedValue;
+
+ generateStudentQR(student);
  stopBadgeScanner();
- hideSearchDropdown();
- selectedStudentId = null;
- document.getElementById('pageDetail').classList.add('hidden');
- document.getElementById('pageRecap').classList.add('hidden');
- document.getElementById('pageBilan').classList.add('hidden');
- document.getElementById('pageList').classList.remove('hidden');
- updateMobileNavHighlight('list');
- filterStudents();
- const targetScroll = lastScrollPosition || 0;
- lastScrollPosition = 0;
- requestAnimationFrame(() => {
- window.scrollTo({ top: targetScroll, behavior: 'instant' });
- });
- }
 
- function showRecapPage() {
- stopBadgeScanner();
- hideSearchDropdown();
- document.getElementById('pageList').classList.add('hidden');
- document.getElementById('pageDetail').classList.add('hidden');
- document.getElementById('pageBilan').classList.add('hidden');
- document.getElementById('pageRecap').classList.remove('hidden');
- updateMobileNavHighlight('recap');
- populateClassFilter();
- updateRecapBadges();
- switchRecapTab(currentRecapCategory);
- window.scrollTo(0, 0);
- }
-
- function switchRecapTab(cat) {
- currentRecapCategory = cat;
- const tabs = document.querySelectorAll('.recap-tab');
- tabs.forEach(t => {
- t.className = "recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition text-slate-600 hover:bg-slate-100";
- });
- const activeTab = document.getElementById(`tab-${cat}`);
- if (activeTab) {
- activeTab.className = "recap-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow-2xs";
- }
- renderCurrentRecapView();
- }
-
- function updateRecapBadges() {
- const categories = ['retard', 'absence', 'retenue', 'emploi_bloque', 'exclusion', 'abs_injustifiee', 'carnet'];
- categories.forEach(cat => {
- const count = students.filter(s => (s.events || []).some(e => {
- if (e.type === cat) return true;
- const motifStatut = getStatutDetailFromMotif(e.motif);
- if (cat === 'emploi_bloque' && motifStatut === 'emploi du temps bloqué') return true;
- if (cat === 'exclusion' && motifStatut === 'Exclusion de cours') return true;
- if (cat === 'retenue' && motifStatut === 'Retenue') return true;
- if (cat === 'abs_injustifiee') {
- const isAbs = e.type === 'absence' || (e.pronoteType && e.pronoteType.toLowerCase().includes('absence injustifiée'));
- const hasOui = /\boui\b/i.test(e.motif || '');
- const isJust = e.justified === 'Oui' || hasOui;
- return isAbs && !isJust;
- }
- return false;
- })).length;
-
- const badgeEl = document.getElementById(`badge-${cat}`);
- if (badgeEl) badgeEl.textContent = count;
- });
+ alert(`Badge scanné avec succès : ${extractedValue}`);
  }
 
  function updateCounters(student) {
- updateAutoCpeAlerts();
  const events = student.events || [];
  const retards = events.filter(e => e.type === 'retard').length;
  const absences = events.filter(e => e.type === 'absence').length;
- const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + getRetenueHours(e), 0);
+ const retenuesHours = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + getRetenueHours(e), 0);
  const emploiBloque = events.filter(e => e.type === 'emploi_bloque' || getStatutDetailFromMotif(e.motif) === 'emploi du temps bloqué').length;
  const exclusion = events.filter(e => e.type === 'exclusion' || getStatutDetailFromMotif(e.motif) === 'Exclusion de cours').length;
  const absInjustifiees = countUnjustifiedAbsences(student);
 
  document.getElementById('countRetards').textContent = retards;
  document.getElementById('countAbsences').textContent = absences;
- document.getElementById('countRetenues').textContent = Number.isInteger(retenues) ? `${retenues} h` : `${retenues.toFixed(1)} h`;
+ const formattedHours = Number.isInteger(retenuesHours) ? retenuesHours : retenuesHours.toFixed(1);
+ document.getElementById('countRetenues').textContent = `${formattedHours} h`;
  document.getElementById('countEmploiBloque').textContent = emploiBloque;
  document.getElementById('countExclusion').textContent = exclusion;
  document.getElementById('countAbsInjustifiees').textContent = absInjustifiees;
-
- updateDetailCardBadgesAndToggles(student);
  }
 
- // =========================================================
- // 9. EVENT / STUDENT CRUD
- // =========================================================
  function openEventModal(type) {
  if (!selectedStudentId) return;
- document.getElementById('eventTypeInput').value = type;
  const now = new Date();
  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
  document.getElementById('eventDateInput').value = now.toISOString().slice(0,16);
+ document.getElementById('eventTypeInput').value = type;
  document.getElementById('eventMotifInput').value = '';
+ document.getElementById('eventJustifiedInput').value = 'Non';
+ document.getElementById('eventDurationInput').value = '1';
+ document.getElementById('eventPronoteTypeInput').value = 'Absence injustifiée';
 
- const justField = document.getElementById('justifiedField');
- const durField = document.getElementById('durationField');
- const pronoteField = document.getElementById('pronotePunitionTypeField');
-
- justField.classList.add('hidden');
- durField.classList.add('hidden');
- pronoteField.classList.add('hidden');
-
- const titles = {
- 'retard': 'Ajouter un Retard',
- 'absence': 'Ajouter une Absence',
- 'retenue': 'Ajouter une Retenue / Colle',
+ const titleMap = {
+ 'retard': 'Enregistrer un Retard',
+ 'absence': 'Enregistrer une Absence',
+ 'retenue': 'Enregistrer une Heure de Retenue',
+ 'emploi_bloque': 'Bloquer l\'Emploi du Temps',
+ 'exclusion': 'Enregistrer une Exclusion de Cours',
  'observation': 'Ajouter une Observation',
- 'abs_injustifiee': 'Ajouter une Absence injustifiée / Punition',
- 'emploi_bloque': 'Ajouter un Emploi du temps bloqué',
- 'exclusion': 'Ajouter une Exclusion de cours',
- 'carnet': 'Ajouter un Oubli de carnet'
+ 'abs_injustifiee': 'Enregistrer Absence Injustifiée / Punition',
+ 'carnet': 'Enregistrer un Oubli de Carnet'
  };
- document.getElementById('eventModalTitle').textContent = titles[type] || 'Ajouter un événement';
 
- if (type === 'absence' || type === 'retard') {
- justField.classList.remove('hidden');
- }
- if (type === 'retenue') {
- durField.classList.remove('hidden');
- }
- if (type === 'abs_injustifiee') {
- pronoteField.classList.remove('hidden');
- }
+ document.getElementById('eventModalTitle').textContent = titleMap[type] || 'Ajouter un événement';
+
+ document.getElementById('justifiedField').classList.toggle('hidden', type !== 'absence' && type !== 'retard');
+ document.getElementById('durationField').classList.toggle('hidden', type !== 'retenue');
+ document.getElementById('pronotePunitionTypeField').classList.toggle('hidden', type !== 'abs_injustifiee');
 
  document.getElementById('eventModal').classList.remove('hidden');
  }
@@ -4249,26 +4262,26 @@
  function handleSaveEvent(e) {
  e.preventDefault();
  if (!selectedStudentId) return;
+
  const student = students.find(s => s.id === selectedStudentId);
  if (!student) return;
 
  const type = document.getElementById('eventTypeInput').value;
  const date = document.getElementById('eventDateInput').value;
  const motif = document.getElementById('eventMotifInput').value.trim();
- const justified = document.getElementById('eventJustifiedInput').value;
- const duration = parseInt(document.getElementById('eventDurationInput').value, 10) || 1;
- const pronoteType = document.getElementById('eventPronoteTypeInput').value;
+ const justified = (type === 'absence' || type === 'retard') ? document.getElementById('eventJustifiedInput').value : null;
+ const duration = (type === 'retenue') ? (parseFloat(document.getElementById('eventDurationInput').value) || 1) : null;
+ const pronoteType = (type === 'abs_injustifiee') ? document.getElementById('eventPronoteTypeInput').value : null;
 
  const newEvent = {
  id: generateUUID(),
- type: type,
- date: date,
- motif: motif
+ type,
+ date,
+ motif,
+ justified,
+ duration,
+ pronoteType
  };
-
- if (type === 'absence' || type === 'retard') newEvent.justified = justified;
- if (type === 'retenue') newEvent.duration = duration;
- if (type === 'abs_injustifiee') newEvent.pronoteType = pronoteType;
 
  if (!student.events) student.events = [];
  student.events.push(newEvent);
@@ -4276,8 +4289,12 @@
  saveStorage();
  updateCounters(student);
  renderHistoryTable(student);
- updateRecapBadges();
+ updateDetailCardBadgesAndToggles(student);
  closeModal('eventModal');
+ filterStudents();
+ if (!document.getElementById('pageBilan').classList.contains('hidden')) {
+ renderBilanView();
+ }
  }
 
  function deleteEvent(eventId) {
@@ -4285,13 +4302,20 @@
  const student = students.find(s => s.id === selectedStudentId);
  if (!student) return;
 
- student.events = (student.events || []).filter(e => e.id !== eventId);
+ student.events = student.events.filter(ev => ev.id !== eventId);
  saveStorage();
  updateCounters(student);
  renderHistoryTable(student);
- updateRecapBadges();
+ updateDetailCardBadgesAndToggles(student);
+ filterStudents();
+ if (!document.getElementById('pageBilan').classList.contains('hidden')) {
+ renderBilanView();
+ }
  }
 
+ // =========================================================
+ // 10. MODALES ÉLÈVES & SUPPRESSION 3ÈME / RAZ
+ // =========================================================
  function openAddStudentModal() {
  document.getElementById('addStudentForm').reset();
  document.getElementById('addStudentModal').classList.remove('hidden');
@@ -4299,28 +4323,28 @@
 
  function handleAddStudent(e) {
  e.preventDefault();
- const nom = document.getElementById('newNom').value.trim().toUpperCase();
+ const nom = document.getElementById('newNom').value.trim();
  const prenom = document.getElementById('newPrenom').value.trim();
  const classe = document.getElementById('newClasse').value.trim();
  const regime = document.getElementById('newRegime').value;
- const autorisation = document.getElementById('newAutorisation').value;
- const prof = document.getElementById('newProf').value.trim();
- const alerteCpeVal = document.getElementById('newAlerteCpe').value === 'Oui';
- const docNonRenduVal = document.getElementById('newDocNonRendu').value === 'Oui';
+ const autorisationSortie = document.getElementById('newAutorisation').value;
+ const profPrincipal = document.getElementById('newProf').value.trim();
+ const alerteCPE = document.getElementById('newAlerteCpe').value === 'Oui';
+ const docNonRendu = document.getElementById('newDocNonRendu').value === 'Oui';
 
  const newStudent = {
  id: generateUUID(),
- nom: nom,
- prenom: prenom,
- classe: classe,
- regime: regime,
- autorisationSortie: autorisation,
- alerteCPE: alerteCpeVal,
- manualAlerteCPE: alerteCpeVal,
- docNonRendu: docNonRenduVal,
- profPrincipal: prof,
+ nom,
+ prenom,
+ classe,
+ regime,
+ autorisationSortie,
+ alerteCPE,
+ manualAlerteCPE: alerteCPE,
+ docNonRendu,
+ profPrincipal,
+ badgeCantine: regime === 'Demi-pensionnaire' ? 'DP-' + Math.floor(10000 + Math.random() * 90000) : '',
  badgeRepere: '',
- badgeCantine: '',
  events: []
  };
 
@@ -4339,8 +4363,8 @@
  if (!selectedStudentId) return;
  students = students.filter(s => s.id !== selectedStudentId);
  saveStorage();
- populateClassFilter();
  closeModal('deleteModal');
+ populateClassFilter();
  showListPage();
  }
 
@@ -4348,8 +4372,8 @@
  const count3eme = students.filter(s => is3emeClass(s.classe)).length;
  const textEl = document.getElementById('delete3emeModalText');
  if (textEl) {
- textEl.textContent = count3eme > 0
- ? `Voulez-vous supprimer ${count3eme} élève(s) de 3ème ainsi que leur historique Vie Scolaire ?`
+ textEl.innerHTML = count3eme > 0
+ ? `Voulez-vous supprimer <b>${count3eme} élève(s) de 3ème</b> ainsi que leur historique Vie Scolaire ?`
  : `Aucun élève de 3ème n'a été détecté dans la liste actuelle.`;
  }
  document.getElementById('delete3emeModal').classList.remove('hidden');
@@ -4357,58 +4381,22 @@
  }
 
  function executeDelete3emeStudents() {
- const remaining = students.filter(s => !is3emeClass(s.classe));
- const deletedCount = students.length - remaining.length;
- students = remaining;
- if (selectedStudentId && !students.some(s => s.id === selectedStudentId)) {
- selectedStudentId = null;
- }
+ const beforeCount = students.length;
+ students = students.filter(s => !is3emeClass(s.classe));
+ const deletedCount = beforeCount - students.length;
  saveStorage();
  populateClassFilter();
  filterStudents();
- if (document.getElementById('pageRecap') && !document.getElementById('pageRecap').classList.contains('hidden')) {
+ if (!document.getElementById('pageRecap').classList.contains('hidden')) {
  renderCurrentRecapView();
  updateRecapBadges();
  }
- if (document.getElementById('pageBilan') && !document.getElementById('pageBilan').classList.contains('hidden')) {
+ if (!document.getElementById('pageBilan').classList.contains('hidden')) {
  renderBilanView();
- }
- if (document.getElementById('pageDetail') && !document.getElementById('pageDetail').classList.contains('hidden') && !selectedStudentId) {
- showListPage();
  }
  closeModal('delete3emeModal');
  closeModal('settingsModal');
- alert(`${deletedCount} élève(s) de 3ème supprimé(s). Les autres classes ont été conservées.`);
- }
-
- function openClearVieScolaireModal() {
- document.getElementById('clearVieScolaireModal').classList.remove('hidden');
- }
-
- function executeClearVieScolaireData() {
- students.forEach(s => {
- s.events = [];
- s.alerteCPE = false;
- s.manualAlerteCPE = false;
- });
- saveStorage();
- filterStudents();
- if (selectedStudentId) {
- const st = students.find(s => s.id === selectedStudentId);
- if (st) {
- updateCounters(st);
- renderHistoryTable(st);
- }
- }
- if (document.getElementById('pageRecap') && !document.getElementById('pageRecap').classList.contains('hidden')) {
- renderCurrentRecapView();
- updateRecapBadges();
- }
- if (document.getElementById('pageBilan') && !document.getElementById('pageBilan').classList.contains('hidden')) {
- renderBilanView();
- }
- closeModal('clearVieScolaireModal');
- alert("Tous les événements Vie Scolaire ont été effacés. Les fiches d'élèves sont conservées.");
+ alert(`${deletedCount} élève(s) de 3ème supprimé(s).`);
  }
 
  function openResetModal() {
@@ -4417,582 +4405,57 @@
 
  function executeResetDb() {
  students = [];
- selectedStudentId = null;
  saveStorage();
  populateClassFilter();
- filterStudents();
+ renderStudentsGrid();
  closeModal('resetDbModal');
- showListPage();
  }
 
- // =========================================================
- // 10. IMPORT EXCEL / CSV / TXT (LISTE ÉLÈVES SANS DOUBLONS)
- // =========================================================
- function triggerFileImport() {
- document.getElementById('fileInput').click();
+ function openClearVieScolaireModal() {
+ document.getElementById('clearVieScolaireModal').classList.remove('hidden');
  }
 
- function findExistingStudentMatch(nom, prenom, classe) {
- const normNom = normalizeNameForMatch(nom);
- const normPrenom = normalizeNameForMatch(prenom);
- const normClasse = normalizeClassKey(classe);
-
- if (!normNom || !normPrenom) return null;
-
- // 1. Correspondance exacte Nom + Prénom + Classe
- let exactMatch = students.find(s =>
- normalizeNameForMatch(s.nom) === normNom &&
- normalizeNameForMatch(s.prenom) === normPrenom &&
- normalizeClassKey(s.classe) === normClasse
- );
- if (exactMatch) return exactMatch;
-
- // 2. Correspondance inversée Prénom/Nom + Classe
- exactMatch = students.find(s =>
- normalizeNameForMatch(s.nom) === normPrenom &&
- normalizeNameForMatch(s.prenom) === normNom &&
- normalizeClassKey(s.classe) === normClasse
- );
- if (exactMatch) return exactMatch;
-
- // 3. Correspondance Nom + Prénom unique (si un seul élève porte ce nom+prénom)
- const nameMatches = students.filter(s =>
- (normalizeNameForMatch(s.nom) === normNom && normalizeNameForMatch(s.prenom) === normPrenom) ||
- (normalizeNameForMatch(s.nom) === normPrenom && normalizeNameForMatch(s.prenom) === normNom)
- );
- if (nameMatches.length === 1) return nameMatches[0];
-
- return null;
- }
-
- function importDataFile(event) {
- const file = event.target.files[0];
- if (!file) return;
-
- const reader = new FileReader();
- reader.onload = function(e) {
- try {
- const data = new Uint8Array(e.target.result);
- const workbook = XLSX.read(data, { type: 'array' });
- const firstSheetName = workbook.SheetNames[0];
- const worksheet = workbook.Sheets[firstSheetName];
- const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
- if (!rows || rows.length < 2) {
- alert("Fichier vide ou format non reconnu.");
- return;
- }
-
- const headers = rows[0].map(h => String(h || '').toLowerCase().trim());
- const nomIdx = headers.findIndex(h => h.includes('nom') && !h.includes('prenom') && !h.includes('prénom'));
- const prenomIdx = headers.findIndex(h => h.includes('prenom') || h.includes('prénom'));
- const classeIdx = headers.findIndex(h => h.includes('classe') || h.includes('div') || h.includes('groupe'));
- const regimeIdx = headers.findIndex(h => h.includes('regime') || h.includes('régime') || h.includes('dp') || h.includes('repas'));
- const sortieIdx = headers.findIndex(h => h.includes('sortie') || h.includes('autoris'));
- const profIdx = headers.findIndex(h => h.includes('prof') || h.includes('pp'));
- const badgeIdx = headers.findIndex(h => h.includes('badge') || h.includes('carte') || h.includes('repere') || h.includes('repère'));
-
- let addedCount = 0;
- let updatedCount = 0;
-
- for (let i = 1; i < rows.length; i++) {
- const r = rows[i];
- if (!r || r.length === 0) continue;
-
- let rawNom = nomIdx > -1 ? String(r[nomIdx] || '').trim() : '';
- let rawPrenom = prenomIdx > -1 ? String(r[prenomIdx] || '').trim() : '';
-
- if (!rawNom && r[0]) {
- const parts = String(r[0]).trim().split(/\s+/);
- rawNom = parts[0] || '';
- rawPrenom = parts.slice(1).join(' ') || '';
- }
-
- if (!rawNom || !rawPrenom) continue;
-
- const cleanNom = rawNom.toUpperCase();
- const cleanPrenom = rawPrenom.charAt(0).toUpperCase() + rawPrenom.slice(1).toLowerCase();
- const cleanClasse = classeIdx > -1 ? String(r[classeIdx] || '').trim() : '';
- const cleanRegime = regimeIdx > -1 ? String(r[regimeIdx] || '').trim() : '';
- const cleanSortie = sortieIdx > -1 ? String(r[sortieIdx] || '').trim() : '';
- const cleanProf = profIdx > -1 ? String(r[profIdx] || '').trim() : '';
- const cleanBadge = badgeIdx > -1 ? String(r[badgeIdx] || '').trim() : '';
-
- const existingStudent = findExistingStudentMatch(cleanNom, cleanPrenom, cleanClasse);
-
- if (existingStudent) {
- if (cleanClasse) existingStudent.classe = cleanClasse;
- if (cleanRegime) {
- existingStudent.regime = cleanRegime.toLowerCase().includes('dp') || cleanRegime.toLowerCase().includes('demi') || cleanRegime.toLowerCase().includes('cantine')
- ? 'Demi-pensionnaire'
- : cleanRegime;
- }
- if (cleanSortie) {
- existingStudent.autorisationSortie = /^non\b|^faux\b|^0\b/i.test(cleanSortie) ? 'Non' : 'Oui';
- }
- if (cleanProf) existingStudent.profPrincipal = cleanProf;
- if (cleanBadge) existingStudent.badgeRepere = cleanBadge;
- updatedCount++;
- } else {
- let normalizedRegime = 'Externe';
- if (cleanRegime) {
- normalizedRegime = cleanRegime.toLowerCase().includes('dp') || cleanRegime.toLowerCase().includes('demi') || cleanRegime.toLowerCase().includes('cantine')
- ? 'Demi-pensionnaire'
- : cleanRegime;
- }
-
- let normalizedExit = 'Oui';
- if (cleanSortie && (/^non\b|^faux\b|^0\b/i.test(cleanSortie))) {
- normalizedExit = 'Non';
- }
-
- students.push({
- id: generateUUID(),
- nom: cleanNom,
- prenom: cleanPrenom,
- classe: cleanClasse || 'Non classé',
- regime: normalizedRegime,
- autorisationSortie: normalizedExit,
- alerteCPE: false,
- docNonRendu: false,
- profPrincipal: cleanProf,
- badgeRepere: cleanBadge,
- badgeCantine: '',
- events: []
+ function executeClearVieScolaireData() {
+ students.forEach(student => {
+ student.events = [];
+ student.manualAlerteCPE = false;
+ student.alerteCPE = false;
  });
- addedCount++;
- }
- }
-
  saveStorage();
- populateClassFilter();
+ closeModal('clearVieScolaireModal');
  filterStudents();
- alert(`Importation terminée : ${addedCount} nouvel(le) élève(s) ajouté(s), ${updatedCount} fiche(s) mise(s) à jour (aucun doublon créé).`);
- } catch (err) {
- alert("Erreur lors de l'importation : " + err.message);
- }
- };
- reader.readAsArrayBuffer(file);
- event.target.value = '';
- }
-
- // =========================================================
- // 11. IMPORT DONNÉES PRONOTE (PDF / EXCEL / CSV / TXT)
- // Vérification stricte Nom + Prénom + Classe
- // =========================================================
- function triggerAbsenceImport() {
- document.getElementById('confirmImportPronoteModal').classList.remove('hidden');
- lucide.createIcons();
- }
-
- function confirmAndTriggerAbsenceImport() {
- closeModal('confirmImportPronoteModal');
- document.getElementById('absenceFileInput').click();
- }
-
- function isCantineMidiAbsence(text) {
- if (!text) return false;
- const lower = String(text)
- .normalize('NFD')
- .replace(/[\u0300-\u036f]/g, '')
- .toLowerCase();
-
- const hasCantineKeyword = /\b(cantine|demi-pension|demi pension|dp|restauration|repas|refectoire|pause meridienne|interclasse midi)\b/i.test(lower);
- const hasMidiTime = /\b(11h[3-5]\d|12h\d{2}|13h[0-2]\d|11:3\d|11:4\d|11:5\d|12:\d{2}|13:[0-2]\d)\b/i.test(lower);
- const hasMidiWord = /\bmidi\b/i.test(lower);
-
- return hasCantineKeyword || (hasMidiWord && (hasMidiTime || lower.includes('abs')));
- }
-
- /**
- * Extrait une classe potentielle (ex. "6F", "4ème D", "3C", "5 A") d'une chaîne ou d'un objet.
- */
- function extractClassToken(str) {
- if (!str) return '';
- const s = String(str).trim();
- const match = s.match(/\b([654321]|T)(?:[\s\-._]?(?:ème|eme|éme|e))?[\s\-._]?([A-Za-z0-9]{1,3})\b/i);
- if (!match) return '';
- const niveau = match[1].toUpperCase();
- const div = match[2].toUpperCase();
- return `${niveau}${div}`;
- }
-
- /**
- * Vérifie si un texte ou une cellule contient explicitement une classe et si elle correspond à celle de l'élève.
- * Retourne :
- * - 'match' : une classe est détectée et correspond à l'élève
- * - 'mismatch' : une classe est détectée et ne correspond PAS à l'élève
- * - 'none' : aucune classe n'est détectée sur la ligne/cellule
- */
- function checkClassMatchInText(text, studentClasse) {
- const extracted = extractClassToken(text);
- if (!extracted) return 'none';
- const normExtracted = normalizeClassKey(extracted);
- const normStudent = normalizeClassKey(studentClasse);
- if (!normStudent) return 'none';
- if (normExtracted === normStudent) return 'match';
- return 'mismatch';
- }
-
- /**
- * Recherche l'élève correspondant exactement au nom, au prénom et (si connue/présente) à la classe.
- * - Si plusieurs élèves partagent le même nom/prénom dans des classes différentes :
- * * si une classe est détectée sur la ligne ou dans la section courante, on exige la correspondance de classe ;
- * * sinon, on évite d'attribuer au hasard un homonyme d'une autre classe si la classe est ambiguë.
- * - Si une classe est explicitement mentionnée sur la ligne d'un élève unique et contredit sa classe, on rejette le faux positif.
- */
- function findStudentForPronoteRow(rawCandidateName, fullRowText, currentSectionClass = '') {
- const cleanCandidate = String(rawCandidateName || '').trim();
- const normCandidateWords = normalizeWordsForMatch(cleanCandidate);
- const normCandidateCompact = normalizeNameForMatch(cleanCandidate);
-
- // Déterminer la classe de référence de la ligne ou de la section
- const rowClassCheck = checkClassMatchInText(fullRowText, '');
- const detectedRowClass = extractClassToken(fullRowText) || currentSectionClass || '';
- const normDetectedClass = normalizeClassKey(detectedRowClass);
-
- let matchedStudents = [];
-
- if (normCandidateWords.length >= 2) {
- const tokens = normCandidateWords.split(/\s+/).filter(Boolean);
-
- matchedStudents = students.filter(s => {
- const sNomWords = normalizeWordsForMatch(s.nom);
- const sPrenomWords = normalizeWordsForMatch(s.prenom);
- const sNomCompact = normalizeNameForMatch(s.nom);
- const sPrenomCompact = normalizeNameForMatch(s.prenom);
-
- if (!sNomCompact || !sPrenomCompact) return false;
-
- const fullCombo1 = `${sNomWords} ${sPrenomWords}`.trim();
- const fullCombo2 = `${sPrenomWords} ${sNomWords}`.trim();
-
- if (normCandidateWords === fullCombo1 || normCandidateWords === fullCombo2) {
- return true;
- }
- if (normCandidateCompact === (sNomCompact + sPrenomCompact) || normCandidateCompact === (sPrenomCompact + sNomCompact)) {
- return true;
- }
- if (tokens.length >= 2) {
- const hasNom = tokens.includes(sNomCompact) || sNomWords.split(/\s+/).every(w => w.length >= 2 && tokens.includes(w));
- const hasPrenom = tokens.includes(sPrenomCompact) || sPrenomWords.split(/\s+/).every(w => w.length >= 2 && tokens.includes(w));
- if (hasNom && hasPrenom) return true;
- }
- return false;
- });
- }
-
- // Si aucun candidat explicite n'a été isolé, on cherche une correspondance exacte Nom + Prénom dans le texte complet de la ligne
- if (matchedStudents.length === 0) {
- const normFullWords = normalizeWordsForMatch(fullRowText);
- const normFullCompact = normalizeNameForMatch(fullRowText);
-
- matchedStudents = students.filter(s => {
- const sNomWords = normalizeWordsForMatch(s.nom);
- const sPrenomWords = normalizeWordsForMatch(s.prenom);
- const sNomCompact = normalizeNameForMatch(s.nom);
- const sPrenomCompact = normalizeNameForMatch(s.prenom);
-
- if (sNomCompact.length < 2 || sPrenomCompact.length < 2) return false;
-
- const regexNomPrenom = new RegExp(`\\b${sNomWords.replace(/\s+/g, '\\s+')}\\b.*\\b${sPrenomWords.replace(/\s+/g, '\\s+')}\\b`, 'i');
- const regexPrenomNom = new RegExp(`\\b${sPrenomWords.replace(/\s+/g, '\\s+')}\\b.*\\b${sNomWords.replace(/\s+/g, '\\s+')}\\b`, 'i');
-
- return (
- regexNomPrenom.test(normFullWords) ||
- regexPrenomNom.test(normFullWords) ||
- (normFullCompact.includes(sNomCompact) && normFullCompact.includes(sPrenomCompact))
- );
- });
- }
-
- if (matchedStudents.length === 0) return null;
-
- // Filtrage strict par classe si une classe est détectée sur la ligne ou la section
- if (normDetectedClass) {
- const classExactMatches = matchedStudents.filter(s => normalizeClassKey(s.classe) === normDetectedClass);
- if (classExactMatches.length > 0) {
- return classExactMatches[0];
- }
- // Une classe différente est explicitement indiquée sur la ligne : on ne force pas un élève d'une autre classe
- if (extractClassToken(fullRowText)) {
- return null;
- }
- }
-
- // S'il y a plusieurs homonymes sans classe correspondante identifiée, éviter une attribution incertaine
- if (matchedStudents.length > 1) {
- return null;
- }
-
- return matchedStudents[0];
- }
-
- function parsePronoteLineIntoEvent(lineText, explicitClassCol = '') {
- if (!lineText || !lineText.trim()) return null;
-
- if (appSettings.ignoreCantineMidiOnPronoteImport && isCantineMidiAbsence(lineText)) {
- return { ignored: true };
- }
-
- const lower = lineText.toLowerCase();
- let eventType = 'observation';
- let pronoteType = '';
- let justified = 'Non';
-
- const isAbsenceWord = lower.includes('abs') || lower.includes('absence');
- const isRetardWord = lower.includes('retard');
- const isRetenueWord = lower.includes('retenue') || lower.includes('colle');
- const isExclusionWord = lower.includes('exclusion');
- const isEdtBloqueWord = lower.includes('emploi du temps bloqué') || lower.includes('emploi du temps bloque') || lower.includes('edt bloqué') || lower.includes('edt bloque');
- const isCarnetWord = lower.includes('carnet');
-
- if (isAbsenceWord) {
- if (lower.includes('injustifi') || lower.includes('non justifi') || lower.includes('motif non encore connu')) {
- eventType = 'absence';
- pronoteType = 'Absence injustifiée';
- justified = 'Non';
- } else if (/\boui\b/i.test(lineText) || lower.includes('justifi')) {
- eventType = 'absence';
- justified = 'Oui';
- } else {
- eventType = 'absence';
- justified = 'Non';
- }
- } else if (isRetardWord) {
- eventType = 'retard';
- justified = (/\boui\b/i.test(lineText) || lower.includes('justifi')) ? 'Oui' : 'Non';
- } else if (isRetenueWord) {
- eventType = 'retenue';
- pronoteType = 'Retenue';
- } else if (isExclusionWord) {
- eventType = 'exclusion';
- pronoteType = 'Exclusion de cours';
- } else if (isEdtBloqueWord) {
- eventType = 'emploi_bloque';
- pronoteType = 'emploi du temps bloqué';
- } else if (isCarnetWord) {
- eventType = 'carnet';
- } else if (
- lower.includes('devoir') || lower.includes('tig') || lower.includes('avertissement') ||
- lower.includes('blâme') || lower.includes('blame') || lower.includes('mise en garde') ||
- lower.includes('commission') || lower.includes('conseil de discipline') || lower.includes('punition')
- ) {
- eventType = 'abs_injustifiee';
- if (lower.includes('retenue')) pronoteType = 'Retenue';
- else if (lower.includes('exclusion')) pronoteType = 'Exclusion de cours';
- else if (lower.includes('emploi du temps')) pronoteType = 'emploi du temps bloqué';
- else pronoteType = 'Observations';
- } else {
- return null;
- }
-
- const extractedDate = extractDateFromText(lineText) || new Date().toISOString().slice(0, 16);
-
- const evObj = {
- id: generateUUID(),
- type: eventType,
- date: extractedDate,
- motif: lineText.trim()
- };
-
- if (eventType === 'absence' || eventType === 'retard') {
- evObj.justified = justified;
- }
- if (pronoteType) {
- evObj.pronoteType = pronoteType;
- }
- if (eventType === 'retenue') {
- evObj.duration = getRetenueHours(evObj);
- }
-
- return { ignored: false, event: evObj };
- }
-
- async function importAbsenceDataFile(event) {
- const file = event.target.files[0];
- if (!file) return;
-
- loadSettings();
-
- const fileName = file.name.toLowerCase();
- let lines = [];
-
- try {
- if (fileName.endsWith('.pdf')) {
- const arrayBuffer = await file.arrayBuffer();
- const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
- for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
- const page = await pdf.getPage(pageNum);
- const textContent = await page.getTextContent();
- const items = textContent.items || [];
-
- const rowsMap = new Map();
- items.forEach(item => {
- const str = (item.str || '').trim();
- if (!str) return;
- const y = item.transform ? Math.round(item.transform[5] / 5) * 5 : pageNum * 1000;
- if (!rowsMap.has(y)) rowsMap.set(y, []);
- rowsMap.get(y).push({ x: item.transform ? item.transform[4] : 0, str });
- });
-
- const sortedYs = Array.from(rowsMap.keys()).sort((a, b) => b - a);
- sortedYs.forEach(y => {
- const rowItems = rowsMap.get(y).sort((a, b) => a.x - b.x);
- const lineStr = rowItems.map(it => it.str).join(' ').replace(/\s+/g, ' ').trim();
- if (lineStr) lines.push({ text: lineStr, candidateName: '', classe: '' });
- });
- }
- } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
- const arrayBuffer = await file.arrayBuffer();
- const workbook = XLSX.read(arrayBuffer, { type: 'array' });
- const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
- const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-
- const headerRow = (rows[0] || []).map(h => String(h || '').toLowerCase().trim());
- const nomColIdx = headerRow.findIndex(h => h.includes('nom') && !h.includes('prenom') && !h.includes('prénom'));
- const prenomColIdx = headerRow.findIndex(h => h.includes('prenom') || h.includes('prénom'));
- const eleveColIdx = headerRow.findIndex(h => h.includes('eleve') || h.includes('élève') || h.includes('nom'));
- const classeColIdx = headerRow.findIndex(h => h.includes('classe') || h.includes('div'));
-
- rows.forEach((r, idx) => {
- if (!r || r.length === 0) return;
- const lineStr = r.map(c => String(c || '').trim()).filter(Boolean).join(' | ');
- let candidateName = '';
- let candidateClass = '';
-
- if (idx > 0) {
- if (nomColIdx > -1 && prenomColIdx > -1) {
- candidateName = `${r[nomColIdx] || ''} ${r[prenomColIdx] || ''}`.trim();
- } else if (eleveColIdx > -1) {
- candidateName = String(r[eleveColIdx] || '').trim();
- } else if (r[0]) {
- candidateName = String(r[0] || '').trim();
- }
- if (classeColIdx > -1) {
- candidateClass = String(r[classeColIdx] || '').trim();
- }
- }
-
- lines.push({ text: lineStr, candidateName, classe: candidateClass });
- });
- } else {
- const text = await file.text();
- text.split(/\r?\n/).forEach(l => {
- if (l.trim()) lines.push({ text: l.trim(), candidateName: '', classe: '' });
- });
- }
-
- // Réinitialisation préalable des anciens événements Vie Scolaire (confirmée par l'utilisateur)
- students.forEach(s => {
- s.events = [];
- s.alerteCPE = false;
- s.manualAlerteCPE = false;
- });
-
- let importedEventsCount = 0;
- let ignoredMidiCount = 0;
- let unmatchedRowsCount = 0;
- let activeStudent = null;
- let activeSectionClass = '';
-
- lines.forEach(entry => {
- const lineText = entry.text;
- if (!lineText) return;
-
- // Détecter si la ligne est un en-tête de classe (ex. "Classe : 6F" ou "4ème D")
- const standaloneClass = extractClassToken(lineText);
- if (standaloneClass && lineText.replace(/[^a-zA-Z0-9]/g, '').length <= 12) {
- activeSectionClass = standaloneClass;
- }
-
- const rowCombinedClass = entry.classe || extractClassToken(lineText) || activeSectionClass;
- const matchedStudent = findStudentForPronoteRow(entry.candidateName, lineText, rowCombinedClass);
-
- if (matchedStudent) {
- activeStudent = matchedStudent;
- } else {
- // Si une classe différente est explicitement présente sur la ligne, on ne réutilise pas l'élève précédent
- const explicitRowClass = extractClassToken(lineText);
- if (explicitRowClass && activeStudent && normalizeClassKey(activeStudent.classe) !== normalizeClassKey(explicitRowClass)) {
- activeStudent = null;
- }
- }
-
- const parsedResult = parsePronoteLineIntoEvent(lineText, rowCombinedClass);
- if (!parsedResult) return;
-
- if (parsedResult.ignored) {
- ignoredMidiCount++;
- return;
- }
-
- // Vérification stricte : l'événement doit appartenir à un élève identifié et vérifié
- if (!activeStudent) {
- unmatchedRowsCount++;
- return;
- }
-
- // Vérification finale de cohérence nom + prénom + classe si une classe est détectée sur la ligne
- const lineClass = extractClassToken(lineText);
- if (lineClass && normalizeClassKey(activeStudent.classe) !== normalizeClassKey(lineClass)) {
- unmatchedRowsCount++;
- return;
- }
-
- if (!activeStudent.events) activeStudent.events = [];
- activeStudent.events.push(parsedResult.event);
- importedEventsCount++;
- });
-
- updateAutoCpeAlerts();
- saveStorage();
- populateClassFilter();
- filterStudents();
-
- if (document.getElementById('pageRecap') && !document.getElementById('pageRecap').classList.contains('hidden')) {
- renderCurrentRecapView();
- updateRecapBadges();
- }
- if (document.getElementById('pageBilan') && !document.getElementById('pageBilan').classList.contains('hidden')) {
- renderBilanView();
- }
  if (selectedStudentId) {
  const st = students.find(s => s.id === selectedStudentId);
  if (st) {
  updateCounters(st);
  renderHistoryTable(st);
+ updateDetailCardBadgesAndToggles(st);
  }
  }
-
- let msg = `Importation PRONOTE terminée : ${importedEventsCount} événement(s) rattaché(s) (nom, prénom et classe vérifiés).`;
- if (ignoredMidiCount > 0) {
- msg += `\n${ignoredMidiCount} absence(s) cantine « midi » ignorée(s) selon vos réglages.`;
+ if (!document.getElementById('pageRecap').classList.contains('hidden')) {
+ renderCurrentRecapView();
+ updateRecapBadges();
  }
- if (unmatchedRowsCount > 0) {
- msg += `\n${unmatchedRowsCount} ligne(s) non rattachée(s) (élève introuvable ou classe non concordante).`;
+ if (!document.getElementById('pageBilan').classList.contains('hidden')) {
+ renderBilanView();
  }
- alert(msg);
- } catch (err) {
- console.error("Erreur import PRONOTE:", err);
- alert("Erreur lors de l'importation PRONOTE : " + err.message);
- }
-
- event.target.value = '';
+ alert("Toutes les données d'événements Vie Scolaire ont été effacées.");
  }
 
  // =========================================================
- // 12. EXPORTS / IMPORTS (JSON, CSV, CANTINE CARDS)
+ // 11. SAUVEGARDE & IMPORTATION JSON
  // =========================================================
  function exportJSON() {
+ updateAutoCpeAlerts();
  const payload = {
- version: 'v6',
- exportedAt: new Date().toISOString(),
+ version: "v6-alerts-cpe-doc-cantine-edt-bilan-all-sheets",
+ exportDate: new Date().toISOString(),
  settings: appSettings,
  schedules: classSchedules,
  students: students
  };
- shareOrDownloadFile(JSON.stringify(payload, null, 2), `VieScolaire_Sauvegarde_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
+ const dataStr = JSON.stringify(payload, null, 2);
+ shareOrDownloadFile(dataStr, 'viescolaire_backup_complet.json', 'application/json');
  }
 
  function triggerJsonImport() {
@@ -5007,35 +4470,47 @@
  reader.onload = function(e) {
  try {
  const parsed = JSON.parse(e.target.result);
+ let importedStudents = [];
+ let importedSettings = null;
+ let importedSchedules = null;
+
  if (Array.isArray(parsed)) {
- students = parsed;
+ importedStudents = parsed;
  } else if (parsed && Array.isArray(parsed.students)) {
- students = parsed.students;
- if (parsed.settings) {
- appSettings = Object.assign(appSettings, parsed.settings);
+ importedStudents = parsed.students;
+ if (parsed.settings) importedSettings = parsed.settings;
+ if (parsed.schedules && typeof parsed.schedules === 'object') importedSchedules = parsed.schedules;
+ } else {
+ throw new Error("Format de fichier JSON non reconnu.");
+ }
+
+ if (importedSettings) {
+ appSettings = Object.assign(appSettings, importedSettings);
  saveSettings();
  }
- if (parsed.schedules && typeof parsed.schedules === 'object') {
- classSchedules = parsed.schedules;
+
+ if (importedSchedules) {
+ classSchedules = importedSchedules;
  saveSchedulesToStorage();
  }
- } else {
- throw new Error("Format JSON invalide.");
- }
+
+ students = importedStudents;
  saveStorage();
  populateClassFilter();
  filterStudents();
- alert("Sauvegarde importée avec succès.");
+ alert("Sauvegarde complète importée avec succès !");
  } catch (err) {
- alert("Erreur import JSON : " + err.message);
+ alert("Erreur lors de l'importation JSON : " + err.message);
  }
  };
- reader.readAsText(file, 'UTF-8');
+ reader.readAsText(file);
  event.target.value = '';
  }
 
  function exportCanteenCardsJSON() {
- const canteenStudents = students.filter(s => s.regime === 'Demi-pensionnaire' || s.badgeCantine || s.badgeRepere).map(s => ({
+ const canteenData = students
+ .filter(s => s.regime === 'Demi-pensionnaire' || s.badgeCantine || s.badgeRepere)
+ .map(s => ({
  id: s.id,
  nom: s.nom,
  prenom: s.prenom,
@@ -5044,7 +4519,15 @@
  badgeCantine: s.badgeCantine || '',
  badgeRepere: s.badgeRepere || ''
  }));
- shareOrDownloadFile(JSON.stringify(canteenStudents, null, 2), `Cartes_Cantine_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
+
+ const payload = {
+ type: "viescolaire_cantine_cards_v1",
+ exportDate: new Date().toISOString(),
+ count: canteenData.length,
+ cards: canteenData
+ };
+
+ shareOrDownloadFile(JSON.stringify(payload, null, 2), 'viescolaire_cartes_cantine.json', 'application/json');
  }
 
  function triggerCanteenCardsImport() {
@@ -5058,345 +4541,525 @@
  const reader = new FileReader();
  reader.onload = function(e) {
  try {
- const list = JSON.parse(e.target.result);
- if (!Array.isArray(list)) throw new Error("Le fichier doit contenir un tableau d'élèves.");
+ const parsed = JSON.parse(e.target.result);
+ const cardsList = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.cards) ? parsed.cards : []);
+ if (cardsList.length === 0) {
+ alert("Aucune carte cantine trouvée dans le fichier.");
+ return;
+ }
 
- let updated = 0;
- list.forEach(item => {
- const match = students.find(s =>
- (item.id && s.id === item.id) ||
- (normalizeNameForMatch(s.nom) === normalizeNameForMatch(item.nom) &&
- normalizeNameForMatch(s.prenom) === normalizeNameForMatch(item.prenom) &&
- (!item.classe || normalizeClassKey(s.classe) === normalizeClassKey(item.classe)))
- );
- if (match) {
- if (item.badgeCantine !== undefined) match.badgeCantine = String(item.badgeCantine).trim();
- if (item.badgeRepere !== undefined) match.badgeRepere = String(item.badgeRepere).trim();
- if (item.regime) match.regime = item.regime;
- updated++;
+ let updatedCount = 0;
+ cardsList.forEach(c => {
+ let target = null;
+ if (c.id) target = students.find(s => s.id === c.id);
+ if (!target && c.nom && c.prenom) {
+ const normTarget = normalizeNameForMatch(`${c.nom} ${c.prenom}`);
+ target = students.find(s => normalizeNameForMatch(`${s.nom} ${s.prenom}`) === normTarget);
+ }
+ if (target) {
+ if (c.badgeCantine !== undefined) target.badgeCantine = String(c.badgeCantine).trim();
+ if (c.badgeRepere !== undefined) target.badgeRepere = String(c.badgeRepere).trim();
+ if (c.regime) target.regime = c.regime;
+ updatedCount++;
  }
  });
 
  saveStorage();
  filterStudents();
- alert(`${updated} carte(s) cantine mise(s) à jour.`);
+ alert(`Import cantine terminé : ${updatedCount} élève(s) mis à jour.`);
  } catch (err) {
- alert("Erreur import cantine : " + err.message);
+ alert("Erreur import cantine JSON : " + err.message);
  }
  };
- reader.readAsText(file, 'UTF-8');
+ reader.readAsText(file);
  event.target.value = '';
  }
 
- function exportGlobalCSV() {
- const headers = ['Nom', 'Prenom', 'Classe', 'Regime', 'Autorisation_Sortie', 'Alerte_CPE', 'Doc_Non_Rendu', 'Badge_Cantine', 'Badge_Repere', 'Nb_Retards', 'Nb_Absences', 'Abs_Injustifiees', 'Heures_Retenue'];
- const csvRows = [headers.join(';')];
+ // =========================================================
+ // 12. IMPORTATION ÉLÈVES (SANS DOUBLONS) & EXPORT CSV
+ // =========================================================
+ function triggerFileImport() {
+ document.getElementById('fileInput').click();
+ }
 
+ function importDataFile(event) {
+ const file = event.target.files[0];
+ if (!file) return;
+
+ const ext = file.name.split('.').pop().toLowerCase();
+
+ if (ext === 'csv' || ext === 'txt') {
+ const reader = new FileReader();
+ reader.onload = function(e) {
+ const content = e.target.result;
+ const lines = content.split(/\r\n|\n/).map(l => l.trim()).filter(Boolean);
+ processImportedLines(lines);
+ };
+ reader.readAsText(file, 'UTF-8');
+ } else if (ext === 'xlsx' || ext === 'xls') {
+ const reader = new FileReader();
+ reader.onload = function(e) {
+ try {
+ const data = new Uint8Array(e.target.result);
+ const workbook = XLSX.read(data, { type: 'array' });
+ let allLines = [];
+
+ // Parcourir toutes les feuilles du fichier Excel élèves
+ workbook.SheetNames.forEach(sheetName => {
+ const worksheet = workbook.Sheets[sheetName];
+ const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+ rows.forEach(r => {
+ const cleanRow = r.map(c => String(c || '').trim()).filter(Boolean);
+ if (cleanRow.length > 0) {
+ allLines.push(cleanRow.join(';'));
+ }
+ });
+ });
+
+ processImportedLines(allLines);
+ } catch(err) {
+ alert("Erreur lecture Excel : " + err.message);
+ }
+ };
+ reader.readAsArrayBuffer(file);
+ } else {
+ alert("Format non supporté (.xlsx, .xls, .csv, .txt)");
+ }
+ event.target.value = '';
+ }
+
+ function processImportedLines(lines) {
+ if (!lines || lines.length === 0) return;
+
+ let addedCount = 0;
+ let updatedCount = 0;
+
+ const existingKeysMap = new Map();
  students.forEach(s => {
+ const key = normalizeNameForMatch(`${s.nom || ''} ${s.prenom || ''}`);
+ const revKey = normalizeNameForMatch(`${s.prenom || ''} ${s.nom || ''}`);
+ if (key) existingKeysMap.set(key, s);
+ if (revKey) existingKeysMap.set(revKey, s);
+ });
+
+ lines.forEach(line => {
+ const parts = line.split(/[;\t,]+/).map(p => p.trim()).filter(Boolean);
+ if (parts.length < 2) return;
+
+ const firstLower = parts[0].toLowerCase();
+ if (firstLower === 'nom' || firstLower === 'élève' || firstLower === 'eleve' || firstLower === 'nom prénom' || firstLower === 'nom prenom') return;
+
+ let nom = '';
+ let prenom = '';
+ let classe = '';
+ let regime = 'Externe';
+ let autorisationSortie = 'Oui';
+ let profPrincipal = '';
+ let badgeRepere = '';
+ let badgeCantine = '';
+
+ if (parts.length >= 3) {
+ nom = parts[0];
+ prenom = parts[1];
+ classe = parts[2];
+ if (parts[3]) regime = parts[3];
+ if (parts[4]) autorisationSortie = parts[4];
+ if (parts[5]) profPrincipal = parts[5];
+ if (parts[6]) badgeRepere = parts[6];
+ if (parts[7]) badgeCantine = parts[7];
+ } else {
+ const nameParts = parts[0].split(/\s+/);
+ nom = nameParts[0] || '';
+ prenom = nameParts.slice(1).join(' ') || '';
+ classe = parts[1] || '';
+ }
+
+ if (!nom && !prenom) return;
+
+ const normKey1 = normalizeNameForMatch(`${nom} ${prenom}`);
+ const normKey2 = normalizeNameForMatch(`${prenom} ${nom}`);
+ const existingStudent = existingKeysMap.get(normKey1) || existingKeysMap.get(normKey2);
+
+ if (existingStudent) {
+ if (classe) existingStudent.classe = classe;
+ if (parts[3]) existingStudent.regime = regime;
+ if (parts[4]) existingStudent.autorisationSortie = autorisationSortie;
+ if (profPrincipal) existingStudent.profPrincipal = profPrincipal;
+ if (badgeRepere) existingStudent.badgeRepere = badgeRepere;
+ if (badgeCantine) existingStudent.badgeCantine = badgeCantine;
+ updatedCount++;
+ } else {
+ const newSt = {
+ id: generateUUID(),
+ nom: nom.trim(),
+ prenom: prenom.trim(),
+ classe: classe.trim() || 'Non renseignée',
+ regime: regime || 'Externe',
+ autorisationSortie: autorisationSortie || 'Oui',
+ alerteCPE: false,
+ docNonRendu: false,
+ profPrincipal: profPrincipal || '',
+ badgeCantine: badgeCantine || (regime === 'Demi-pensionnaire' ? 'DP-' + Math.floor(10000 + Math.random() * 90000) : ''),
+ badgeRepere: badgeRepere || '',
+ events: []
+ };
+ students.push(newSt);
+ existingKeysMap.set(normKey1, newSt);
+ existingKeysMap.set(normKey2, newSt);
+ addedCount++;
+ }
+ });
+
+ saveStorage();
+ populateClassFilter();
+ filterStudents();
+ alert(`Importation élèves terminée : ${addedCount} ajouté(s), ${updatedCount} mis à jour (sans doublon).`);
+ }
+
+ function exportGlobalCSV() {
+ const headers = ["Nom", "Prenom", "Classe", "Regime", "Autorisation_Sortie", "Alerte_CPE", "Doc_Non_Rendu", "Badge_Cantine", "Badge_Repere", "Retards", "Absences", "Retenues_Heures", "Emploi_Bloque", "Exclusions", "Absences_Injustifiees"];
+ const rows = students.map(s => {
  const events = s.events || [];
- const retards = events.filter(e => e.type === 'retard').length;
- const absences = events.filter(e => e.type === 'absence').length;
- const absInjust = countUnjustifiedAbsences(s);
- const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + getRetenueHours(e), 0);
-
- const row = [
- `"${(s.nom || '').replace(/"/g, '""')}"`,
- `"${(s.prenom || '').replace(/"/g, '""')}"`,
- `"${(s.classe || '').replace(/"/g, '""')}"`,
- `"${(s.regime || '').replace(/"/g, '""')}"`,
- `"${s.autorisationSortie || 'Oui'}"`,
- `"${s.alerteCPE ? 'Oui' : 'Non'}"`,
- `"${s.docNonRendu ? 'Oui' : 'Non'}"`,
- `"${(s.badgeCantine || '').replace(/"/g, '""')}"`,
- `"${(s.badgeRepere || '').replace(/"/g, '""')}"`,
- retards,
- absences,
- absInjust,
- retenues
- ];
- csvRows.push(row.join(';'));
- });
-
- shareOrDownloadFile('\uFEFF' + csvRows.join('\n'), `Export_VieScolaire_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv;charset=utf-8');
- }
-
- // =========================================================
- // 13. EXPORTS PDF (FICHE ÉLÈVE, CARTE CANTINE, CPE, ABS. INJUST., CLASSE)
- // =========================================================
- function generateQrDataUrlForStudent(student) {
- const hiddenContainer = document.getElementById('pdfQrHiddenContainer');
- if (!hiddenContainer) return null;
- hiddenContainer.innerHTML = '';
-
- const payload = JSON.stringify({
- id: student.id,
- nom: student.nom,
- prenom: student.prenom,
- classe: student.classe,
- badge: student.badgeCantine || ''
- });
-
- new QRCode(hiddenContainer, {
- text: payload,
- width: 160,
- height: 160,
- colorDark: "#0f172a",
- colorLight: "#ffffff",
- correctLevel: QRCode.CorrectLevel.H
- });
-
- const canvas = hiddenContainer.querySelector('canvas');
- if (canvas) return canvas.toDataURL('image/png');
- const img = hiddenContainer.querySelector('img');
- return img ? img.src : null;
- }
-
- function exportCanteenCardPDF() {
- if (!selectedStudentId) return;
- const student = students.find(s => s.id === selectedStudentId);
- if (!student) return;
-
- const { jsPDF } = window.jspdf;
- const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
- const cardW = 85.6;
- const cardH = 54.0;
- const x = (210 - cardW) / 2;
- const y = 35;
-
- doc.setFillColor(15, 23, 42);
- doc.roundedRect(x, y, cardW, cardH, 3.5, 3.5, 'F');
-
- doc.setFillColor(16, 185, 129);
- doc.rect(x, y, cardW, 9, 'F');
-
- doc.setTextColor(255, 255, 255);
- doc.setFontSize(9);
- doc.setFont('helvetica', 'bold');
- doc.text("CARTE CANTINE SECOURS — VIE SCOLAIRE", x + 4, y + 6);
-
- doc.setFontSize(12);
- doc.text(`${(student.nom || '').toUpperCase()} ${student.prenom || ''}`, x + 4, y + 18);
-
- doc.setFontSize(9);
- doc.setFont('helvetica', 'normal');
- doc.setTextColor(203, 213, 225);
- doc.text(`Classe : ${student.classe || '-'}`, x + 4, y + 25);
- doc.text(`Régime : ${student.regime || '-'}`, x + 4, y + 31);
- doc.text(`N° Badge : ${student.badgeCantine || 'Non attribué'}`, x + 4, y + 37);
-
- const qrDataUrl = generateQrDataUrlForStudent(student);
- if (qrDataUrl) {
- doc.setFillColor(255, 255, 255);
- doc.roundedRect(x + cardW - 26, y + 13, 22, 22, 1.5, 1.5, 'F');
- doc.addImage(qrDataUrl, 'PNG', x + cardW - 25, y + 14, 20, 20);
- }
-
- doc.setFontSize(7);
- doc.setTextColor(148, 163, 184);
- doc.text("Format carte standard (85,6 x 54 mm) • Découper et plastifier si besoin", x + 4, y + cardH - 4);
-
- doc.save(`Carte_Cantine_${(student.nom || 'Eleve')}_${(student.prenom || '')}.pdf`);
- }
-
- function exportStudentPDF() {
- if (!selectedStudentId) return;
- const student = students.find(s => s.id === selectedStudentId);
- if (!student) return;
-
- const { jsPDF } = window.jspdf;
- const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
- const events = student.events || [];
  const retards = events.filter(e => e.type === 'retard').length;
  const absences = events.filter(e => e.type === 'absence').length;
  const retenues = events.filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + getRetenueHours(e), 0);
  const emploiBloque = events.filter(e => e.type === 'emploi_bloque' || getStatutDetailFromMotif(e.motif) === 'emploi du temps bloqué').length;
  const exclusions = events.filter(e => e.type === 'exclusion' || getStatutDetailFromMotif(e.motif) === 'Exclusion de cours').length;
- const absInjustifiees = countUnjustifiedAbsences(student);
- const thresholdInfo = getExceededThresholdsInfo(student);
+ const absInjust = countUnjustifiedAbsences(s);
 
- doc.setFillColor(30, 27, 75);
- doc.rect(0, 0, 210, 28, 'F');
- doc.setTextColor(255, 255, 255);
- doc.setFontSize(15);
- doc.setFont('helvetica', 'bold');
- doc.text(`FICHE ÉLÈVE — ${(student.nom || '').toUpperCase()} ${student.prenom || ''}`, 14, 13);
- doc.setFontSize(9.5);
- doc.setFont('helvetica', 'normal');
- doc.text(`Classe : ${student.classe || '-'}  |  Régime : ${student.regime || '-'}  |  Sortie : ${student.autorisationSortie || '-'}  |  PP : ${student.profPrincipal || '-'}`, 14, 21);
-
- let curY = 36;
-
- if (student.alerteCPE || student.docNonRendu || thresholdInfo.hasExceeded) {
- doc.setFillColor(254, 242, 242);
- doc.setDrawColor(248, 113, 113);
- doc.roundedRect(14, curY, 182, 14, 2, 2, 'FD');
- doc.setTextColor(153, 27, 27);
- doc.setFontSize(9);
- doc.setFont('helvetica', 'bold');
- const alertParts = [];
- if (student.alerteCPE) alertParts.push("ALERTE CPE ACTIVE");
- if (student.docNonRendu) alertParts.push("DOCUMENT NON RENDU");
- if (thresholdInfo.hasExceeded) alertParts.push("Seuils : " + thresholdInfo.summaryText);
- doc.text(alertParts.join("  •  "), 18, curY + 8.5);
- curY += 20;
- }
-
- doc.autoTable({
- startY: curY,
- head: [['Retards', 'Absences', 'Abs. Injustifiées', 'Heures Colle', 'EDT Bloqué', 'Exclusions']],
- body: [[retards, absences, absInjustifiees, `${retenues}h`, emploiBloque, exclusions]],
- theme: 'grid',
- headStyles: { fillColor: [79, 70, 229], fontSize: 8.5, halign: 'center' },
- bodyStyles: { fontSize: 10, fontStyle: 'bold', halign: 'center' }
- });
-
- const historyRows = events.map(ev => {
- const dStr = extractDateFromText(ev.motif) || ev.date;
- const pDate = new Date(dStr);
- const fDate = !isNaN(pDate.getTime()) ? pDate.toLocaleDateString('fr-FR') : (ev.date || '--');
- return [fDate, (ev.pronoteType || ev.type || '').toUpperCase(), ev.motif || '-'];
- });
-
- doc.autoTable({
- startY: doc.lastAutoTable.finalY + 8,
- head: [['Date', 'Type', 'Motif / Détail']],
- body: historyRows.length > 0 ? historyRows : [['-', 'Aucun événement', 'Historique vierge']],
- theme: 'striped',
- headStyles: { fillColor: [15, 23, 42], fontSize: 8.5 },
- bodyStyles: { fontSize: 8 }
- });
-
- doc.save(`Fiche_${(student.nom || 'Eleve')}_${(student.prenom || '')}.pdf`);
- }
-
- function appendUnjustifiedStudentSheetToPDF(doc, student, isFirstSheet) {
- const unjustUnknown = getUnjustifiedUnknownReasonAbsences(student);
- if (unjustUnknown.length === 0) return false;
-
- if (!isFirstSheet) {
- doc.addPage();
- }
-
- doc.setFillColor(153, 27, 27);
- doc.rect(0, 0, 210, 26, 'F');
- doc.setTextColor(255, 255, 255);
- doc.setFontSize(14);
- doc.setFont('helvetica', 'bold');
- doc.text("ABSENCES INJUSTIFIÉES — MOTIF NON ENCORE CONNU", 14, 12);
- doc.setFontSize(10);
- doc.setFont('helvetica', 'normal');
- doc.text(`Élève : ${(student.nom || '').toUpperCase()} ${student.prenom || ''}  •  Classe : ${student.classe || '-'}  •  Total concerné : ${unjustUnknown.length}`, 14, 20);
-
- const rows = unjustUnknown.map(ev => {
- const dStr = extractDateFromText(ev.motif) || ev.date;
- const pDate = new Date(dStr);
- const fDate = !isNaN(pDate.getTime()) ? pDate.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : (ev.date || '--');
- return [fDate, ev.motif || 'Motif non encore connu'];
- });
-
- doc.autoTable({
- startY: 32,
- head: [['Date & Heure', 'Détail / Motif PRONOTE']],
- body: rows,
- theme: 'grid',
- headStyles: { fillColor: [185, 28, 28], fontSize: 9 },
- bodyStyles: { fontSize: 8.5 }
- });
-
- return true;
- }
-
- function exportSingleStudentUnjustifiedAbsencesPDF() {
- if (!selectedStudentId) return;
- const student = students.find(s => s.id === selectedStudentId);
- if (!student) return;
-
- const unjustList = getUnjustifiedUnknownReasonAbsences(student);
- if (unjustList.length === 0) {
- alert("Aucune absence injustifiée avec « Motif non encore connu » pour cet élève.");
- return;
- }
-
- const { jsPDF } = window.jspdf;
- const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
- appendUnjustifiedStudentSheetToPDF(doc, student, true);
- doc.save(`Absences_Injustifiees_${(student.nom || 'Eleve')}_${(student.prenom || '')}.pdf`);
- }
-
- function exportUnjustifiedAbsencesPDF(targetClass = 'ALL') {
- const list = (targetClass && targetClass !== 'ALL')
- ? students.filter(s => s.classe === targetClass)
- : students;
-
- const concerned = list.filter(s => getUnjustifiedUnknownReasonAbsences(s).length > 0);
- if (concerned.length === 0) {
- alert("Aucune absence injustifiée avec « Motif non encore connu » trouvée pour cette sélection.");
- return;
- }
-
- const { jsPDF } = window.jspdf;
- const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
- concerned.forEach((st, idx) => {
- appendUnjustifiedStudentSheetToPDF(doc, st, idx === 0);
- });
-
- const suffix = (targetClass && targetClass !== 'ALL') ? `_${targetClass.replace(/\s+/g, '_')}` : '_Toutes_Classes';
- doc.save(`Absences_Injustifiees${suffix}_${new Date().toISOString().slice(0,10)}.pdf`);
- }
-
- function exportCpeAlertPDF() {
- updateAutoCpeAlerts();
- const alertStudents = students.filter(s => !!s.alerteCPE);
- if (alertStudents.length === 0) {
- alert("Aucun élève en Alerte CPE actuellement.");
- return;
- }
-
- const { jsPDF } = window.jspdf;
- const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
- doc.setFillColor(190, 18, 60);
- doc.rect(0, 0, 210, 26, 'F');
- doc.setTextColor(255, 255, 255);
- doc.setFontSize(14);
- doc.setFont('helvetica', 'bold');
- doc.text(`LISTE ALERTE CPE (${alertStudents.length} ÉLÈVE${alertStudents.length > 1 ? 'S' : ''})`, 14, 13);
- doc.setFontSize(9);
- doc.setFont('helvetica', 'normal');
- doc.text(`Édité le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 14, 20);
-
- const rows = alertStudents.map(s => {
- const info = getExceededThresholdsInfo(s);
- const absInj = countUnjustifiedAbsences(s);
- const retenues = (s.events || []).filter(e => e.type === 'retenue' || getStatutDetailFromMotif(e.motif) === 'Retenue').reduce((sum, e) => sum + getRetenueHours(e), 0);
  return [
- `${(s.nom || '').toUpperCase()} ${s.prenom || ''}`,
- s.classe || '-',
- absInj,
- `${retenues}h`,
- info.summaryText || 'Activation manuelle CPE'
- ];
+ `"${(s.nom || '').replace(/"/g, '""')}"`,
+ `"${(s.prenom || '').replace(/"/g, '""')}"`,
+ `"${(s.classe || '').replace(/"/g, '""')}"`,
+ `"${(s.regime || '').replace(/"/g, '""')}"`,
+ `"${(s.autorisationSortie || '').replace(/"/g, '""')}"`,
+ s.alerteCPE ? "Oui" : "Non",
+ s.docNonRendu ? "Oui" : "Non",
+ `"${(s.badgeCantine || '').replace(/"/g, '""')}"`,
+ `"${(s.badgeRepere || '').replace(/"/g, '""')}"`,
+ retards,
+ absences,
+ retenues,
+ emploiBloque,
+ exclusions,
+ absInjust
+ ].join(';');
  });
 
- doc.autoTable({
- startY: 32,
- head: [['Élève', 'Classe', 'Abs. Inj.', 'Colles', 'Raison / Seuils']],
- body: rows,
- theme: 'striped',
- headStyles: { fillColor: [190, 18, 60], fontSize: 8.5 },
- bodyStyles: { fontSize: 8 }
- });
-
- doc.save(`Alerte_CPE_${new Date().toISOString().slice(0,10)}.pdf`);
+ const csvContent = "\uFEFF" + [headers.join(';'), ...rows].join('\n');
+ shareOrDownloadFile(csvContent, 'viescolaire_export_global.csv', 'text/csv;charset=utf-8;');
  }
 
+ // =========================================================
+ // 13. IMPORTATION DONNÉES PRONOTE (TOUTES FEUILLES EXCEL / CSV / PDF)
+ // =========================================================
+ function triggerAbsenceImport() {
+ document.getElementById('confirmImportPronoteModal').classList.remove('hidden');
+ }
+
+ function confirmAndTriggerAbsenceImport() {
+ closeModal('confirmImportPronoteModal');
+ document.getElementById('absenceFileInput').click();
+ }
+
+ function isCantineMidiAbsenceLine(text) {
+ if (!text) return false;
+ const lower = String(text).toLowerCase();
+ const hasCantineOrMidi = lower.includes('cantine') || lower.includes('midi') || lower.includes('demi-pension') || lower.includes('demi pension') || lower.includes('restauration') || lower.includes('méridienne') || lower.includes('meridienne') || /\b(12h|13h|12:|13:)\b/.test(lower);
+ return hasCantineOrMidi;
+ }
+
+ // Détecte une classe à partir d'un texte (ex: "6F", "6ème F", "4 D", "3ème A", etc.)
+ function detectClassFromText(text) {
+ if (!text) return '';
+ const raw = String(text).trim();
+
+ const explicitMatch = raw.match(/\b([3456])\s*(?:ème|eme|éme|e)?\s*([A-Za-z0-9]{1,3})\b/i);
+ if (explicitMatch) {
+ return `${explicitMatch[1]}${explicitMatch[2].toUpperCase()}`;
+ }
+
+ const compactMatch = raw.match(/\b([3456])([A-Za-z])\b/);
+ if (compactMatch) {
+ return `${compactMatch[1]}${compactMatch[2].toUpperCase()}`;
+ }
+
+ return '';
+ }
+
+ // Vérifie si la classe détectée correspond à la classe de l'élève
+ function isSameClassForMatch(detectedClass, studentClass) {
+ if (!detectedClass || !studentClass) return true;
+ const normDet = normalizeClassKey(detectedClass);
+ const normSt = normalizeClassKey(studentClass);
+ if (!normDet || !normSt) return true;
+ if (normDet === normSt) return true;
+ const alnumDet = normDet.replace(/[^A-Z0-9]/g, '');
+ const alnumSt = normSt.replace(/[^A-Z0-9]/g, '');
+ return alnumDet === alnumSt;
+ }
+
+ async function importAbsenceDataFile(event) {
+ const file = event.target.files[0];
+ if (!file) return;
+
+ loadSettings();
+ const ignoreCantineMidi = !!appSettings.ignoreCantineMidiOnPronoteImport;
+
+ const ext = file.name.split('.').pop().toLowerCase();
+
+ // Effacement des anciennes données Vie Scolaire avant import de toutes les feuilles
+ students.forEach(s => {
+ s.events = [];
+ s.manualAlerteCPE = false;
+ s.alerteCPE = false;
+ });
+
+ if (ext === 'pdf') {
+ try {
+ const arrayBuffer = await file.arrayBuffer();
+ const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+ let fullText = '';
+
+ for (let i = 1; i <= pdf.numPages; i++) {
+ const page = await pdf.getPage(i);
+ const textContent = await page.getTextContent();
+ const pageText = textContent.items.map(item => item.str).join(' ');
+ fullText += pageText + '\n';
+ }
+
+ const lines = fullText.split(/\r\n|\n/).map(l => l.trim()).filter(Boolean);
+ processImportedPronoteLines(lines, ignoreCantineMidi);
+ } catch(err) {
+ alert("Erreur lecture PDF : " + err.message);
+ }
+ } else if (ext === 'xlsx' || ext === 'xls') {
+ const reader = new FileReader();
+ reader.onload = function(e) {
+ try {
+ const data = new Uint8Array(e.target.result);
+ const workbook = XLSX.read(data, { type: 'array' });
+ const sheetEntries = [];
+
+ // Parcourir systématiquement TOUTES les feuilles du classeur PRONOTE
+ workbook.SheetNames.forEach((sheetName, sheetIdx) => {
+ const worksheet = workbook.Sheets[sheetName];
+ const sheetDetectedClass = detectClassFromText(sheetName);
+
+ // 1. Extraction ligne par ligne structurée pour conserver le contexte de chaque cellule et de la feuille
+ const matrixRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+ matrixRows.forEach((rowCells) => {
+ const cells = rowCells.map(c => String(c || '').trim()).filter(Boolean);
+ if (cells.length === 0) return;
+
+ const lineStr = cells.join(' | ');
+ const rowDetectedClass = detectClassFromText(lineStr) || sheetDetectedClass;
+
+ sheetEntries.push({
+ text: lineStr,
+ sheetName: sheetName,
+ sheetIndex: sheetIdx + 1,
+ detectedClass: rowDetectedClass
+ });
+ });
+
+ // 2. Extraction texte brut de la feuille au cas où des lignes sont collées sans séparateur net
+ const sheetText = XLSX.utils.sheet_to_txt(worksheet);
+ const rawSheetLines = sheetText.split(/\r\n|\n/).map(l => l.trim()).filter(Boolean);
+ rawSheetLines.forEach(rawLine => {
+ const lineDetectedClass = detectClassFromText(rawLine) || sheetDetectedClass;
+ sheetEntries.push({
+ text: rawLine,
+ sheetName: sheetName,
+ sheetIndex: sheetIdx + 1,
+ detectedClass: lineDetectedClass
+ });
+ });
+ });
+
+ processImportedPronoteEntries(sheetEntries, ignoreCantineMidi, workbook.SheetNames.length);
+ } catch(err) {
+ alert("Erreur lecture Excel PRONOTE : " + err.message);
+ }
+ };
+ reader.readAsArrayBuffer(file);
+ } else if (ext === 'csv' || ext === 'txt') {
+ const reader = new FileReader();
+ reader.onload = function(e) {
+ const lines = e.target.result.split(/\r\n|\n/).map(l => l.trim()).filter(Boolean);
+ processImportedPronoteLines(lines, ignoreCantineMidi);
+ };
+ reader.readAsText(file, 'UTF-8');
+ } else {
+ alert("Format non pris en charge (.pdf, .xlsx, .xls, .csv, .txt)");
+ }
+ event.target.value = '';
+ }
+
+ function processImportedPronoteLines(lines, ignoreCantineMidi = false) {
+ const entries = (lines || []).map((line, idx) => ({
+ text: line,
+ sheetName: 'Document',
+ sheetIndex: 1,
+ lineIndex: idx,
+ detectedClass: detectClassFromText(line)
+ }));
+ processImportedPronoteEntries(entries, ignoreCantineMidi, 1);
+ }
+
+ // Traitement unifié de toutes les entrées issues de toutes les feuilles PRONOTE
+ function processImportedPronoteEntries(entries, ignoreCantineMidi = false, totalSheets = 1) {
+ if (!entries || entries.length === 0) return;
+
+ let matchedCount = 0;
+ let ignoredMidiCount = 0;
+ const sheetsProcessed = new Set();
+ const seenSignatures = new Set();
+
+ entries.forEach(entry => {
+ const rawLine = typeof entry === 'string' ? entry : (entry.text || '');
+ const line = rawLine.trim();
+ if (!line) return;
+
+ const sheetName = (typeof entry === 'object' && entry.sheetName) ? entry.sheetName : 'Feuille 1';
+ const detectedClass = (typeof entry === 'object' && entry.detectedClass) ? entry.detectedClass : detectClassFromText(line);
+
+ // Déduplication souple sur la même feuille/ligne pour éviter le double comptage entre vue matricielle et vue texte
+ const dedupKey = `${normalizeWordsForMatch(sheetName)}::${normalizeWordsForMatch(line)}`;
+ if (seenSignatures.has(dedupKey)) return;
+ seenSignatures.add(dedupKey);
+
+ const lowerLine = line.toLowerCase();
+
+ // Filtrage optionnel des absences cantine « midi »
+ if (ignoreCantineMidi && isCantineMidiAbsenceLine(line)) {
+ if (lowerLine.includes('abs') || lowerLine.includes('motif non encore connu') || lowerLine.includes('non justifi') || lowerLine.includes('justifi')) {
+ ignoredMidiCount++;
+ return;
+ }
+ }
+
+ // Recherche de l'élève correspondant (nom + prénom, en vérifiant la classe si détectée sur la feuille/ligne)
+ let foundStudent = null;
+ const normLineCompact = normalizeNameForMatch(line);
+ const normLineWords = normalizeWordsForMatch(line);
+
+ for (const s of students) {
+ const nomNormCompact = normalizeNameForMatch(s.nom);
+ const prenomNormCompact = normalizeNameForMatch(s.prenom);
+ if (!nomNormCompact || !prenomNormCompact) continue;
+
+ const hasNomCompact = normLineCompact.includes(nomNormCompact);
+ const hasPrenomCompact = normLineCompact.includes(prenomNormCompact);
+
+ const nomWords = normalizeWordsForMatch(s.nom).split(' ').filter(Boolean);
+ const prenomWords = normalizeWordsForMatch(s.prenom).split(' ').filter(Boolean);
+ const hasAllNomWords = nomWords.length > 0 && nomWords.every(w => normLineWords.includes(w));
+ const hasAllPrenomWords = prenomWords.length > 0 && prenomWords.every(w => normLineWords.includes(w));
+
+ const nameMatches = (hasNomCompact && hasPrenomCompact) || (hasAllNomWords && hasAllPrenomWords);
+ if (!nameMatches) continue;
+
+ if (detectedClass && !isSameClassForMatch(detectedClass, s.classe)) {
+ continue;
+ }
+
+ foundStudent = s;
+ break;
+ }
+
+ if (!foundStudent) return;
+
+ // Détection du type d'événement PRONOTE
+ let type = 'observation';
+ let pronoteType = '';
+ let justified = 'Non';
+ let duration = null;
+
+ if (lowerLine.includes('retard')) {
+ type = 'retard';
+ justified = (lowerLine.includes('justifi') && !lowerLine.includes('non justifi') && !lowerLine.includes('injustifi')) ? 'Oui' : 'Non';
+ } else if (lowerLine.includes('exclusion de cours') || lowerLine.includes('exclusion')) {
+ type = 'exclusion';
+ pronoteType = 'Exclusion de cours';
+ } else if (lowerLine.includes('emploi du temps bloqué') || lowerLine.includes('emploi du temps bloque')) {
+ type = 'emploi_bloque';
+ pronoteType = 'emploi du temps bloqué';
+ } else if (lowerLine.includes('retenue') || lowerLine.includes('colle')) {
+ type = 'retenue';
+ pronoteType = 'Retenue';
+ const hMatch = line.match(/\b(\d{1,2})h(\d{2})?\b/i);
+ if (hMatch) {
+ const h = parseInt(hMatch[1], 10);
+ const m = hMatch[2] ? parseInt(hMatch[2], 10) : 0;
+ duration = +(h + m / 60).toFixed(2);
+ } else {
+ duration = 1;
+ }
+ } else if (
+ lowerLine.includes('absence injustifiée') ||
+ lowerLine.includes('abs. injustifiée') ||
+ lowerLine.includes('abs injustifiee') ||
+ lowerLine.includes('motif non encore connu') ||
+ lowerLine.includes('absence') ||
+ lowerLine.includes('abs.')
+ ) {
+ const isExplicitlyJustified =
+ (/\bjustifi[ée]?\b/i.test(lowerLine) && !/\bnon[\s-]*justifi/i.test(lowerLine) && !/\binjustifi/i.test(lowerLine)) ||
+ /\boui\b/i.test(lowerLine);
+
+ justified = isExplicitlyJustified ? 'Oui' : 'Non';
+ type = (!isExplicitlyJustified && (lowerLine.includes('injustifi') || lowerLine.includes('motif non encore connu')))
+ ? 'abs_injustifiee'
+ : 'absence';
+ if (type === 'abs_injustifiee') {
+ pronoteType = 'Absence injustifiée';
+ }
+ }
+
+ const extractedDate = extractDateFromText(line);
+ const eventDate = extractedDate || new Date().toISOString().slice(0, 16);
+
+ const ev = {
+ id: generateUUID(),
+ type,
+ date: eventDate,
+ motif: line,
+ justified,
+ duration,
+ pronoteType
+ };
+
+ if (!foundStudent.events) foundStudent.events = [];
+ foundStudent.events.push(ev);
+ sheetsProcessed.add(sheetName);
+ matchedCount++;
+ });
+
+ saveStorage();
+ populateClassFilter();
+ filterStudents();
+ if (!document.getElementById('pageRecap').classList.contains('hidden')) {
+ renderCurrentRecapView();
+ updateRecapBadges();
+ }
+ if (!document.getElementById('pageBilan').classList.contains('hidden')) {
+ renderBilanView();
+ }
+
+ let msg = `Import PRONOTE terminé : ${matchedCount} événement(s) importé(s) sur ${sheetsProcessed.size || totalSheets} feuille(s) analysée(s).`;
+ if (ignoreCantineMidi && ignoredMidiCount > 0) {
+ msg += `\n(${ignoredMidiCount} ligne(s) d'absence cantine « midi » ignorée(s) selon vos réglages.)`;
+ }
+ alert(msg);
+ }
+
+ // =========================================================
+ // 14. EXPORTATIONS PDF (GRAPHIQUE, SYNTHÈSE CLASSE, ALERTE CPE, ABSENCES INJUSTIFIÉES, CARTE CANTINE)
+ // =========================================================
  function openExportClassModal() {
  populateClassFilter();
  document.getElementById('exportClassModal').classList.remove('hidden');
- lucide.createIcons();
  }
 
  function handleExportClassPDF(e) {
@@ -5411,71 +5074,345 @@
  return;
  }
 
- const filtered = selectedClass === 'ALL' ? students : students.filter(s => s.classe === selectedClass);
+ const targetStudents = selectedClass === 'ALL'
+ ? students
+ : students.filter(s => s.classe === selectedClass);
+
+ if (targetStudents.length === 0) {
+ alert("Aucun élève à exporter pour cette sélection.");
+ return;
+ }
+
  const { jsPDF } = window.jspdf;
- const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+ const doc = new jsPDF('p', 'pt', 'a4');
+ const pageWidth = doc.internal.pageSize.getWidth();
+ const title = `Synthèse Vie Scolaire — ${selectedClass === 'ALL' ? 'Toutes les classes' : 'Classe ' + selectedClass}`;
 
- doc.setFillColor(30, 27, 75);
- doc.rect(0, 0, 210, 24, 'F');
- doc.setTextColor(255, 255, 255);
- doc.setFontSize(13);
- doc.setFont('helvetica', 'bold');
- doc.text(`EXPORT VIE SCOLAIRE — ${selectedClass === 'ALL' ? 'TOUTES LES CLASSES' : 'CLASSE ' + selectedClass}`, 14, 15);
+ doc.setFontSize(16);
+ doc.setTextColor(30, 41, 59);
+ doc.text(title, 40, 50);
 
- if (exportType === 'summary' || exportType === 'both') {
- const rows = filtered.map(s => {
+ doc.setFontSize(10);
+ doc.setTextColor(100, 116, 139);
+ doc.text(`Édité le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 40, 68);
+
+ const rows = targetStudents.map(s => {
  const events = s.events || [];
  const retards = events.filter(ev => ev.type === 'retard').length;
- const absences = events.filter(ev => ev.type === 'absence').length;
- const absInj = countUnjustifiedAbsences(s);
+ const absences = events.filter(ev => ev.type === 'absence' || ev.type === 'abs_injustifiee').length;
  const retenues = events.filter(ev => ev.type === 'retenue' || getStatutDetailFromMotif(ev.motif) === 'Retenue').reduce((sum, ev) => sum + getRetenueHours(ev), 0);
+ const absInjust = countUnjustifiedAbsences(s);
+ const badges = [
+ s.alerteCPE ? 'CPE' : '',
+ s.docNonRendu ? 'DOC' : '',
+ s.regime === 'Demi-pensionnaire' ? 'DP' : ''
+ ].filter(Boolean).join(', ') || '-';
+
  return [
  `${(s.nom || '').toUpperCase()} ${s.prenom || ''}`,
  s.classe || '-',
  retards,
  absences,
- absInj,
- `${retenues}h`,
- s.alerteCPE ? 'OUI' : 'Non'
+ absInjust,
+ `${Number.isInteger(retenues) ? retenues : retenues.toFixed(1)}h`,
+ badges
  ];
  });
 
  doc.autoTable({
- startY: 30,
- head: [['Élève', 'Classe', 'Retards', 'Absences', 'Abs. Inj.', 'Colles', 'CPE']],
+ startY: 85,
+ head: [['Élève', 'Classe', 'Retards', 'Absences', 'Abs. Inj.', 'Colles', 'Badges']],
  body: rows,
  theme: 'grid',
- headStyles: { fillColor: [79, 70, 229], fontSize: 8 },
- bodyStyles: { fontSize: 8 }
+ headStyles: { fillColor: [49, 46, 129] },
+ styles: { fontSize: 9, cellPadding: 5 }
  });
- }
 
  if (exportType === 'details' || exportType === 'both') {
  const detailRows = [];
- filtered.forEach(s => {
+ targetStudents.forEach(s => {
  (s.events || []).forEach(ev => {
+ const dStr = extractDateFromText(ev.motif) || ev.date;
+ const dObj = new Date(dStr);
+ const fDate = !isNaN(dObj.getTime()) ? dObj.toLocaleDateString('fr-FR') : (ev.date || '-');
  detailRows.push([
  `${(s.nom || '').toUpperCase()} ${s.prenom || ''}`,
  s.classe || '-',
+ fDate,
  ev.pronoteType || ev.type,
  ev.motif || '-'
  ]);
  });
  });
 
- const startYDetails = (exportType === 'both' && doc.lastAutoTable) ? doc.lastAutoTable.finalY + 8 : 30;
+ if (detailRows.length > 0) {
+ doc.addPage();
+ doc.setFontSize(14);
+ doc.setTextColor(30, 41, 59);
+ doc.text("Historique détaillé des événements", 40, 50);
+
  doc.autoTable({
- startY: startYDetails,
- head: [['Élève', 'Classe', 'Type', 'Motif']],
- body: detailRows.length > 0 ? detailRows : [['-', '-', 'Aucun événement', '-']],
+ startY: 70,
+ head: [['Élève', 'Classe', 'Date', 'Type', 'Motif / Détail']],
+ body: detailRows,
  theme: 'striped',
- headStyles: { fillColor: [15, 23, 42], fontSize: 8 },
- bodyStyles: { fontSize: 7.5 }
+ headStyles: { fillColor: [15, 23, 42] },
+ styles: { fontSize: 8.5, cellPadding: 4 }
+ });
+ }
+ }
+
+ const safeClassFile = selectedClass === 'ALL' ? 'Toutes_Classes' : selectedClass.replace(/\s+/g, '_');
+ doc.save(`VieScolaire_${safeClassFile}_${new Date().toISOString().slice(0, 10)}.pdf`);
+ }
+
+ function exportCpeAlertPDF() {
+ updateAutoCpeAlerts();
+ const alertStudents = students.filter(s => !!s.alerteCPE);
+ if (alertStudents.length === 0) {
+ alert("Aucun élève n'a d'Alerte CPE activée.");
+ return;
+ }
+
+ const { jsPDF } = window.jspdf;
+ const doc = new jsPDF('p', 'pt', 'a4');
+
+ doc.setFontSize(16);
+ doc.setTextColor(190, 18, 60);
+ doc.text("Liste des Élèves en Alerte CPE", 40, 50);
+
+ doc.setFontSize(10);
+ doc.setTextColor(100, 116, 139);
+ doc.text(`Édité le ${new Date().toLocaleDateString('fr-FR')} • ${alertStudents.length} élève(s)`, 40, 68);
+
+ const rows = alertStudents.map(s => {
+ const info = getExceededThresholdsInfo(s);
+ const absInjust = countUnjustifiedAbsences(s);
+ const retenues = (s.events || []).filter(ev => ev.type === 'retenue' || getStatutDetailFromMotif(ev.motif) === 'Retenue').reduce((sum, ev) => sum + getRetenueHours(ev), 0);
+
+ return [
+ `${(s.nom || '').toUpperCase()} ${s.prenom || ''}`,
+ s.classe || '-',
+ absInjust,
+ `${Number.isInteger(retenues) ? retenues : retenues.toFixed(1)}h`,
+ info.hasExceeded ? info.summaryText : 'Alerte manuelle CPE'
+ ];
+ });
+
+ doc.autoTable({
+ startY: 85,
+ head: [['Élève', 'Classe', 'Abs. Inj.', 'Colles', 'Raison / Seuils']],
+ body: rows,
+ theme: 'grid',
+ headStyles: { fillColor: [190, 18, 60] },
+ styles: { fontSize: 9, cellPadding: 5 }
+ });
+
+ doc.save(`Alerte_CPE_${new Date().toISOString().slice(0, 10)}.pdf`);
+ }
+
+ function exportUnjustifiedAbsencesPDF(targetClassFilter = null) {
+ const scopeStudents = students.filter(s => !targetClassFilter || targetClassFilter === 'ALL' || s.classe === targetClassFilter);
+ const items = [];
+
+ scopeStudents.forEach(s => {
+ const matchedEvents = getUnjustifiedUnknownReasonAbsences(s);
+ if (matchedEvents.length > 0) {
+ items.push({ student: s, events: matchedEvents });
+ }
+ });
+
+ if (items.length === 0) {
+ alert("Aucune absence injustifiée avec « Motif non encore connu » trouvée pour cette sélection.");
+ return;
+ }
+
+ const { jsPDF } = window.jspdf;
+ const doc = new jsPDF('p', 'pt', 'a4');
+ const pageWidth = doc.internal.pageSize.getWidth();
+
+ items.forEach((entry, idx) => {
+ if (idx > 0) doc.addPage();
+ const s = entry.student;
+
+ doc.setFontSize(15);
+ doc.setTextColor(153, 27, 27);
+ doc.text("Absences Injustifiées — Motif non encore connu", 40, 50);
+
+ doc.setFontSize(11);
+ doc.setTextColor(15, 23, 42);
+ doc.text(`Élève : ${(s.nom || '').toUpperCase()} ${s.prenom || ''}   |   Classe : ${s.classe || '-'}`, 40, 74);
+
+ doc.setFontSize(9);
+ doc.setTextColor(100, 116, 139);
+ doc.text(`Total concerné : ${entry.events.length} absence(s)   •   Édité le ${new Date().toLocaleDateString('fr-FR')}`, 40, 90);
+
+ const bodyRows = entry.events.map(ev => {
+ const dStr = extractDateFromText(ev.motif) || ev.date;
+ const dObj = new Date(dStr);
+ const fDate = !isNaN(dObj.getTime()) ? dObj.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : (ev.date || '-');
+ return [fDate, ev.motif || 'Motif non encore connu'];
+ });
+
+ doc.autoTable({
+ startY: 108,
+ head: [['Date / Créneau', 'Détail PRONOTE']],
+ body: bodyRows,
+ theme: 'grid',
+ headStyles: { fillColor: [185, 28, 28] },
+ styles: { fontSize: 9, cellPadding: 5 },
+ columnStyles: { 0: { cellWidth: 140 } }
+ });
+
+ doc.setFontSize(8);
+ doc.setTextColor(148, 163, 184);
+ doc.text(`Page ${idx + 1} / ${items.length}`, pageWidth - 90, doc.internal.pageSize.getHeight() - 25);
+ });
+
+ const suffix = (targetClassFilter && targetClassFilter !== 'ALL') ? `_${targetClassFilter.replace(/\s+/g, '_')}` : '';
+ doc.save(`Absences_Injustifiees${suffix}_${new Date().toISOString().slice(0, 10)}.pdf`);
+ }
+
+ function exportSingleStudentUnjustifiedAbsencesPDF() {
+ if (!selectedStudentId) return;
+ const s = students.find(st => st.id === selectedStudentId);
+ if (!s) return;
+
+ const matchedEvents = getUnjustifiedUnknownReasonAbsences(s);
+ if (matchedEvents.length === 0) {
+ alert(`Aucune absence injustifiée « Motif non encore connu » pour ${s.prenom || ''} ${(s.nom || '').toUpperCase()}.`);
+ return;
+ }
+
+ const { jsPDF } = window.jspdf;
+ const doc = new jsPDF('p', 'pt', 'a4');
+
+ doc.setFontSize(15);
+ doc.setTextColor(153, 27, 27);
+ doc.text("Absences Injustifiées — Motif non encore connu", 40, 50);
+
+ doc.setFontSize(11);
+ doc.setTextColor(15, 23, 42);
+ doc.text(`Élève : ${(s.nom || '').toUpperCase()} ${s.prenom || ''}   |   Classe : ${s.classe || '-'}`, 40, 74);
+
+ const bodyRows = matchedEvents.map(ev => {
+ const dStr = extractDateFromText(ev.motif) || ev.date;
+ const dObj = new Date(dStr);
+ const fDate = !isNaN(dObj.getTime()) ? dObj.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : (ev.date || '-');
+ return [fDate, ev.motif || 'Motif non encore connu'];
+ });
+
+ doc.autoTable({
+ startY: 96,
+ head: [['Date / Créneau', 'Détail PRONOTE']],
+ body: bodyRows,
+ theme: 'grid',
+ headStyles: { fillColor: [185, 28, 28] },
+ styles: { fontSize: 9, cellPadding: 5 },
+ columnStyles: { 0: { cellWidth: 140 } }
+ });
+
+ const safeName = `${(s.nom || '').toUpperCase()}_${s.prenom || ''}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+ doc.save(`Abs_Injustifiees_${safeName}.pdf`);
+ }
+
+ function exportStudentPDF() {
+ if (!selectedStudentId) return;
+ const s = students.find(st => st.id === selectedStudentId);
+ if (!s) return;
+
+ const { jsPDF } = window.jspdf;
+ const doc = new jsPDF('p', 'pt', 'a4');
+
+ const events = s.events || [];
+ const retards = events.filter(ev => ev.type === 'retard').length;
+ const absences = events.filter(ev => ev.type === 'absence' || ev.type === 'abs_injustifiee').length;
+ const retenues = events.filter(ev => ev.type === 'retenue' || getStatutDetailFromMotif(ev.motif) === 'Retenue').reduce((sum, ev) => sum + getRetenueHours(ev), 0);
+ const absInjust = countUnjustifiedAbsences(s);
+
+ doc.setFontSize(16);
+ doc.setTextColor(30, 41, 59);
+ doc.text(`Fiche Élève — ${(s.nom || '').toUpperCase()} ${s.prenom || ''}`, 40, 50);
+
+ doc.setFontSize(10);
+ doc.setTextColor(71, 85, 105);
+ doc.text(`Classe : ${s.classe || '-'}   |   Régime : ${s.regime || '-'}   |   Sortie : ${s.autorisationSortie || '-'}`, 40, 70);
+ doc.text(`Prof. Principal : ${s.profPrincipal || '-'}   |   Alerte CPE : ${s.alerteCPE ? 'Oui' : 'Non'}   |   Doc non rendu : ${s.docNonRendu ? 'Oui' : 'Non'}`, 40, 86);
+
+ doc.autoTable({
+ startY: 102,
+ head: [['Retards', 'Absences', 'Abs. Injustifiées', 'Heures Retenue']],
+ body: [[retards, absences, absInjust, `${Number.isInteger(retenues) ? retenues : retenues.toFixed(1)}h`]],
+ theme: 'grid',
+ headStyles: { fillColor: [49, 46, 129] },
+ styles: { fontSize: 9, cellPadding: 5, halign: 'center' }
+ });
+
+ if (events.length > 0) {
+ const evRows = events.map(ev => {
+ const dStr = extractDateFromText(ev.motif) || ev.date;
+ const dObj = new Date(dStr);
+ const fDate = !isNaN(dObj.getTime()) ? dObj.toLocaleDateString('fr-FR') : (ev.date || '-');
+ return [fDate, ev.pronoteType || ev.type, ev.motif || '-'];
+ });
+
+ doc.autoTable({
+ startY: 160,
+ head: [['Date', 'Événement', 'Motif / Détail']],
+ body: evRows,
+ theme: 'striped',
+ headStyles: { fillColor: [15, 23, 42] },
+ styles: { fontSize: 8.5, cellPadding: 4 }
  });
  }
 
- const classSuffix = selectedClass === 'ALL' ? 'Toutes_Classes' : selectedClass.replace(/\s+/g, '_');
- doc.save(`VieScolaire_${classSuffix}_${new Date().toISOString().slice(0,10)}.pdf`);
+ const safeName = `${(s.nom || '').toUpperCase()}_${s.prenom || ''}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+ doc.save(`Fiche_${safeName}.pdf`);
+ }
+
+ function exportCanteenCardPDF() {
+ if (!selectedStudentId) return;
+ const s = students.find(st => st.id === selectedStudentId);
+ if (!s) return;
+
+ const { jsPDF } = window.jspdf;
+ const doc = new jsPDF('p', 'pt', 'a4');
+
+ const cardW = 242.6;
+ const cardH = 153.1;
+ const cardX = 40;
+ const cardY = 50;
+
+ doc.setDrawColor(16, 185, 129);
+ doc.setLineWidth(1.5);
+ doc.roundedRect(cardX, cardY, cardW, cardH, 8, 8);
+
+ doc.setFillColor(15, 23, 42);
+ doc.rect(cardX, cardY, cardW, 28, 'F');
+
+ doc.setFontSize(10);
+ doc.setTextColor(255, 255, 255);
+ doc.text("CARTE CANTINE — SECOURS", cardX + 12, cardY + 18);
+
+ doc.setFontSize(11);
+ doc.setTextColor(15, 23, 42);
+ doc.text(`${(s.nom || '').toUpperCase()} ${s.prenom || ''}`, cardX + 12, cardY + 48);
+
+ doc.setFontSize(9);
+ doc.setTextColor(71, 85, 105);
+ doc.text(`Classe : ${s.classe || '-'}`, cardX + 12, cardY + 66);
+ doc.text(`Badge : ${s.badgeCantine || 'Non attribué'}`, cardX + 12, cardY + 82);
+ if (s.badgeRepere) {
+ doc.text(`Repère : ${s.badgeRepere}`, cardX + 12, cardY + 98);
+ }
+
+ const qrImg = document.querySelector('#qrcodeCanvas img');
+ if (qrImg && qrImg.src) {
+ doc.addImage(qrImg.src, 'PNG', cardX + cardW - 86, cardY + 40, 72, 72);
+ }
+
+ const safeName = `${(s.nom || '').toUpperCase()}_${s.prenom || ''}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+ doc.save(`Carte_Cantine_${safeName}.pdf`);
  }
  </script>
 </body>
